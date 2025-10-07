@@ -3,7 +3,7 @@ services:
     image: postgres:18-alpine
     container_name: timemanager_database
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -20,11 +20,13 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: timemanager_backend
+    env_file:
+      - ./backend/.env
     ports:
       - "8080:8000"
     volumes:
       - ./backend:/var/www/symfony
-    command: sh -c "composer install && php -S 0.0.0.0:8000 -t public"
+    command: ["sh", "-c", "composer install --no-scripts && php -S 0.0.0.0:8000 -t public"]
     networks:
       - timemanager_network
     depends_on:
