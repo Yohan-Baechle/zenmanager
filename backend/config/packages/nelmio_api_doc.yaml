@@ -1,0 +1,46 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Time Manager API
+            description: API for managing employees time tracking
+            version: 1.0.0
+        paths:
+            /api/login_check:
+                post:
+                    tags:
+                        - Authentication
+                    summary: Login to get JWT token
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        username:
+                                            type: string
+                                            example: manager@example.com
+                                        password:
+                                            type: string
+                                            example: password123
+                    responses:
+                        '200':
+                            description: JWT token
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            token:
+                                                type: string
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+        security:
+            - Bearer: []
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)
