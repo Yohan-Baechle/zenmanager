@@ -20,13 +20,13 @@ class Teams
     private ?string $description = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $updated_at = null;
+    private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column]
-    private ?int $manager_id = null;
+    private ?int $managerId = null;
 
     public function getId(): ?int
     {
@@ -59,36 +59,37 @@ class Teams
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $created_at;
 
         return $this;
     }
 
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->updated_at;
+        return $this->updatedAt;
     }
 
     public function setUpdatedAt(\DateTimeImmutable $updated_at): static
     {
-        $this->updated_at = $updated_at;
+        $updatedAt = null ;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
 
     public function getManagerId(): ?int
     {
-        return $this->manager_id;
+        return $this->managerId;
     }
 
-    public function setManagerId(int $manager_id): static
+    public function setManagerId(int $managerId): static
     {
-        $this->manager_id = $manager_id;
+        $this->managerId = $managerId;
 
         return $this;
     }
