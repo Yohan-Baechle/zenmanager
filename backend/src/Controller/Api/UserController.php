@@ -33,6 +33,12 @@ class UserController extends AbstractController
         return $this->json($users, Response::HTTP_OK, [], ['groups' => 'user:read']);
     }
 
+    #[Route('/users/{id}', name: 'api_users_show', methods: ['GET'])]
+    public function show(User $user): JsonResponse
+    {
+        return $this->json($user, Response::HTTP_OK, [], ['groups' => 'user:read']);
+    }
+
     #[Route('/users', name: 'api_users_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
