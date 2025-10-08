@@ -76,8 +76,7 @@ class Team
 
     public function setUpdatedAt(\DateTimeImmutable $updated_at): static
     {
-        $updatedAt = null ;
-        $this->updatedAt = $updatedAt;
+        $this->updatedAt = $updated_at;
 
         return $this;
     }
