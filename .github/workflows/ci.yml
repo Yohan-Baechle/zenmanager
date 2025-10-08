@@ -22,7 +22,7 @@
 
         - name: Install Composer dependencies
           working-directory: ./backend
-          run: composer install --no-scripts --no-interaction --no-progress --prefer-dist
+          run: composer install --no-interaction --no-progress --prefer-dist
 
         - name: Check Symfony console
           working-directory: ./backend
