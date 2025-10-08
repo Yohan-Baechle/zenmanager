@@ -24,14 +24,14 @@ class TeamController extends AbstractController
     ) {
     }
 
-    #[Route('/teams', name: 'api_teams_index', methods: ['GET'])]
+    #[Route('/team', name: 'api_team_index', methods: ['GET'])]
     public function index(TeamRepository $teamRepository): JsonResponse
     {
         $teams = $teamRepository->findAll();
         return $this->json($teams, Response::HTTP_OK, [], ['groups' => 'team:read']);
     }
 
-    #[Route('/teams', name: 'api_teams_create', methods: ['POST'])]
+    #[Route('/team', name: 'api_team_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         try {
@@ -65,7 +65,7 @@ class TeamController extends AbstractController
         }
     }
 
-    #[Route('/teams/{id}', name: 'api_teams_update', methods: ['PUT'])]
+    #[Route('/team/{id}', name: 'api_team_update', methods: ['PUT'])]
     public function update(Team $team, Request $request): JsonResponse
     {
         try {
@@ -92,7 +92,7 @@ class TeamController extends AbstractController
         }
     }
 
-    #[Route('/teams/{id}', name: 'api_teams_delete', methods: ['DELETE'])]
+    #[Route('/team/{id}', name: 'api_team_delete', methods: ['DELETE'])]
     public function delete(Team $team): JsonResponse
     {
         $this->em->remove($team);
