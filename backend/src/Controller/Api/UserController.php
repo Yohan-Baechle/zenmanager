@@ -14,14 +14,15 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use OpenApi\Attributes as OA;
 
 class UserController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface      $em,
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly ValidatorInterface          $validator,
-        private readonly SerializerInterface $serializer
+        private EntityManagerInterface $em,
+        private UserPasswordHasherInterface $passwordHasher,
+        private ValidatorInterface $validator,
+        private SerializerInterface $serializer
     ) {
     }
 
