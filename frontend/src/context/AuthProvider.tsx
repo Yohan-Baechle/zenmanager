@@ -33,9 +33,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, [])
 
     const login = async (credentials: LoginDto) => {
-        const { token, user: userData } = await authApi.login(credentials)
+        const { token } = await authApi.login(credentials)
         tokenUtils.set(token)
-        setUser(userData)
+        const currentUser = await authApi.getCurrentUser()
+        setUser(currentUser)
     }
 
     const logout = async () => {
