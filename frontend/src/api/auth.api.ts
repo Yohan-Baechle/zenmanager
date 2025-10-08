@@ -3,16 +3,16 @@ import type { LoginDto, AuthResponse } from '../types/auth.types'
 
 export const authApi = {
     login: async (credentials: LoginDto): Promise<AuthResponse> => {
-        const response = await apiClient.post<AuthResponse>('/auth/login', credentials)
+        const response = await apiClient.post<AuthResponse>('/login_check', credentials)
         return response.data
     },
 
     logout: async (): Promise<void> => {
-        await apiClient.post('/auth/logout')
+        await apiClient.post('/logout')
     },
 
     getCurrentUser: async () => {
-        const response = await apiClient.get('/auth/me')
+        const response = await apiClient.get('/me')
         return response.data
     },
 }
