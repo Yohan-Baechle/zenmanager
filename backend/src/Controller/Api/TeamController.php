@@ -25,9 +25,9 @@ class TeamController extends AbstractController
     ) {
     }
 
-    #[Route('/team', name: 'api_team_index', methods: ['GET'])]
+    #[Route('/teams', name: 'api_teams_index', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/team',
+        path: '/api/teams',
         summary: 'Get all teams',
         tags: ['Teams']
     )]
@@ -53,9 +53,9 @@ class TeamController extends AbstractController
         return $this->json($teams, Response::HTTP_OK, [], ['groups' => 'team:read']);
     }
 
-    #[Route('/team/{id}', name: 'api_team_show', methods: ['GET'])]
+    #[Route('/teams/{id}', name: 'api_teams_show', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/team/{id}',
+        path: '/api/teams/{id}',
         summary: 'Get team by ID',
         tags: ['Teams']
     )]
@@ -88,9 +88,9 @@ class TeamController extends AbstractController
         return $this->json($team, Response::HTTP_OK, [], ['groups' => 'team:read']);
     }
 
-    #[Route('/team', name: 'api_team_create', methods: ['POST'])]
+    #[Route('/teams', name: 'api_teams_create', methods: ['POST'])]
     #[OA\Post(
-        path: '/api/team',
+        path: '/api/teams',
         summary: 'Create a new team',
         requestBody: new OA\RequestBody(
             required: true,
@@ -155,9 +155,9 @@ class TeamController extends AbstractController
         }
     }
 
-    #[Route('/team/{id}', name: 'api_team_update', methods: ['PUT'])]
+    #[Route('/teams/{id}', name: 'api_teams_update', methods: ['PUT'])]
     #[OA\Put(
-        path: '/api/team/{id}',
+        path: '/api/teams/{id}',
         summary: 'Update an existing team',
         requestBody: new OA\RequestBody(
             required: true,
@@ -229,9 +229,9 @@ class TeamController extends AbstractController
         }
     }
 
-    #[Route('/team/{id}', name: 'api_team_delete', methods: ['DELETE'])]
+    #[Route('/teams/{id}', name: 'api_teams_delete', methods: ['DELETE'])]
     #[OA\Delete(
-        path: '/api/team/{id}',
+        path: '/api/teams/{id}',
         summary: 'Delete a team',
         tags: ['Teams'],
         parameters: [
