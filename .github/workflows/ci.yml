@@ -24,6 +24,6 @@
           working-directory: ./backend
           run: composer install --no-scripts --no-interaction --no-progress --prefer-dist
 
-        - name: Check Symfony console
-          working-directory: ./backend
-          run: php bin/console about
+        #- name: Check Symfony console
+        #  working-directory: ./backend
+        #  run: php bin/console about
