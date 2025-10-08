@@ -1,11 +1,9 @@
-import type { User } from './user.types'
-
-export interface LoginDto {
-    email: string
+export type LoginDto = {
+    username: string
     password: string
 }
 
-export interface AuthResponse {
+export type AuthResponse = {
     token: string
-    user: User
+    user: { id: number }
 }
