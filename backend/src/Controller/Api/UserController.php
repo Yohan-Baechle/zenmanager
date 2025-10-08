@@ -2,6 +2,8 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\Clock;
+use App\Entity\Team;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,7 +47,7 @@ class UserController extends AbstractController
                     new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                     new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                    new OA\Property(property: 'role', type: 'string', example: 'admin'),
+                    new OA\Property(property: 'role', type: 'string', example: 'employee'),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                     new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
                 ]
@@ -81,7 +83,7 @@ class UserController extends AbstractController
                 new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                 new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                 new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                new OA\Property(property: 'role', type: 'string', example: 'admin'),
+                new OA\Property(property: 'role', type: 'string', example: 'employee'),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
             ]
@@ -110,7 +112,8 @@ class UserController extends AbstractController
                     new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                     new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                    new OA\Property(property: 'role', type: 'string', example: 'user')
+                    new OA\Property(property: 'role', type: 'string', example: 'employee', description: 'Must be either "employee" or "manager"'),
+                    new OA\Property(property: 'teamId', type: 'integer', example: 1, nullable: true, description: 'Team ID')
                 ]
             )
         ),
@@ -126,7 +129,7 @@ class UserController extends AbstractController
                         new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                         new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                         new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                        new OA\Property(property: 'role', type: 'string', example: 'user'),
+                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                         new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
                     ]
@@ -140,6 +143,10 @@ class UserController extends AbstractController
                         new OA\Property(property: 'errors', type: 'object')
                     ]
                 )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Team not found'
             )
         ]
     )]
@@ -171,7 +178,8 @@ class UserController extends AbstractController
                     new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                     new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                    new OA\Property(property: 'role', type: 'string', example: 'admin')
+                    new OA\Property(property: 'role', type: 'string', example: 'manager', description: 'Must be either "employee" or "manager"'),
+                    new OA\Property(property: 'teamId', type: 'integer', example: 1, nullable: true, description: 'Team ID')
                 ]
             )
         ),
@@ -196,7 +204,7 @@ class UserController extends AbstractController
                         new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                         new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                         new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                        new OA\Property(property: 'role', type: 'string', example: 'admin'),
+                        new OA\Property(property: 'role', type: 'string', example: 'manager'),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                         new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
                     ]
@@ -208,7 +216,7 @@ class UserController extends AbstractController
             ),
             new OA\Response(
                 response: 404,
-                description: 'User not found'
+                description: 'User or Team not found'
             )
         ]
     )]
@@ -261,6 +269,95 @@ class UserController extends AbstractController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
+    #[Route('/users/{id}/clocks', name: 'api_users_clocks', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/users/{id}/clocks',
+        summary: 'Get a summary of the arrivals and departures of an employee',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'User ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Parameter(
+        name: 'start',
+        description: 'Filter by start date (ISO 8601 format)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'string', format: 'date-time', example: '2025-10-01T00:00:00Z')
+    )]
+    #[OA\Parameter(
+        name: 'end',
+        description: 'Filter by end date (ISO 8601 format)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'string', format: 'date-time', example: '2025-10-31T23:59:59Z')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Successful operation',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                    new OA\Property(property: 'time', type: 'string', format: 'date-time'),
+                    new OA\Property(
+                        property: 'status',
+                        type: 'boolean',
+                        example: true,
+                        description: 'true for clock-in (arrival), false for clock-out (departure)'
+                    ),
+                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid date format'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User not found'
+    )]
+    public function getClocks(User $user, Request $request): JsonResponse
+    {
+        $queryBuilder = $this->em->getRepository(Clock::class)
+            ->createQueryBuilder('c')
+            ->where('c.owner = :user')
+            ->setParameter('user', $user)
+            ->orderBy('c.time', 'DESC');
+
+        // Filter by date if provided
+        if ($request->query->has('start')) {
+            try {
+                $startDate = new \DateTimeImmutable($request->query->get('start'));
+                $queryBuilder->andWhere('c.time >= :start')
+                    ->setParameter('start', $startDate);
+            } catch (\Exception $e) {
+                return $this->json(['error' => 'Invalid start date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        if ($request->query->has('end')) {
+            try {
+                $endDate = new \DateTimeImmutable($request->query->get('end'));
+                $queryBuilder->andWhere('c.time <= :end')
+                    ->setParameter('end', $endDate);
+            } catch (\Exception $e) {
+                return $this->json(['error' => 'Invalid end date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $clocks = $queryBuilder->getQuery()->getResult();
+
+        return $this->json($clocks, Response::HTTP_OK, [], ['groups' => 'clock:read']);
+    }
+
     /**
      * Handle user data validation, password hashing, and persistence
      */
@@ -269,6 +366,19 @@ class UserController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $this->hashPasswordIfProvided($user, $data);
+
+        // Assign team if provided
+        if (isset($data['teamId'])) {
+            if ($data['teamId'] !== null) {
+                $team = $this->em->getRepository(Team::class)->find($data['teamId']);
+                if (!$team) {
+                    return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
+                }
+                $user->setTeam($team);
+            } else {
+                $user->setTeam(null);
+            }
+        }
 
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
@@ -285,7 +395,7 @@ class UserController extends AbstractController
 
         $this->em->flush();
 
-        return $this->json($user, $statusCode, [], ['groups' => 'user:read']);
+        return $this->json($user, $statusCode, [], ['groups' => ['user:read', 'team:read']]);
     }
 
     private function hashPasswordIfProvided(User $user, array $data): void
