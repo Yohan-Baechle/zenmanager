@@ -5,4 +5,5 @@ export type LoginDto = {
 
 export type AuthResponse = {
     token: string
+    user: { id: number }
 }

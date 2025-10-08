@@ -7,18 +7,13 @@ export const authApi = {
             username: credentials.username,
             password: credentials.password,
         }
-        const response = await apiClient.post<AuthResponse>('/login_check', payload, {
+        const { data } = await apiClient.post<AuthResponse>('/login_check', payload, {
             headers: { 'Content-Type': 'application/json' },
         })
-        return response.data
+        return data
     },
 
     logout: async (): Promise<void> => {
         await apiClient.post('/logout')
-    },
-
-    getCurrentUser: async () => {
-        const response = await apiClient.get('/me')
-        return response.data
     },
 }
