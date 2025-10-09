@@ -42,6 +42,9 @@
             php bin/console cache:clear --no-warmup
             php bin/console about
 
+        #check we're not missing any env variables
+        - name: Check Symfony container is valid
+          run: php bin/console lint:container
 
         - name: Run PHPUnit tests
           run: |
