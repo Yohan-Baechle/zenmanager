@@ -12,12 +12,16 @@ class UserTest extends TestCase
     public function testConstructorWithNullValues(): void
     {
         $user = new User();
+        $user = new \App\Entity\User(); 
 
         $this->assertNull($user->getEmail());
         $this->assertNull($user->getFirstName());
         $this->assertNull($user->getLastName());
         $this->assertNull($user->getPhoneNumber());
         $this->assertNull($user->getId());
+
+        $this->assertNotNull($user->getCreatedAt(), 'CreatedAt should not be null');
+        $this->assertNotNull($user->getUpdatedAt(), 'UpdatedAt should not be null');
 
         $this->assertInstanceOf(DateTimeImmutable::class, $user->getCreatedAt());
         $this->assertInstanceOf(DateTimeImmutable::class, $user->getUpdatedAt());
