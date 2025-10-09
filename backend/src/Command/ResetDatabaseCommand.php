@@ -26,26 +26,22 @@ class ResetDatabaseCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('🔄 Resetting the database');
 
-        // 1) Drop the existing database (if it exists)
         $io->section('Dropping the database…');
         $this->runSubCommand($io, 'doctrine:database:drop', [
             '--force' => true,
             '--if-exists' => true,
         ]);
 
-        // 2) Create a fresh database
         $io->section('Creating the database…');
         $this->runSubCommand($io, 'doctrine:database:create', [
             '--if-not-exists' => true,
         ]);
 
-        // 3) Run all migrations
         $io->section('Running migrations…');
         $this->runSubCommand($io, 'doctrine:migrations:migrate', [
             '--no-interaction' => true,
         ]);
 
-        // 4) Load data fixtures
         $io->section('Loading fixtures…');
         $this->runSubCommand($io, 'doctrine:fixtures:load', [
             '--no-interaction' => true,
