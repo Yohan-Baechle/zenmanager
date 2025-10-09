@@ -9,11 +9,10 @@ use DateTimeImmutable;
 
 class UserTest extends TestCase
 {
-    /*
+    
     public function testConstructorWithNullValues(): void
     {
         $user = new User();
-        $user = new \App\Entity\User(); 
 
         $this->assertNull($user->getEmail());
         $this->assertNull($user->getFirstName());
@@ -39,7 +38,7 @@ class UserTest extends TestCase
             $user->getUpdatedAt()->getTimestamp(),
             0.1 // allows 0.1 of latency 
         );
-    }*/
+    }
 
     public function testSettersAndGetters(): void
     {
@@ -70,7 +69,6 @@ class UserTest extends TestCase
         $this->assertEqualsCanonicalizing(['ROLE_ADMIN', 'ROLE_USER'], $user->getRoles());
     }
 
-    /*
     public function testGetUserIdentifier(): void
     {
         $user = new User();
@@ -80,7 +78,7 @@ class UserTest extends TestCase
 
         $user->setEmail('a@b.c');
         $this->assertSame('a@b.c', $user->getUserIdentifier());
-    }*/
+    }
 
     #that test is currently a bit fragile, so it might break in the future 
     #(\0Class\0property is namespace implementation detail and
