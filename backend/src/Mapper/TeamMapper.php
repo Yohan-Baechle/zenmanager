@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Mapper;
+
+use App\Dto\Team\TeamInputDto;
+use App\Dto\Team\TeamOutputDto;
+use App\Dto\Team\TeamUpdateDto;
+use App\Entity\Team;
+use App\Entity\User;
+
+class TeamMapper
+{
+    public function __construct(
+        private readonly UserMapper $userMapper
+    ) {}
+
+    public function toOutputDto(Team $team): TeamOutputDto
+    {
+        return new TeamOutputDto(
+            id: $team->getId(),
+            name: $team->getName(),
+            description: $team->getDescription(),
+            manager: $team->getManager()
+                ? $this->userMapper->toOutputDto($team->getManager())
+                : null,
+            createdAt: $team->getCreatedAt(),
+            updatedAt: $team->getUpdatedAt(),
+        );
+    }
+
+    /**
+     * @param Team[] $teams
+     * @return TeamOutputDto[]
+     */
+    public function toOutputDtoCollection(array $teams): array
+    {
+        return array_map(fn(Team $team) => $this->toOutputDto($team), $teams);
+    }
+
+    public function toEntity(TeamInputDto $dto, ?User $manager = null): Team
+    {
+        $team = new Team();
+        $team->setName($dto->name);
+        $team->setDescription($dto->description);
+        $team->setManager($manager);
+
+        return $team;
+    }
+
+    public function updateEntity(Team $team, TeamUpdateDto $dto, ?User $manager = null): void
+    {
+        if ($dto->name !== null) {
+            $team->setName($dto->name);
+        }
+
+        if ($dto->description !== null) {
+            $team->setDescription($dto->description);
+        }
+
+        // Si managerId est fourni dans le DTO, on met à jour le manager
+        // Note: $manager peut être null pour supprimer le manager
+        if (isset($dto->managerId) || $manager !== null) {
+            $team->setManager($manager);
+        }
+    }
+}
