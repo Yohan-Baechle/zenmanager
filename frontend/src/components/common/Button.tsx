@@ -5,16 +5,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode
 }
 
-export default function Button({
-                                   variant = 'primary',
-                                   children,
-                                   className = '',
-                                   ...props
-                               }: ButtonProps) {
-    const baseStyles = 'px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+export default function Button({variant = 'primary', children, className = '', ...props}: ButtonProps) {
+    const baseStyles = 'px-[18px] py-[14px] rounded-xl font-medium font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700',
+        primary: 'bg-[var(--c4)] text-[var(--c1)] hover:bg-[var(--c5)]',
         secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
         danger: 'bg-red-600 text-white hover:bg-red-700',
     }
