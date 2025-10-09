@@ -3,8 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\TeamRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
@@ -14,30 +15,32 @@ class Team
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['team:read', 'team:write'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 100)]
     private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['team:read', 'team:write'])]
     private ?string $description = null;
 
-    #[ORM\ManyToOne]
-    #[Groups(['team:read', 'team:write'])]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'managedTeams')]
     private ?User $manager = null;
 
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'team')]
+    private Collection $employees;
+
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    public function __construct()
+    {
+        $this->employees = new ArrayCollection();
+    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
@@ -91,6 +94,35 @@ class Team
     public function setManager(?User $manager): static
     {
         $this->manager = $manager;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getEmployees(): Collection
+    {
+        return $this->employees;
+    }
+
+    public function addEmployee(User $employee): static
+    {
+        if (!$this->employees->contains($employee)) {
+            $this->employees->add($employee);
+            $employee->setTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmployee(User $employee): static
+    {
+        if ($this->employees->removeElement($employee)) {
+            if ($employee->getTeam() === $this) {
+                $employee->setTeam(null);
+            }
+        }
 
         return $this;
     }
