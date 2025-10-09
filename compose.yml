@@ -26,7 +26,12 @@ services:
       - "8080:8000"
     volumes:
       - ./backend:/var/www/symfony
-    command: ["sh", "-c", "composer install --no-scripts && php -S 0.0.0.0:8000 -t public"]
+    command: >
+      sh -c "composer install --no-scripts &&
+             echo '⏳ Waiting for database...' &&
+             sleep 5 &&
+             php bin/console app:reset-db -n &&
+             php -S 0.0.0.0:8000 -t public"
     networks:
       - timemanager_network
     depends_on:
