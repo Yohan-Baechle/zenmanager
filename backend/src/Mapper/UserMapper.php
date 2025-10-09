@@ -24,7 +24,7 @@ class UserMapper
             firstName: $user->getFirstName(),
             lastName: $user->getLastName(),
             phoneNumber: $user->getPhoneNumber(),
-            role: $user->getRole(),
+            role: $user->getBusinessRole(),
             team: $user->getTeam() ? $this->teamToOutputDto($user->getTeam()) : null,
             createdAt: $user->getCreatedAt(),
             updatedAt: $user->getUpdatedAt(),
@@ -48,7 +48,7 @@ class UserMapper
         $user->setFirstName($dto->firstName);
         $user->setLastName($dto->lastName);
         $user->setPhoneNumber($dto->phoneNumber);
-        $user->setRole($dto->role);
+        $user->setBusinessRole($dto->role);
         $user->setTeam($team);
 
         if ($dto->password) {
@@ -78,7 +78,7 @@ class UserMapper
         }
 
         if ($dto->role !== null) {
-            $user->setRole($dto->role);
+            $user->setBusinessRole($dto->role);
         }
 
         if ($dto->password !== null) {

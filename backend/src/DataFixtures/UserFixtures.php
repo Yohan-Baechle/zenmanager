@@ -37,7 +37,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
                 ->setFirstName($faker->firstName())
                 ->setLastName($faker->lastName())
                 ->setPhoneNumber($faker->phoneNumber())
-                ->setRole($role);
+                ->setBusinessRole($role);
 
             $hashedPassword = $this->passwordHasher->hashPassword($user, 'password123');
             $user->setPassword($hashedPassword);
