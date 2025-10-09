@@ -16,7 +16,6 @@ class TeamMapper
 
     public function toOutputDto(Team $team): TeamOutputDto
     {
-        // Mapper les employés
         $employees = [];
         foreach ($team->getEmployees() as $employee) {
             $employees[] = $this->userMapper->toOutputDto($employee);
@@ -29,7 +28,7 @@ class TeamMapper
             manager: $team->getManager()
                 ? $this->userMapper->toOutputDto($team->getManager())
                 : null,
-            employees: $employees,  // ← Ajouté
+            employees: $employees,
             createdAt: $team->getCreatedAt(),
             updatedAt: $team->getUpdatedAt(),
         );
