@@ -16,7 +16,6 @@ class WorkingTimeMapper
 
     public function toOutputDto(WorkingTime $workingTime): WorkingTimeOutputDto
     {
-        // Calcul de la durée en minutes
         $interval = $workingTime->getStartTime()->diff($workingTime->getEndTime());
         $durationMinutes = ($interval->h * 60) + $interval->i;
 
