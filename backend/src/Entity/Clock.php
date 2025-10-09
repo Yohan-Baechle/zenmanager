@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\ClockRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ClockRepository::class)]
@@ -14,26 +13,21 @@ class Clock
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['clock:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(['clock:read', 'clock:write'])]
     #[Assert\NotNull]
     private ?\DateTimeImmutable $time = null;
 
     #[ORM\Column]
-    #[Groups(['clock:read', 'clock:write'])]
     #[Assert\NotNull]
     private ?bool $status = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['clock:read'])]
     private ?User $owner = null;
 
     #[ORM\Column]
-    #[Groups(['clock:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\PrePersist]
