@@ -46,11 +46,11 @@
         - name: Check Symfony container is valid
           run: php bin/console lint:container
 
-        #- name: Run Doctrine migrations
-        #  run: php bin/console doctrine:migrations:migrate --no-interaction
-
         - name: Check routes
           run: php bin/console debug:router
+
+        - name: Clear cache and var
+          run: rm -rf var/cache/*
 
         - name: Run PHPUnit tests (Entities only)
           run: php bin/phpunit tests/Entity/UserTest.php

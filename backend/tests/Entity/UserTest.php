@@ -75,7 +75,7 @@ class UserTest extends TestCase
 
         // when email is null, getUserIdentifier returns empty string (due to cast)
         $this->assertSame('', $user->getUserIdentifier());
-
+        print_r($user);
         $user->setEmail('a@b.c');
         $this->assertSame('a@b.c', $user->getUserIdentifier());
     }

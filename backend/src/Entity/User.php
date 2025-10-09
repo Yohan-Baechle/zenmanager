@@ -62,8 +62,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
+        try {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        } catch (\Throwable $e) {
+            error_log('Error in constructor: ' . $e->getMessage());
+        }
     }
 
     #[ORM\PreUpdate]
