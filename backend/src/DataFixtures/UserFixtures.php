@@ -33,6 +33,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $user->setEmail($faker->unique()->email())
+                ->setUsername($faker->unique()->userName())
                 ->setFirstName($faker->firstName())
                 ->setLastName($faker->lastName())
                 ->setPhoneNumber($faker->phoneNumber())
