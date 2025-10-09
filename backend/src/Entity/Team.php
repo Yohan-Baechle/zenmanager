@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\TeamRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
@@ -14,29 +13,23 @@ class Team
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['team:read', 'team:write'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 100)]
     private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['team:read', 'team:write'])]
     private ?string $description = null;
 
     #[ORM\ManyToOne]
-    #[Groups(['team:read', 'team:write'])]
     private ?User $manager = null;
 
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['team:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PrePersist]
