@@ -6,7 +6,6 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
@@ -20,11 +19,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Email]
     private ?string $email = null;
@@ -33,7 +30,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['user:write'])]
     private array $roles = [];
 
     /**
@@ -43,19 +39,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 100)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Length(min: 2, max: 100)]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\Regex(
         pattern: '/^\+?[1-9]\d{1,14}$/',
         message: 'Invalid phone number format'
@@ -63,21 +56,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $phoneNumber = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['user:read', 'user:write'])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
     private ?string $role = null;
 
     #[ORM\ManyToOne]
-    #[Groups(['user:read', 'user:write'])]
     private ?Team $team = null;
 
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PrePersist]
