@@ -7,6 +7,7 @@ use App\Dto\User\UserUpdateDto;
 use App\Entity\Clock;
 use App\Entity\Team;
 use App\Entity\User;
+use App\Mapper\ClockMapper;
 use App\Mapper\UserMapper;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,7 +24,8 @@ class UserController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly UserMapper $userMapper
+        private readonly UserMapper $userMapper,
+        private readonly ClockMapper $clockMapper
     ) {}
 
     #[Route('/users', name: 'api_users_index', methods: ['GET'])]
@@ -47,12 +49,12 @@ class UserController extends AbstractController
                     new OA\Property(property: 'role', type: 'string', example: 'employee'),
                     new OA\Property(
                         property: 'team',
-                        type: 'object',
-                        nullable: true,
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
                             new OA\Property(property: 'name', type: 'string', example: 'Development Team')
-                        ]
+                        ],
+                        type: 'object',
+                        nullable: true
                     ),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                     new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
@@ -356,6 +358,29 @@ class UserController extends AbstractController
                         type: 'boolean',
                         example: true
                     ),
+                    new OA\Property(
+                        property: 'owner',
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                            new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                            new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                            new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                            new OA\Property(
+                                property: 'team',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                ],
+                                type: 'object',
+                                nullable: true
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        ],
+                        type: 'object'
+                    ),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
                 ]
             )
@@ -399,6 +424,8 @@ class UserController extends AbstractController
 
         $clocks = $queryBuilder->getQuery()->getResult();
 
-        return $this->json($clocks, Response::HTTP_OK, [], ['groups' => 'clock:read']);
+        $clockDtos = $this->clockMapper->toOutputDtoCollection($clocks);
+
+        return $this->json($clockDtos);
     }
 }
