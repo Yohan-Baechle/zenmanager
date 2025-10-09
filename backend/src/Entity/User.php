@@ -69,6 +69,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $role = null;
 
     #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['user:read', 'user:write'])]
     private ?Team $team = null;
 
