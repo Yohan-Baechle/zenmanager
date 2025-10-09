@@ -69,7 +69,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
     private ?string $role = null;
 
-    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'employees')]
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[Groups(['user:read', 'user:write'])]
     private ?Team $team = null;
 
     #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'manager')]

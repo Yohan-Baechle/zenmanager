@@ -3,11 +3,14 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Entity\Team;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Faker\Factory;
 
-class UserFixtures extends Fixture
+class UserFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher
@@ -16,34 +19,50 @@ class UserFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // Manager
-        $manager1 = (new User())
-            ->setEmail('manager@example.com')
-            ->setUsername('manager')
-            ->setFirstName('John')
-            ->setLastName('Manager')
-            ->setPhoneNumber('0612345678')
-            ->setRole('manager');
+        $faker = Factory::create('fr_FR');
 
-        $manager1->setPassword(
-            $this->passwordHasher->hashPassword($manager1, 'password123')
-        );
-        $manager->persist($manager1);
+        // Create 30 users
+        for ($i = 1; $i <= 30; $i++) {
+            $user = new User();
+            $role = $i <= 10 ? 'manager' : 'employee'; // 10 managers, 20 employees
 
-        // Employee
-        $employee1 = (new User())
-            ->setEmail('employee1@example.com')
-            ->setUsername('alice')
-            ->setFirstName('Alice')
-            ->setLastName('Employee')
-            ->setPhoneNumber('0623456789')
-            ->setRole('employee');
+            // Assign a random team (80% chance to have a team)
+            if ($faker->boolean(80)) {
+                $teamIndex = $faker->numberBetween(1, 30);
+                $user->setTeam($this->getReference('team-' . $teamIndex, Team::class));
+            }
 
-        $employee1->setPassword(
-            $this->passwordHasher->hashPassword($employee1, 'password123')
-        );
-        $manager->persist($employee1);
+            $user->setEmail($faker->unique()->email())
+                ->setFirstName($faker->firstName())
+                ->setLastName($faker->lastName())
+                ->setPhoneNumber($faker->phoneNumber())
+                ->setRole($role);
+
+            $hashedPassword = $this->passwordHasher->hashPassword($user, 'password123');
+            $user->setPassword($hashedPassword);
+
+            $manager->persist($user);
+            $this->addReference('user-' . $i, $user);
+        }
 
         $manager->flush();
+
+        // Assign managers to teams
+        for ($i = 1; $i <= 30; $i++) {
+            if ($faker->boolean(70)) { // 70% chance to have a manager
+                $managerIndex = $faker->numberBetween(1, 10); // Pick from managers (users 1-10)
+                $team = $this->getReference('team-' . $i, Team::class);
+                $team->setManager($this->getReference('user-' . $managerIndex, User::class));
+            }
+        }
+
+        $manager->flush();
+    }
+
+    public function getDependencies(): array
+    {
+        return [
+            TeamFixtures::class,
+        ];
     }
 }
