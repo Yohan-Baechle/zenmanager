@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -67,14 +69,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
     private ?string $role = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'employees')]
     private ?Team $team = null;
+
+    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'manager')]
+    private Collection $managedTeams;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    public function __construct()
+    {
+        $this->managedTeams = new ArrayCollection();
+    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
@@ -232,6 +242,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * Get the team this user is a member of (as an employee)
+     */
     public function getTeam(): ?Team
     {
         return $this->team;
@@ -240,6 +253,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTeam(?Team $team): static
     {
         $this->team = $team;
+
+        return $this;
+    }
+
+    /**
+     * Get the teams this user manages
+     * @return Collection<int, Team>
+     */
+    public function getManagedTeams(): Collection
+    {
+        return $this->managedTeams;
+    }
+
+    public function addManagedTeam(Team $team): static
+    {
+        if (!$this->managedTeams->contains($team)) {
+            $this->managedTeams->add($team);
+            $team->setManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeManagedTeam(Team $team): static
+    {
+        if ($this->managedTeams->removeElement($team)) {
+            if ($team->getManager() === $this) {
+                $team->setManager(null);
+            }
+        }
 
         return $this;
     }

@@ -44,12 +44,27 @@ class TeamController extends AbstractController
                         property: 'manager',
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                             new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                             new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                             new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
                         ],
                         type: 'object',
                         nullable: true
+                    ),
+                    new OA\Property(
+                        property: 'employees',
+                        type: 'array',
+                        items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 2),
+                                new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                                new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
+                                new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                                new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                                new OA\Property(property: 'role', type: 'string', example: 'employee')
+                            ]
+                        )
                     ),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                     new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
@@ -90,12 +105,27 @@ class TeamController extends AbstractController
                     property: 'manager',
                     properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                         new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                         new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                         new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
                     ],
                     type: 'object',
                     nullable: true
+                ),
+                new OA\Property(
+                    property: 'employees',
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 2),
+                            new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                            new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
+                            new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                            new OA\Property(property: 'role', type: 'string', example: 'employee')
+                        ]
+                    )
                 ),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
@@ -141,12 +171,18 @@ class TeamController extends AbstractController
                             property: 'manager',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                                 new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                                 new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                                 new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
                             ],
                             type: 'object',
                             nullable: true
+                        ),
+                        new OA\Property(
+                            property: 'employees',
+                            type: 'array',
+                            items: new OA\Items(type: 'object')
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                         new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
@@ -225,12 +261,18 @@ class TeamController extends AbstractController
                             property: 'manager',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 2),
+                                new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
                                 new OA\Property(property: 'email', type: 'string', example: 'newmanager@example.com'),
                                 new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                                 new OA\Property(property: 'lastName', type: 'string', example: 'Smith')
                             ],
                             type: 'object',
                             nullable: true
+                        ),
+                        new OA\Property(
+                            property: 'employees',
+                            type: 'array',
+                            items: new OA\Items(type: 'object')
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                         new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')

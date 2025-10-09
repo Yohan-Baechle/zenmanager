@@ -16,6 +16,12 @@ class TeamMapper
 
     public function toOutputDto(Team $team): TeamOutputDto
     {
+        // Mapper les employés
+        $employees = [];
+        foreach ($team->getEmployees() as $employee) {
+            $employees[] = $this->userMapper->toOutputDto($employee);
+        }
+
         return new TeamOutputDto(
             id: $team->getId(),
             name: $team->getName(),
@@ -23,6 +29,7 @@ class TeamMapper
             manager: $team->getManager()
                 ? $this->userMapper->toOutputDto($team->getManager())
                 : null,
+            employees: $employees,  // ← Ajouté
             createdAt: $team->getCreatedAt(),
             updatedAt: $team->getUpdatedAt(),
         );
@@ -57,8 +64,6 @@ class TeamMapper
             $team->setDescription($dto->description);
         }
 
-        // Si managerId est fourni dans le DTO, on met à jour le manager
-        // Note: $manager peut être null pour supprimer le manager
         if (isset($dto->managerId) || $manager !== null) {
             $team->setManager($manager);
         }

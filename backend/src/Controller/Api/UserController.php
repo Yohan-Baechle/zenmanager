@@ -42,6 +42,7 @@ class UserController extends AbstractController
             items: new OA\Items(
                 properties: [
                     new OA\Property(property: 'id', type: 'integer', example: 1),
+                    new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                     new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
                     new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                     new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
@@ -89,6 +90,7 @@ class UserController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                 new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
                 new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                 new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
@@ -125,8 +127,9 @@ class UserController extends AbstractController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['email', 'password', 'firstName', 'lastName', 'role'],
+                required: ['username', 'email', 'password', 'firstName', 'lastName', 'role'],
                 properties: [
+                    new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'newuser@example.com'),
                     new OA\Property(property: 'password', type: 'string', format: 'password', example: 'SecurePass123!'),
                     new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
@@ -145,6 +148,7 @@ class UserController extends AbstractController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
                         new OA\Property(property: 'email', type: 'string', example: 'newuser@example.com'),
                         new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                         new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
@@ -207,6 +211,7 @@ class UserController extends AbstractController
             required: true,
             content: new OA\JsonContent(
                 properties: [
+                    new OA\Property(property: 'username', type: 'string', example: 'jsmith_updated'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'updated@example.com'),
                     new OA\Property(property: 'password', type: 'string', format: 'password', example: 'NewSecurePass123!'),
                     new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
@@ -234,6 +239,7 @@ class UserController extends AbstractController
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith_updated'),
                         new OA\Property(property: 'email', type: 'string', example: 'updated@example.com'),
                         new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                         new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
@@ -362,6 +368,7 @@ class UserController extends AbstractController
                         property: 'owner',
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                             new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
                             new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                             new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
