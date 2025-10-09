@@ -3,25 +3,36 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_USERNAME', fields: ['username'])]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(fields: ['email'], message: 'This email is already used')]
+#[UniqueEntity(fields: ['username'], message: 'This username is already used')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?int $id = null;
 
+    #[ORM\Column(length: 50, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 50)]
+    private ?string $username = null;
+
     #[ORM\Column(length: 180)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $email = null;
 
     /**
@@ -37,37 +48,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 100)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 100)]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Assert\Regex(
+        pattern: '/^\+?[1-9]\d{1,14}$/',
+        message: 'Invalid phone number format'
+    )]
     private ?string $phoneNumber = null;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['user:read', 'user:write'])]
+    #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
     private ?string $role = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[Groups(['user:read', 'user:write'])]
+    private ?Team $team = null;
+
+    #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'manager')]
+    private Collection $managedTeams;
+
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['user:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
-        try {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
-        } catch (\Throwable $e) {
-            error_log('Error in constructor: ' . $e->getMessage());
+        $this->managedTeams = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
         }
+        $this->setUpdatedAtValue();
     }
 
     #[ORM\PreUpdate]
@@ -79,6 +106,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -100,7 +139,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->username;
     }
 
     /**
@@ -201,6 +240,51 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRole(string $role): static
     {
         $this->role = $role;
+
+        return $this;
+    }
+
+    /**
+     * Get the team this user is a member of (as an employee)
+     */
+    public function getTeam(): ?Team
+    {
+        return $this->team;
+    }
+
+    public function setTeam(?Team $team): static
+    {
+        $this->team = $team;
+
+        return $this;
+    }
+
+    /**
+     * Get the teams this user manages
+     * @return Collection<int, Team>
+     */
+    public function getManagedTeams(): Collection
+    {
+        return $this->managedTeams;
+    }
+
+    public function addManagedTeam(Team $team): static
+    {
+        if (!$this->managedTeams->contains($team)) {
+            $this->managedTeams->add($team);
+            $team->setManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeManagedTeam(Team $team): static
+    {
+        if ($this->managedTeams->removeElement($team)) {
+            if ($team->getManager() === $this) {
+                $team->setManager(null);
+            }
+        }
 
         return $this;
     }

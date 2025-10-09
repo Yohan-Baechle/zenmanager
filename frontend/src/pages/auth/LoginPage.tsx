@@ -19,7 +19,7 @@ export default function LoginPage() {
         setLoading(true)
 
         try {
-            await login({ email, password })
+            await login({ username: email, password })
             navigate('/dashboard')
         } catch (error) {
             setError(`Invalid email or password: ${error instanceof Error ? error.message : 'Unknown error'}`)
