@@ -35,6 +35,13 @@
             echo "APP_SECRET=dummy_secret" >> .env
             echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env
             echo "DEFAULT_URI=http://localhost" >> .env
+            echo "CORS_ALLOW_ORIGIN=true" >> .env
+            echo "JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem" >> .env 
+            echo "JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem" >> .env
+            echo "JWT_PASSPHRASE=poufpouf" >> .env
+        
+        - name: generate JWT keys
+          run: php bin/console lexik:jwt:generate-keypair
 
         #just a sanity check but apparently useful in early projects
         - name: Check Symfony boot and console
@@ -45,6 +52,9 @@
         #check we're not missing any env variables
         - name: Check Symfony container is valid
           run: php bin/console lint:container
+        
+        - name: boot Docker
+          run: docker compose up -d
 
         - name: Check routes
           run: php bin/console debug:router
