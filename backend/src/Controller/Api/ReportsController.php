@@ -19,11 +19,7 @@ class ReportsController extends AbstractController
         private readonly WorkingTimeRepository $workingTimeRepository
     ) {}
 
-    /**
-     * GET /api/reports
-     * 
-     * Récupère les KPIs (indicateurs de performance) pour le dashboard
-     */
+
     #[Route('/reports', name: 'api_reports', methods: ['GET'])]
     #[OA\Get(
         path: '/api/reports',
@@ -127,14 +123,12 @@ class ReportsController extends AbstractController
     )]
     public function getReports(Request $request): JsonResponse
     {
-        // Récupérer et valider les paramètres de filtre
         $startDateStr = $request->query->get('start_date');
         $endDateStr = $request->query->get('end_date');
         $teamId = $request->query->get('team_id');
         $userId = $request->query->get('user_id') ? (int)$request->query->get('user_id') : null;
 
         try {
-            // Convertir les dates en objets DateTime
             $startDate = null;
             $endDate = null;
 
@@ -146,35 +140,30 @@ class ReportsController extends AbstractController
                 $endDate = new \DateTimeImmutable($endDateStr . ' 23:59:59');
             }
 
-            // KPI 1: Nombre total d'heures de travail
             $totalWorkingHours = $this->workingTimeRepository->calculateTotalWorkingHours(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // KPI 2: Nombre de retards (arrivées après 8h30)
             $lateArrivals = $this->clockRepository->countLateArrivals(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // KPI 3: Nombre de départs anticipés (avant 16h30)
             $earlyDepartures = $this->clockRepository->countEarlyDepartures(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // KPI 4: Nombre de jours de présence
             $presentDays = $this->workingTimeRepository->countPresentDays(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // KPI 5: Nombre de jours d'absence (jours ouvrés uniquement)
             $absentDays = $this->calculateAbsentDays(
                 $startDateStr, 
                 $endDateStr, 
@@ -182,21 +171,18 @@ class ReportsController extends AbstractController
                 $presentDays
             );
 
-            // KPI 6: Nombre de jours avec pointages incomplets
             $incompleteDays = $this->clockRepository->countIncompleteDays(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // KPI 7: Nombre total de sorties
             $totalExits = $this->clockRepository->countTotalExits(
                 $startDate, 
                 $endDate, 
                 $userId
             );
 
-            // Informations sur la période
             $periodInfo = $this->getPeriodInfo($startDateStr, $endDateStr);
 
             return $this->json([
@@ -213,8 +199,8 @@ class ReportsController extends AbstractController
                     'work_schedule' => [
                         'start_time' => '08:00',
                         'end_time' => '17:00',
-                        'tolerance_late' => 30, // minutes
-                        'tolerance_early_departure' => 30, // minutes
+                        'tolerance_late' => 30,
+                        'tolerance_early_departure' => 30,
                         'standard_hours_per_day' => 8
                     ],
                     'kpis' => [
@@ -237,11 +223,6 @@ class ReportsController extends AbstractController
         }
     }
 
-    /**
-     * KPI 5: Nombre de jours d'absence
-     * Calcule : jours ouvrés (lundi-vendredi) dans la période - jours de présence
-     * Les week-ends ne sont PAS comptés comme absences
-     */
     private function calculateAbsentDays(
         ?string $startDate, 
         ?string $endDate, 
@@ -255,14 +236,12 @@ class ReportsController extends AbstractController
         $start = new \DateTime($startDate);
         $end = new \DateTime($endDate);
 
-        // Calculer UNIQUEMENT les jours ouvrés (lundi à vendredi)
         $workingDays = 0;
         $current = clone $start;
         
         while ($current <= $end) {
-            $dayOfWeek = (int)$current->format('N'); // 1 (lundi) à 7 (dimanche)
+            $dayOfWeek = (int)$current->format('N');
             
-            // On compte seulement du lundi (1) au vendredi (5)
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
                 $workingDays++;
             }
@@ -270,18 +249,13 @@ class ReportsController extends AbstractController
             $current->modify('+1 day');
         }
 
-        // Si c'est pour un user spécifique
         if ($userId) {
             return max(0, $workingDays - $presentDays);
         }
 
-        // Si c'est pour une équipe, on ne peut pas calculer les absences collectives
         return 0;
     }
 
-    /**
-     * Récupère les informations sur la période
-     */
     private function getPeriodInfo(?string $startDate, ?string $endDate): array
     {
         if (!$startDate || !$endDate) {
