@@ -14,12 +14,10 @@ class RateLimitHeaderListener
         $request = $event->getRequest();
         $response = $event->getResponse();
 
-        // Only add headers to API routes
         if (!str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
 
-        // Get rate limit info from request attributes (set by RateLimiterListener)
         $limit = $request->attributes->get('rate_limit');
 
         if ($limit instanceof \Symfony\Component\RateLimiter\Limit) {
