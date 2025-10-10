@@ -79,7 +79,10 @@
             done
             echo "❌ Database did not become ready in time."
             exit 1
-
+        
+        - name: Create test database
+          run: |
+            docker compose exec -T database psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "CREATE DATABASE ${POSTGRES_DB}_test;"
         
         - name: Initialize database
           run: |
