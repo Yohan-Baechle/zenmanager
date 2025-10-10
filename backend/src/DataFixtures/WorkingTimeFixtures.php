@@ -15,8 +15,9 @@ class WorkingTimeFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create('fr_FR');
 
+        $maxUsers = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
         // Generate working time data for the last 30 days for each user
-        for ($userIndex = 1; $userIndex <= 30; $userIndex++) {
+        for ($userIndex = 1; $userIndex <= $maxUsers; $userIndex++) {
             $user = $this->getReference('user-' . $userIndex, User::class);
 
             // Generate 20-25 work days for each user (not all days)
