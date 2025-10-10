@@ -125,7 +125,7 @@ class ReportsController extends AbstractController
     {
         $startDateStr = $request->query->get('start_date');
         $endDateStr = $request->query->get('end_date');
-        $teamId = $request->query->get('team_id');
+        $teamId = $request->query->get('team_id') ? (int)$request->query->get('team_id') : null;
         $userId = $request->query->get('user_id') ? (int)$request->query->get('user_id') : null;
 
         try {
@@ -141,46 +141,52 @@ class ReportsController extends AbstractController
             }
 
             $totalWorkingHours = $this->workingTimeRepository->calculateTotalWorkingHours(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $lateArrivals = $this->clockRepository->countLateArrivals(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $earlyDepartures = $this->clockRepository->countEarlyDepartures(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $presentDays = $this->workingTimeRepository->countPresentDays(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $absentDays = $this->calculateAbsentDays(
-                $startDateStr, 
-                $endDateStr, 
-                $userId, 
+                $startDateStr,
+                $endDateStr,
+                $userId,
                 $presentDays
             );
 
             $incompleteDays = $this->clockRepository->countIncompleteDays(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $totalExits = $this->clockRepository->countTotalExits(
-                $startDate, 
-                $endDate, 
-                $userId
+                $startDate,
+                $endDate,
+                $userId,
+                $teamId
             );
 
             $periodInfo = $this->getPeriodInfo($startDateStr, $endDateStr);

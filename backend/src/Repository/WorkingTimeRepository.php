@@ -33,7 +33,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
     }
 
 
-    public function calculateTotalWorkingHours(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): float
+    public function calculateTotalWorkingHours(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): float
     {
         $qb = $this->createQueryBuilder('wt');
 
@@ -50,6 +50,12 @@ class WorkingTimeRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('wt.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('wt.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         $workingTimes = $qb->getQuery()->getResult();
@@ -72,7 +78,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
     }
 
 
-    public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('wt');
 
@@ -89,6 +95,12 @@ class WorkingTimeRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('wt.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('wt.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         $workingTimes = $qb->getQuery()->getResult();
