@@ -236,9 +236,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         if (in_array('ROLE_MANAGER', $roles)) {
             return 'manager';
+        } else if (in_array('ROLE_EMPLOYEE', $roles)) {
+            return 'employee';
         }
-
-        return 'employee';
+        else {
+            throw new \LogicException('User has no valid business role assigned');
+        }
     }
 
     /**
@@ -248,8 +251,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($role === 'manager') {
             $this->setRoles(['ROLE_MANAGER']);
-        } else {
+        } else if ($role === 'employee') {
             $this->setRoles(['ROLE_EMPLOYEE']);
+        } else {
+            throw new \InvalidArgumentException('Invalid business role: ' . $role);
         }
 
         return $this;
