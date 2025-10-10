@@ -51,10 +51,11 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                 }
 
                 #cache clear, important for tests to avoid OOMKilled
+                /*
                 if ($counter % $batchSize === 0) {
                     $manager->flush();
                     $manager->clear(Clock::class);
-                }
+                }*/
             }
         }
 
