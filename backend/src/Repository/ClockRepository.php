@@ -16,9 +16,6 @@ class ClockRepository extends ServiceEntityRepository
         parent::__construct($registry, Clock::class);
     }
 
-    /**
-     * Compte les retards (arrivées après 8h30)
-     */
     public function countLateArrivals(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
     {
         $qb = $this->createQueryBuilder('c')
@@ -43,7 +40,6 @@ class ClockRepository extends ServiceEntityRepository
         
         $clocks = $qb->getQuery()->getResult();
         
-        // Grouper par jour et utilisateur pour avoir les premières arrivées
         $dailyFirstArrivals = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
@@ -56,7 +52,6 @@ class ClockRepository extends ServiceEntityRepository
             }
         }
         
-        // Compter les retards (après 8h30)
         $lateCount = 0;
         foreach ($dailyFirstArrivals as $clock) {
             $hour = (int)$clock->getTime()->format('H');
@@ -70,9 +65,6 @@ class ClockRepository extends ServiceEntityRepository
         return $lateCount;
     }
 
-    /**
-     * Compte les départs anticipés (avant 16h30)
-     */
     public function countEarlyDepartures(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
     {
         $qb = $this->createQueryBuilder('c')
@@ -97,7 +89,6 @@ class ClockRepository extends ServiceEntityRepository
         
         $clocks = $qb->getQuery()->getResult();
         
-        // Grouper par jour et utilisateur pour avoir les derniers départs
         $dailyLastDepartures = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
@@ -110,7 +101,6 @@ class ClockRepository extends ServiceEntityRepository
             }
         }
         
-        // Compter les départs anticipés (avant 16h30)
         $earlyCount = 0;
         foreach ($dailyLastDepartures as $clock) {
             $hour = (int)$clock->getTime()->format('H');
@@ -124,9 +114,7 @@ class ClockRepository extends ServiceEntityRepository
         return $earlyCount;
     }
 
-    /**
-     * Compte les jours avec pointages incomplets (nombre impair de pointages)
-     */
+
     public function countIncompleteDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
     {
         $qb = $this->createQueryBuilder('c');
@@ -148,7 +136,6 @@ class ClockRepository extends ServiceEntityRepository
 
         $clocks = $qb->getQuery()->getResult();
         
-        // Grouper par jour et utilisateur
         $dailyClockCounts = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
@@ -161,7 +148,6 @@ class ClockRepository extends ServiceEntityRepository
             $dailyClockCounts[$key]++;
         }
         
-        // Compter les jours avec nombre impair de pointages
         $incompleteCount = 0;
         foreach ($dailyClockCounts as $count) {
             if ($count % 2 === 1) {
@@ -172,9 +158,7 @@ class ClockRepository extends ServiceEntityRepository
         return $incompleteCount;
     }
 
-    /**
-     * Compte le nombre total de sorties (pointages avec status = false)
-     */
+    
     public function countTotalExits(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
     {
         $qb = $this->createQueryBuilder('c')
