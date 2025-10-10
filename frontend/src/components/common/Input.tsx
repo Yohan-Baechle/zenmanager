@@ -1,18 +1,18 @@
 import type { InputHTMLAttributes } from 'react'
 import { forwardRef, useState } from 'react'
-import VisibilityIcon from '../../assets/icons/Visibility.svg'
-import VisibilityOffIcon from '../../assets/icons/VisibilityOff.svg'
+import { VisibilityIcon } from '../../assets/icons/visibility'
+import { VisibilityOffIcon } from '../../assets/icons/visibility-off'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string
     type?: string
-    icon?: string
+    icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
     visible?: boolean
     error?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, type, icon, visible, error, ...props }, ref) => {
+    ({ label, type, icon: Icon, visible, error, ...props }, ref) => {
         const [showPassword, setShowPassword] = useState(false)
         const [isFocused, setIsFocused] = useState(false)
         const [hasValue, setHasValue] = useState(false)
@@ -63,10 +63,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         {label}
                     </label>
                 )}
-                <img
-                    className="absolute left-[14px] top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--c4)] pointer-events-none"
-                    src={icon} alt="User Icon"
-                />
+                {Icon && (
+                    <Icon
+                        className="absolute left-[14px] top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--c4)] pointer-events-none"
+                        aria-hidden="true"
+                    />
+                )}
                 {visible === true && (
                     <button
                         type="button"
@@ -75,12 +77,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         aria-label="Afficher le mot de passe"
                         aria-pressed={showPassword}
                     >
-                        <img
-                            src={showPassword ? VisibilityOffIcon : VisibilityIcon}
-                            className="h-5 w-5"
-                            aria-hidden="true"
-                            alt=""
-                        />
+                        {showPassword ? (
+                            <VisibilityOffIcon className="h-5 w-5" aria-hidden="true" />
+                        ) : (
+                            <VisibilityIcon className="h-5 w-5" aria-hidden="true" />
+                        )}
                     </button>
                 )}
                 {error && <p className="mt-1 text-sm text-red-600">{error}</p>}

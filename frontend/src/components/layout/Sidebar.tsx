@@ -1,49 +1,50 @@
-import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import UserBadge from '../common/UserBadge.tsx'
+import NavItem from '../common/NavItem.tsx'
+import SectionDivider from '../common/SectionDivider.tsx'
+
+import { DashboardIcon } from '../../assets/icons/dashboard'
+import { AlarmAddIcon } from '../../assets/icons/alarm-add'
+import { HistoryIcon } from '../../assets/icons/history'
+import { AccountCircleIcon } from '../../assets/icons/account-circle'
+import { PersonIcon } from '../../assets/icons/person'
+import { SupervisorAccountIcon } from '../../assets/icons/supervisor-account'
+import { ReportIcon } from '../../assets/icons/report'
+import { AdminPanelSettingsIcon } from '../../assets/icons/admin-panel-settings'
 
 export default function Sidebar() {
-    const { isManager } = useAuth()
-
-    const linkClasses = ({ isActive }: { isActive: boolean }) =>
-        `block px-4 py-2 rounded-lg transition-colors ${
-            isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
-        }`
+    const { user, isManager } = useAuth()
 
     return (
-        <aside className="w-64 bg-white shadow-lg h-[calc(100vh-73px)]">
-            <nav className="p-4 space-y-2">
-                <NavLink to="/dashboard" className={linkClasses}>
-                    Dashboard
-                </NavLink>
-                <NavLink to="/clock" className={linkClasses}>
-                    Clock In/Out
-                </NavLink>
-                <NavLink to="/clock/history" className={linkClasses}>
-                    Clock History
-                </NavLink>
-                <NavLink to="/profile" className={linkClasses}>
-                    Profile
-                </NavLink>
+        <aside className="w-64 bg-[var(--c1)] shadow-lg h-[calc(100vh-73px)] border-r border-[var(--c3)] flex flex-col">
+            <div className="p-4 pb-0 flex-shrink-0">
+                <UserBadge
+                    firstName={user?.firstName}
+                    lastName={user?.lastName}
+                    role={isManager ? 'Manager' : undefined}
+                />
+
+                <SectionDivider />
+            </div>
+
+            <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
+                <NavItem to="/dashboard" icon={DashboardIcon} label="Tableau de Bord" />
+                <NavItem to="/clock" icon={AlarmAddIcon} label="Pointer" />
+                <NavItem to="/clock/history" icon={HistoryIcon} label="Historique Pointage" />
+                <NavItem to="/profile" icon={AccountCircleIcon} label="Mon Profil" />
 
                 {isManager && (
                     <>
-                        <div className="border-t border-gray-200 my-4"></div>
-                        <p className="px-4 text-xs font-semibold text-gray-500 uppercase">Manager</p>
-                        <NavLink to="/manager/dashboard" className={linkClasses}>
-                            Manager Dashboard
-                        </NavLink>
-                        <NavLink to="/users" className={linkClasses}>
-                            Users
-                        </NavLink>
-                        <NavLink to="/teams" className={linkClasses}>
-                            Teams
-                        </NavLink>
-                        <NavLink to="/reports" className={linkClasses}>
-                            Reports
-                        </NavLink>
-                        <NavLink to="/admin" className={linkClasses}>
-                            Administration
-                        </NavLink>
+                        <SectionDivider label="Manager" />
+                        <NavItem
+                            to="/manager/dashboard"
+                            icon={DashboardIcon}
+                            label="Manager Dashboard"
+                        />
+                        <NavItem to="/users" icon={PersonIcon} label="Utilisateurs" />
+                        <NavItem to="/teams" icon={SupervisorAccountIcon} label="Équipes" />
+                        <NavItem to="/reports" icon={ReportIcon} label="Reports" />
+                        <NavItem to="/admin" icon={AdminPanelSettingsIcon} label="Administration" />
                     </>
                 )}
             </nav>
