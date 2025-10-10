@@ -62,6 +62,20 @@
         
         - name: boot Docker
           run: docker compose up -d
+
+        - name: Wait for database to be ready
+          run: |
+            for i in {1..15}; do
+              if docker compose exec database pg_isready -U user_dot_com; then
+                echo "✅ Database is ready!"
+                exit 0
+              fi
+              echo "⏳ Waiting for database... ($i/15)"
+              sleep 2
+            done
+            echo "❌ Database did not become ready in time."
+            exit 1
+
         
         - name: Initialize database
           run: |
