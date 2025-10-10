@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Dto\Clock\ClockInputDto;
+use App\Entity\Clock;
 use App\Entity\User;
 use App\Mapper\ClockMapper;
 use App\Repository\ClockRepository;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Clocks')]
@@ -113,6 +115,8 @@ class ClockController extends AbstractController
             return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->denyAccessUnlessGranted('USER_EDIT', $user);
+
         $clock = $this->clockMapper->toEntity($dto, $user);
 
         $this->em->persist($clock);
@@ -120,5 +124,42 @@ class ClockController extends AbstractController
 
         $outputDto = $this->clockMapper->toOutputDto($clock);
         return $this->json($outputDto, Response::HTTP_CREATED);
+    }
+
+    #[Route('/clocks/{id}', name: 'api_clocks_show', methods: ['GET'])]
+    #[IsGranted('CLOCK_VIEW', 'clock')]
+    #[OA\Get(
+        path: '/api/clocks/{id}',
+        summary: 'Get a specific clock entry',
+        tags: ['Clocks']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'Clock ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Successful operation',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'time', type: 'string', format: 'date-time'),
+                new OA\Property(property: 'status', type: 'boolean', example: true),
+                new OA\Property(property: 'owner', type: 'object'),
+                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Clock not found'
+    )]
+    public function show(Clock $clock): JsonResponse
+    {
+        $dto = $this->clockMapper->toOutputDto($clock);
+        return $this->json($dto);
     }
 }
