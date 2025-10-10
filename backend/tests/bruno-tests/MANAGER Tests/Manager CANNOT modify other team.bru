@@ -1,0 +1,31 @@
+meta {
+  name: ❌ Manager CANNOT modify other team
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{base_url}}/teams/34
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{manager_dev_token}}
+}
+
+body:json {
+  {
+    "name": "Hacked Team"
+  }
+}
+
+tests {
+  test("Status should be 403", function() {
+    expect(res.status).to.equal(403);
+  });
+}

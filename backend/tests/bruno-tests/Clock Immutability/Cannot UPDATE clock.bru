@@ -1,0 +1,31 @@
+meta {
+  name: ❌ Cannot UPDATE clock (route does not exist)
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{base_url}}/clocks/1216
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{employee_token}}
+}
+
+body:json {
+  {
+    "time": "2025-10-10T10:00:00+00:00"
+  }
+}
+
+tests {
+  test("Status should be 404 (route not found)", function() {
+    expect(res.status).to.equal(404);
+  });
+}

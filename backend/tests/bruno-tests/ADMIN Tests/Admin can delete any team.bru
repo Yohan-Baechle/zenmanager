@@ -1,0 +1,21 @@
+meta {
+  name: ✅ Admin can delete any team
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{base_url}}/teams/31
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+tests {
+  test("Status should be 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}

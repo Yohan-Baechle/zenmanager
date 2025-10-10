@@ -1,0 +1,31 @@
+meta {
+  name: ✅ Manager can modify own team
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{base_url}}/teams/61
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{manager_dev_token}}
+}
+
+body:json {
+  {
+    "name": "Dev Team Updated"
+  }
+}
+
+tests {
+  test("Status should be 200", function() {
+    expect(res.status).to.equal(200);
+  });
+}

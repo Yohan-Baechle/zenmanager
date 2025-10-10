@@ -1,0 +1,33 @@
+meta {
+  name: ✅ Manager can create clock for team member
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/clocks
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{manager_dev_token}}
+}
+
+body:json {
+  {
+    "time": "2025-10-10T09:00:00+00:00",
+    "status": true,
+    "userId": 36
+  }
+}
+
+tests {
+  test("Status should be 201", function() {
+    expect(res.status).to.equal(201);
+  });
+}
