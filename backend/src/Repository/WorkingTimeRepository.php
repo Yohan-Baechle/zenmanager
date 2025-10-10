@@ -17,9 +17,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkingTime::class);
     }
 
-    /**
-     * Trouve les working times d'un utilisateur dans une période
-     */
+
     public function findByUserAndPeriod(User $user, \DateTimeInterface $start, \DateTimeInterface $end): array
     {
         return $this->createQueryBuilder('wt')
@@ -34,9 +32,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Calcule le nombre total d'heures de travail
-     */
+
     public function calculateTotalWorkingHours(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): float
     {
         $qb = $this->createQueryBuilder('wt');
@@ -75,9 +71,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
         return round($totalHours, 2);
     }
 
-    /**
-     * Compte le nombre de jours de présence distincts
-     */
+
     public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
     {
         $qb = $this->createQueryBuilder('wt');
@@ -99,7 +93,6 @@ class WorkingTimeRepository extends ServiceEntityRepository
 
         $workingTimes = $qb->getQuery()->getResult();
         
-        // Compter les dates distinctes
         $distinctDates = [];
         foreach ($workingTimes as $workingTime) {
             $date = $workingTime->getStartTime()->format('Y-m-d');
