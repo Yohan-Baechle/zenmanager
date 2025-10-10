@@ -40,7 +40,7 @@
           run: |
             echo "APP_ENV=test" > .env
             echo "APP_SECRET=dummy_secret" >> .env
-            echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env
+            echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" >> .env
             echo "DEFAULT_URI=http://localhost" >> .env
             echo "CORS_ALLOW_ORIGIN=true" >> .env
             echo "JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem" >> .env 
@@ -65,9 +65,16 @@
         
         - name: Initialize database
           run: |
-            docker compose exec backend php bin/console doctrine:migrations:migrate
-            docker compose exec backend php bin/console doctrine:fixtures:load
-          # we could use the --no-interaction flag but it's better to be aware of what we're doing
+            docker compose exec backend php bin/console doctrine:migrations:migrate --no-interaction
+            docker compose exec backend php bin/console doctrine:fixtures:load --no-interaction
+
+        - name: Debug database URL
+          run: |
+            echo "Current DATABASE_URL:"
+            cat .env | grep DATABASE_URL
+
+        - name: Check DB connection
+          run: docker compose exec backend php bin/console doctrine:query:sql "SELECT 1;"   
 
         - name: Check routes
           run: php bin/console debug:router
