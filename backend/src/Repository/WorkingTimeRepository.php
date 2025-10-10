@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\WorkingTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +17,95 @@ class WorkingTimeRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkingTime::class);
     }
 
-//    /**
-//     * @return WorkingTime[] Returns an array of WorkingTime objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('w.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Trouve les working times d'un utilisateur dans une période
+     */
+    public function findByUserAndPeriod(User $user, \DateTimeInterface $start, \DateTimeInterface $end): array
+    {
+        return $this->createQueryBuilder('wt')
+            ->where('wt.owner = :user')
+            ->andWhere('wt.startTime >= :start')
+            ->andWhere('wt.endTime <= :end')
+            ->setParameter('user', $user)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->orderBy('wt.startTime', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?WorkingTime
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Calcule le nombre total d'heures de travail
+     */
+    public function calculateTotalWorkingHours(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): float
+    {
+        $qb = $this->createQueryBuilder('wt');
+
+        if ($startDate) {
+            $qb->andWhere('wt.startTime >= :startDate')
+               ->setParameter('startDate', $startDate);
+        }
+
+        if ($endDate) {
+            $qb->andWhere('wt.endTime <= :endDate')
+               ->setParameter('endDate', $endDate);
+        }
+
+        if ($userId) {
+            $qb->andWhere('wt.owner = :userId')
+               ->setParameter('userId', $userId);
+        }
+
+        $workingTimes = $qb->getQuery()->getResult();
+        
+        $totalHours = 0;
+        foreach ($workingTimes as $workingTime) {
+            $start = $workingTime->getStartTime();
+            $end = $workingTime->getEndTime();
+            
+            if ($start && $end) {
+                $interval = $start->diff($end);
+                $hours = $interval->h + ($interval->days * 24);
+                $hours += $interval->i / 60;
+                $hours += $interval->s / 3600;
+                $totalHours += $hours;
+            }
+        }
+        
+        return round($totalHours, 2);
+    }
+
+    /**
+     * Compte le nombre de jours de présence distincts
+     */
+    public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    {
+        $qb = $this->createQueryBuilder('wt');
+
+        if ($startDate) {
+            $qb->andWhere('wt.startTime >= :startDate')
+               ->setParameter('startDate', $startDate);
+        }
+
+        if ($endDate) {
+            $qb->andWhere('wt.endTime <= :endDate')
+               ->setParameter('endDate', $endDate);
+        }
+
+        if ($userId) {
+            $qb->andWhere('wt.owner = :userId')
+               ->setParameter('userId', $userId);
+        }
+
+        $workingTimes = $qb->getQuery()->getResult();
+        
+        // Compter les dates distinctes
+        $distinctDates = [];
+        foreach ($workingTimes as $workingTime) {
+            $date = $workingTime->getStartTime()->format('Y-m-d');
+            $distinctDates[$date] = true;
+        }
+        
+        return count($distinctDates);
+    }
 }
