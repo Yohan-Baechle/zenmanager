@@ -1,12 +1,10 @@
 framework:
     rate_limiter:
-        # Rate limiter for login attempts - strict
         login_limiter:
             policy: 'sliding_window'
             limit: 5
             interval: '15 minutes'
 
-        # Rate limiter for general API calls - more permissive
         api_limiter:
             policy: 'sliding_window'
             limit: 100
