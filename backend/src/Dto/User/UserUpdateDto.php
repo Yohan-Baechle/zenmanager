@@ -6,6 +6,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class UserUpdateDto
 {
+    #[Assert\Length(min: 3, max: 50)]
+    public ?string $username = null;
+
     #[Assert\Email]
     public ?string $email = null;
 

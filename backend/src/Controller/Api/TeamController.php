@@ -8,9 +8,11 @@ use App\Entity\Team;
 use App\Entity\User;
 use App\Mapper\TeamMapper;
 use App\Repository\TeamRepository;
+use App\Service\Paginator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,7 +23,8 @@ class TeamController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly TeamMapper $teamMapper
+        private readonly TeamMapper $teamMapper,
+        private readonly Paginator $paginator
     ) {}
 
     #[Route('/teams', name: 'api_teams_index', methods: ['GET'])]
@@ -30,54 +33,91 @@ class TeamController extends AbstractController
         summary: 'Get all teams',
         tags: ['Teams']
     )]
+    #[OA\Parameter(
+        name: 'page',
+        description: 'Page number',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 1, minimum: 1)
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        description: 'Items per page',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 20, minimum: 1, maximum: 100)
+    )]
     #[OA\Response(
         response: 200,
         description: 'Successful operation',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(
-                properties: [
-                    new OA\Property(property: 'id', type: 'integer', example: 1),
-                    new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
-                    new OA\Property(property: 'description', type: 'string', example: 'Main development team', nullable: true),
-                    new OA\Property(
-                        property: 'manager',
+            properties: [
+                new OA\Property(
+                    property: 'data',
+                    type: 'array',
+                    items: new OA\Items(
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
-                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
-                            new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
-                            new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
-                        ],
-                        type: 'object',
-                        nullable: true
-                    ),
-                    new OA\Property(
-                        property: 'employees',
-                        type: 'array',
-                        items: new OA\Items(
-                            properties: [
-                                new OA\Property(property: 'id', type: 'integer', example: 2),
-                                new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
-                                new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
-                                new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
-                                new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
-                                new OA\Property(property: 'role', type: 'string', example: 'employee')
-                            ]
-                        )
-                    ),
-                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
-                ]
-            )
+                            new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                            new OA\Property(property: 'description', type: 'string', example: 'Main development team', nullable: true),
+                            new OA\Property(
+                                property: 'manager',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
+                                    new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
+                                    new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                                    new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                                ],
+                                type: 'object',
+                                nullable: true
+                            ),
+                            new OA\Property(
+                                property: 'employees',
+                                type: 'array',
+                                items: new OA\Items(
+                                    properties: [
+                                        new OA\Property(property: 'id', type: 'integer', example: 2),
+                                        new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                                        new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
+                                        new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                                        new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                                        new OA\Property(property: 'role', type: 'string', example: 'employee')
+                                    ]
+                                )
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        ]
+                    )
+                ),
+                new OA\Property(
+                    property: 'meta',
+                    properties: [
+                        new OA\Property(property: 'currentPage', type: 'integer', example: 1),
+                        new OA\Property(property: 'itemsPerPage', type: 'integer', example: 20),
+                        new OA\Property(property: 'totalItems', type: 'integer', example: 30),
+                        new OA\Property(property: 'totalPages', type: 'integer', example: 2)
+                    ],
+                    type: 'object'
+                )
+            ]
         )
     )]
-    public function index(TeamRepository $teamRepository): JsonResponse
+    public function index(Request $request, TeamRepository $teamRepository): JsonResponse
     {
-        $teams = $teamRepository->findAll();
-        $dtos = $this->teamMapper->toOutputDtoCollection($teams);
+        $page = $request->query->getInt('page', Paginator::DEFAULT_PAGE);
+        $limit = $request->query->getInt('limit', Paginator::DEFAULT_LIMIT);
 
-        return $this->json($dtos);
+        $queryBuilder = $teamRepository->createQueryBuilder('t');
+        $paginatedResult = $this->paginator->paginate($queryBuilder, $page, $limit);
+
+        $dtos = $this->teamMapper->toOutputDtoCollection($paginatedResult['items']);
+
+        return $this->json([
+            'data' => $dtos,
+            'meta' => $paginatedResult['meta']
+        ]);
     }
 
     #[Route('/teams/{id}', name: 'api_teams_show', methods: ['GET'])]

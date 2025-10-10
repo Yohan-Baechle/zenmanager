@@ -20,6 +20,7 @@ class UserMapper
     {
         return new UserOutputDto(
             id: $user->getId(),
+            username: $user->getUsername(),
             email: $user->getEmail(),
             firstName: $user->getFirstName(),
             lastName: $user->getLastName(),
@@ -44,6 +45,7 @@ class UserMapper
     {
         $user = new User();
 
+        $user->setUsername($dto->username);
         $user->setEmail($dto->email);
         $user->setFirstName($dto->firstName);
         $user->setLastName($dto->lastName);
@@ -61,6 +63,10 @@ class UserMapper
 
     public function updateEntity(User $user, UserUpdateDto $dto, ?Team $team = null): void
     {
+        if ($dto->username !== null) {
+            $user->setUsername($dto->username);
+        }
+
         if ($dto->email !== null) {
             $user->setEmail($dto->email);
         }
@@ -94,6 +100,11 @@ class UserMapper
         return new TeamOutputDto(
             id: $team->getId(),
             name: $team->getName(),
+            description: $team->getDescription(),
+            manager: null, // Avoid circular reference
+            employees: [], // Avoid circular reference
+            createdAt: $team->getCreatedAt(),
+            updatedAt: $team->getUpdatedAt(),
         );
     }
 }
