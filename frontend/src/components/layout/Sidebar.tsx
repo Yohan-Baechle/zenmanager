@@ -3,9 +3,11 @@ import UserBadge from '../common/UserBadge.tsx'
 import NavItem from '../common/NavItem.tsx'
 import SectionDivider from '../common/SectionDivider.tsx'
 
-import { AlarmAddIcon } from '../../assets/icons/alarm-add'
-import { AccountCircleIcon } from '../../assets/icons/account-circle'
 import { DashboardIcon } from '../../assets/icons/dashboard'
+import { AlarmAddIcon } from '../../assets/icons/alarm-add'
+import { HistoryIcon } from '../../assets/icons/history'
+import { AccountCircleIcon } from '../../assets/icons/account-circle'
+import { PersonIcon } from '../../assets/icons/person'
 import { SupervisorAccountIcon } from '../../assets/icons/supervisor-account'
 import { ReportIcon } from '../../assets/icons/report'
 import { AdminPanelSettingsIcon } from '../../assets/icons/admin-panel-settings'
@@ -26,10 +28,10 @@ export default function Sidebar() {
             </div>
 
             <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
-                <NavItem to="/dashboard" icon={DashboardIcon} label="Dashboard" />
-                <NavItem to="/clock" icon={AlarmAddIcon} label="Clock In/Out" />
-                <NavItem to="/clock/history" icon={AlarmAddIcon} label="Clock History" />
-                <NavItem to="/profile" icon={AccountCircleIcon} label="Profile" />
+                <NavItem to="/dashboard" icon={DashboardIcon} label="Tableau de Bord" />
+                <NavItem to="/clock" icon={AlarmAddIcon} label="Pointer" />
+                <NavItem to="/clock/history" icon={HistoryIcon} label="Historique Pointage" />
+                <NavItem to="/profile" icon={AccountCircleIcon} label="Mon Profil" />
 
                 {isManager && (
                     <>
@@ -39,8 +41,8 @@ export default function Sidebar() {
                             icon={DashboardIcon}
                             label="Manager Dashboard"
                         />
-                        <NavItem to="/users" icon={AccountCircleIcon} label="Users" />
-                        <NavItem to="/teams" icon={SupervisorAccountIcon} label="Teams" />
+                        <NavItem to="/users" icon={PersonIcon} label="Utilisateurs" />
+                        <NavItem to="/teams" icon={SupervisorAccountIcon} label="Équipes" />
                         <NavItem to="/reports" icon={ReportIcon} label="Reports" />
                         <NavItem to="/admin" icon={AdminPanelSettingsIcon} label="Administration" />
                     </>
