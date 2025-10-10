@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
 import Card from '../../components/common/Card'
+import SectionDivider from '../../components/common/SectionDivider'
 import { AccountCircleIcon } from '../../assets/icons/account-circle'
 import { PasswordIcon } from '../../assets/icons/password'
 import { Plante1Icon } from '../../assets/plante1'
@@ -63,7 +64,7 @@ export default function LoginPage() {
                             required
                         />
                         {error && <p className="text-sm text-red-600">{error}</p>}
-                        <hr className="border-[var(--c2)] mx-2 my-6" />
+                        <SectionDivider space="6" />
                         <Button type="submit" disabled={loading} className="w-full">
                             {loading ? 'Connexion...' : 'Se connecter'}
                         </Button>
