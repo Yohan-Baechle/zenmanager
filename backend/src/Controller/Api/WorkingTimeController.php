@@ -165,7 +165,7 @@ class WorkingTimeController extends AbstractController
     )]
     public function show(int $userId, WorkingTime $workingTime): JsonResponse
     {
-        if ($workingTime->getUser()->getId() !== $userId) {
+        if ($workingTime->getOwner()->getId() !== $userId) {
             return $this->json(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
         }
 

@@ -20,11 +20,12 @@ class UserMapper
     {
         return new UserOutputDto(
             id: $user->getId(),
+            username: $user->getUsername(),
             email: $user->getEmail(),
             firstName: $user->getFirstName(),
             lastName: $user->getLastName(),
             phoneNumber: $user->getPhoneNumber(),
-            role: $user->getRole(),
+            role: $user->getBusinessRole(),
             team: $user->getTeam() ? $this->teamToOutputDto($user->getTeam()) : null,
             createdAt: $user->getCreatedAt(),
             updatedAt: $user->getUpdatedAt(),
@@ -44,11 +45,12 @@ class UserMapper
     {
         $user = new User();
 
+        $user->setUsername($dto->username);
         $user->setEmail($dto->email);
         $user->setFirstName($dto->firstName);
         $user->setLastName($dto->lastName);
         $user->setPhoneNumber($dto->phoneNumber);
-        $user->setRole($dto->role);
+        $user->setBusinessRole($dto->role);
         $user->setTeam($team);
 
         if ($dto->password) {
@@ -61,6 +63,10 @@ class UserMapper
 
     public function updateEntity(User $user, UserUpdateDto $dto, ?Team $team = null): void
     {
+        if ($dto->username !== null) {
+            $user->setUsername($dto->username);
+        }
+
         if ($dto->email !== null) {
             $user->setEmail($dto->email);
         }
@@ -78,7 +84,7 @@ class UserMapper
         }
 
         if ($dto->role !== null) {
-            $user->setRole($dto->role);
+            $user->setBusinessRole($dto->role);
         }
 
         if ($dto->password !== null) {
@@ -94,6 +100,11 @@ class UserMapper
         return new TeamOutputDto(
             id: $team->getId(),
             name: $team->getName(),
+            description: $team->getDescription(),
+            manager: null,
+            employees: [],
+            createdAt: $team->getCreatedAt(),
+            updatedAt: $team->getUpdatedAt(),
         );
     }
 }

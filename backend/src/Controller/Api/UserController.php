@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Mapper\ClockMapper;
 use App\Mapper\UserMapper;
 use App\Repository\UserRepository;
+use App\Service\Paginator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +26,8 @@ class UserController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly UserMapper $userMapper,
-        private readonly ClockMapper $clockMapper
+        private readonly ClockMapper $clockMapper,
+        private readonly Paginator $paginator
     ) {}
 
     #[Route('/users', name: 'api_users_index', methods: ['GET'])]
@@ -34,41 +36,78 @@ class UserController extends AbstractController
         summary: 'Get all users',
         tags: ['Users']
     )]
+    #[OA\Parameter(
+        name: 'page',
+        description: 'Page number',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 1, minimum: 1)
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        description: 'Items per page',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 20, minimum: 1, maximum: 100)
+    )]
     #[OA\Response(
         response: 200,
         description: 'Successful operation',
         content: new OA\JsonContent(
-            type: 'array',
-            items: new OA\Items(
-                properties: [
-                    new OA\Property(property: 'id', type: 'integer', example: 1),
-                    new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
-                    new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
-                    new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                    new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
-                    new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
-                    new OA\Property(property: 'role', type: 'string', example: 'employee'),
-                    new OA\Property(
-                        property: 'team',
+            properties: [
+                new OA\Property(
+                    property: 'data',
+                    type: 'array',
+                    items: new OA\Items(
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
-                            new OA\Property(property: 'name', type: 'string', example: 'Development Team')
-                        ],
-                        type: 'object',
-                        nullable: true
-                    ),
-                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
-                ]
-            )
+                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
+                            new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                            new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                            new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                            new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                            new OA\Property(
+                                property: 'team',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                ],
+                                type: 'object',
+                                nullable: true
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        ]
+                    )
+                ),
+                new OA\Property(
+                    property: 'meta',
+                    properties: [
+                        new OA\Property(property: 'currentPage', type: 'integer', example: 1),
+                        new OA\Property(property: 'itemsPerPage', type: 'integer', example: 20),
+                        new OA\Property(property: 'totalItems', type: 'integer', example: 50),
+                        new OA\Property(property: 'totalPages', type: 'integer', example: 3)
+                    ],
+                    type: 'object'
+                )
+            ]
         )
     )]
-    public function index(UserRepository $userRepository): JsonResponse
+    public function index(Request $request, UserRepository $userRepository): JsonResponse
     {
-        $users = $userRepository->findAll();
-        $dtos = $this->userMapper->toOutputDtoCollection($users);
+        $page = $request->query->getInt('page', Paginator::DEFAULT_PAGE);
+        $limit = $request->query->getInt('limit', Paginator::DEFAULT_LIMIT);
 
-        return $this->json($dtos);
+        $queryBuilder = $userRepository->createQueryBuilder('u');
+        $paginatedResult = $this->paginator->paginate($queryBuilder, $page, $limit);
+
+        $dtos = $this->userMapper->toOutputDtoCollection($paginatedResult['items']);
+
+        return $this->json([
+            'data' => $dtos,
+            'meta' => $paginatedResult['meta']
+        ]);
     }
 
     #[Route('/users/{id}', name: 'api_users_show', methods: ['GET'])]

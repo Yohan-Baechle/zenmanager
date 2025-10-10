@@ -21,6 +21,32 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = Factory::create('fr_FR');
 
+
+        // Create 2 fixed users for testing
+        $manager1 = new User();
+        $manager1->setEmail('manager@test.com')
+            ->setUsername('Theking')
+            ->setFirstName('Michel')
+            ->setLastName('MichMich')
+            ->setPhoneNumber('0800123123')
+            ->setBusinessRole('manager');
+        $hashedPassword = $this->passwordHasher->hashPassword($manager1, 'password123');
+        $manager1->setPassword($hashedPassword);
+        $manager->persist($manager1);
+        $this->addReference('user-manager', $manager1);
+
+        $employee1 = new User();
+        $employee1->setEmail('employee@test.com')
+            ->setUsername('TheJoker')
+            ->setFirstName('Pol-Mattis')
+            ->setLastName('PM')
+            ->setPhoneNumber('0345566667')
+            ->setBusinessRole('employee');
+        $hashedPassword = $this->passwordHasher->hashPassword($employee1, 'password123');
+        $employee1->setPassword($hashedPassword);
+        $manager->persist($employee1);
+        $this->addReference('user-employee', $employee1);
+
         $maxUsers = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
         $batchSize = 20; 
         $counter = 0;
@@ -43,6 +69,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
                 ->setPhoneNumber($faker->phoneNumber())
                 ->setRole($role)
                 ->setPassword($this->passwordHasher->hashPassword($user, 'password123'));
+                ->setBusinessRole($role);
 
 
             $manager->persist($user);

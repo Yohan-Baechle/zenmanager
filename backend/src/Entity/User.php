@@ -64,11 +64,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $phoneNumber = null;
 
-    #[ORM\Column(length: 20)]
-    #[Assert\NotBlank]
-    #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
-    private ?string $role = null;
-
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['user:read', 'user:write'])]
@@ -232,14 +227,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRole(): ?string
+    /**
+     * Get the business role (employee or manager) from Symfony roles
+     */
+    public function getBusinessRole(): string
     {
-        return $this->role;
+        $roles = $this->getRoles();
+
+        if (in_array('ROLE_MANAGER', $roles)) {
+            return 'manager';
+        }
+
+        return 'employee';
     }
 
-    public function setRole(string $role): static
+    /**
+     * Set the business role (employee or manager) by converting to Symfony roles
+     */
+    public function setBusinessRole(string $role): static
     {
-        $this->role = $role;
+        if ($role === 'manager') {
+            $this->setRoles(['ROLE_MANAGER']);
+        } else {
+            $this->setRoles(['ROLE_EMPLOYEE']);
+        }
 
         return $this;
     }
