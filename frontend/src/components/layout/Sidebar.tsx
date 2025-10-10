@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import UserBadge from "../common/UserBadge.tsx";
 
 export default function Sidebar() {
-    const { isManager } = useAuth()
+    const {  user, isManager } = useAuth()
 
     const linkClasses = ({ isActive }: { isActive: boolean }) =>
         `block px-4 py-2 rounded-lg transition-colors ${
@@ -12,6 +13,11 @@ export default function Sidebar() {
     return (
         <aside className="w-64 bg-white shadow-lg h-[calc(100vh-73px)]">
             <nav className="p-4 space-y-2">
+                <UserBadge
+                    firstName={user?.firstName}
+                    lastName={user?.lastName}
+                    role={isManager ? 'Manager' : undefined}
+                />
                 <NavLink to="/dashboard" className={linkClasses}>
                     Dashboard
                 </NavLink>
