@@ -2,7 +2,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import DropdownMenu from '../common/DropdownMenu'
 import type { DropdownOption } from '../common/DropdownMenu'
-import Logo from '../../assets/Logo.svg'
+import { LogoIcon } from '../../assets/logo'
 import { Plante1Icon } from '../../assets/plante1'
 import { Plante2Icon } from '../../assets/plante2'
 import { AccountCircleIcon } from '../../assets/icons/account-circle'
@@ -45,7 +45,7 @@ export default function Header() {
 
             <div className="relative  mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <img src={Logo} alt="Logo" className="w-10 h-10" />
+                    <LogoIcon className="w-10 h-10" />
                     <h1 className="text-2xl font-bold text-[var(--c5)]">Time Manager</h1>
                 </div>
 
