@@ -20,20 +20,16 @@ class RateLimiterListener
     {
         $request = $event->getRequest();
 
-        // Only apply to API routes
         if (!str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
-
-        // Skip documentation routes
+        
         if (str_starts_with($request->getPathInfo(), '/api/doc')) {
             return;
         }
 
-        // Get client identifier (IP address)
         $identifier = $request->getClientIp() ?? 'unknown';
 
-        // Apply stricter rate limiting on login endpoint
         if (str_starts_with($request->getPathInfo(), '/api/login')) {
             $limiter = $this->loginLimiterLimiter->create($identifier);
             $limit = $limiter->consume(1);
@@ -51,12 +47,10 @@ class RateLimiterListener
                 return;
             }
 
-            // Add rate limit headers to response
             $request->attributes->set('rate_limit', $limit);
             return;
         }
 
-        // Apply general API rate limiting
         $limiter = $this->apiLimiterLimiter->create($identifier);
         $limit = $limiter->consume(1);
 
@@ -73,7 +67,6 @@ class RateLimiterListener
             return;
         }
 
-        // Add rate limit headers to response
         $request->attributes->set('rate_limit', $limit);
     }
 }
