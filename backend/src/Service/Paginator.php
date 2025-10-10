@@ -21,11 +21,9 @@ class Paginator
      */
     public function paginate(QueryBuilder $queryBuilder, int $page = self::DEFAULT_PAGE, int $limit = self::DEFAULT_LIMIT): array
     {
-        // Validate and normalize parameters
         $page = max(1, $page);
         $limit = min(max(1, $limit), self::MAX_LIMIT);
 
-        // Apply pagination to query
         $queryBuilder
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
