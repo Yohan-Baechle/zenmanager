@@ -6,9 +6,7 @@ use App\Entity\Clock;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Clock>
- */
+
 class ClockRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,7 +14,7 @@ class ClockRepository extends ServiceEntityRepository
         parent::__construct($registry, Clock::class);
     }
 
-    public function countLateArrivals(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    public function countLateArrivals(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('c')
             ->where('c.status = true');
@@ -34,6 +32,12 @@ class ClockRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('c.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('c.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         $qb->orderBy('c.time', 'ASC');
@@ -65,7 +69,7 @@ class ClockRepository extends ServiceEntityRepository
         return $lateCount;
     }
 
-    public function countEarlyDepartures(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    public function countEarlyDepartures(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('c')
             ->where('c.status = false');
@@ -83,6 +87,12 @@ class ClockRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('c.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('c.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         $qb->orderBy('c.time', 'DESC');
@@ -115,7 +125,7 @@ class ClockRepository extends ServiceEntityRepository
     }
 
 
-    public function countIncompleteDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    public function countIncompleteDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('c');
 
@@ -132,6 +142,12 @@ class ClockRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('c.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('c.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         $clocks = $qb->getQuery()->getResult();
@@ -159,7 +175,7 @@ class ClockRepository extends ServiceEntityRepository
     }
 
     
-    public function countTotalExits(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId): int
+    public function countTotalExits(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('c')
             ->select('COUNT(c.id)')
@@ -178,6 +194,12 @@ class ClockRepository extends ServiceEntityRepository
         if ($userId) {
             $qb->andWhere('c.owner = :userId')
                ->setParameter('userId', $userId);
+        }
+
+        if ($teamId) {
+            $qb->join('c.owner', 'u')
+               ->andWhere('u.team = :teamId')
+               ->setParameter('teamId', $teamId);
         }
 
         return (int)$qb->getQuery()->getSingleScalarResult();
