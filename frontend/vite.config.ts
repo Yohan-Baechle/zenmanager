@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://timemanager_backend:8000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },
