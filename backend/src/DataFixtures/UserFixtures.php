@@ -75,9 +75,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $this->addReference('user-' . $i, $user);
             $counter++;
 
-            /*if ($counter % $batchSize === 0) {
-                $manager->flush();
-            }*/
         }
 
         $manager->flush();
