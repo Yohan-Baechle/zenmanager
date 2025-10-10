@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Working Times')]
@@ -92,6 +93,8 @@ class WorkingTimeController extends AbstractController
             return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->denyAccessUnlessGranted('USER_VIEW_CLOCKS', $user);
+
         $start = $request->query->get('start');
         $end = $request->query->get('end');
 
@@ -111,6 +114,7 @@ class WorkingTimeController extends AbstractController
     }
 
     #[Route('/workingtimes/{userId}/{id}', name: 'api_workingtimes_show', methods: ['GET'])]
+    #[IsGranted('WORKING_TIME_VIEW', 'workingTime')]
     #[OA\Get(
         path: '/api/workingtimes/{userId}/{id}',
         summary: 'Get a specific working time',
@@ -238,6 +242,8 @@ class WorkingTimeController extends AbstractController
             return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->denyAccessUnlessGranted('USER_EDIT', $user);
+
         $workingTime = $this->workingTimeMapper->toEntity($dto, $user);
 
         $this->em->persist($workingTime);
@@ -248,6 +254,7 @@ class WorkingTimeController extends AbstractController
     }
 
     #[Route('/workingtimes/{id}', name: 'api_workingtimes_update', methods: ['PUT'])]
+    #[IsGranted('WORKING_TIME_EDIT', 'workingTime')]
     #[OA\Put(
         path: '/api/workingtimes/{id}',
         summary: 'Update an existing working time',
@@ -309,6 +316,7 @@ class WorkingTimeController extends AbstractController
     }
 
     #[Route('/workingtimes/{id}', name: 'api_workingtimes_delete', methods: ['DELETE'])]
+    #[IsGranted('WORKING_TIME_DELETE', 'workingTime')]
     #[OA\Delete(
         path: '/api/workingtimes/{id}',
         summary: 'Delete a working time',
