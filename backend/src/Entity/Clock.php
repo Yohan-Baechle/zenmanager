@@ -73,9 +73,12 @@ class Clock
     }
 
     public function setOwner(?User $owner): static
-    {
-        $this->owner = $owner;
+        {
+            if ($owner === null) {
+            throw new \InvalidArgumentException('Owner cannot be null for a Clock.');
+        }
 
+        $this->owner = $owner;
         return $this;
     }
 
