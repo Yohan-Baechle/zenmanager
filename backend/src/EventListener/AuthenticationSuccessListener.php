@@ -25,7 +25,7 @@ class AuthenticationSuccessListener
             'email' => $user->getEmail(),
             'firstName' => $user->getFirstName(),
             'lastName' => $user->getLastName(),
-            'role' => $user->getRole(),
+            'role' => $user->getBusinessRole(),
             'phoneNumber' => $user->getPhoneNumber(),
             'team' => $user->getTeam() ? [
                 'id' => $user->getTeam()->getId(),

@@ -6,8 +6,8 @@ import Button from '../../components/common/Button'
 import Card from '../../components/common/Card'
 import AccountCircleIcon from '../../assets/icons/AccountCircle.svg'
 import PasswordIcon from '../../assets/icons/Password.svg'
-import Plante1 from '../../assets/Plante1.svg'
-import Plante2 from '../../assets/Plante2.svg'
+import Plante1 from '../../assets/plante1.svg'
+import Plante2 from '../../assets/plante2.svg'
 import Logo from '../../assets/Logo.svg'
 
 export default function LoginPage() {
