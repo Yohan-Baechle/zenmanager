@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import DropdownMenu from '../common/DropdownMenu'
 import type { DropdownOption } from '../common/DropdownMenu'
 import Logo from '../../assets/Logo.svg'
-import Plante1 from '../../assets/plante1.svg'
-import Plante2 from '../../assets/plante2.svg'
-import AccountCircleIcon from '../../assets/icons/AccountCircle.svg'
-import SettingsIcon from '../../assets/icons/Settings.svg'
-import LogoutIcon from '../../assets/icons/Logout.svg'
+import { Plante1Icon } from '../../assets/plante1'
+import { Plante2Icon } from '../../assets/plante2'
+import { AccountCircleIcon } from '../../assets/icons/account-circle'
+import { SettingsIcon } from '../../assets/icons/settings'
+import { LogoutIcon } from '../../assets/icons/logout'
 
 export default function Header() {
     const { logout } = useAuth()
@@ -39,16 +39,8 @@ export default function Header() {
     return (
         <header className="relative bg-[var(--c1)] shadow-md">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <img
-                    className="absolute top-0 right-0 translate-x-[30%] -translate-y-[30%] -rotate-[15deg] w-[300px] h-auto opacity-[0.08] select-none"
-                    src={Plante1}
-                    alt="Decorative Plant"
-                />
-                <img
-                    className="absolute bottom-0 left-0 -translate-x-[30%] translate-y-[30%] rotate-[160deg] w-[300px] h-auto opacity-[0.08] select-none"
-                    src={Plante2}
-                    alt="Decorative Plant"
-                />
+                <Plante1Icon className="absolute top-0 right-0 translate-x-[30%] -translate-y-[30%] -rotate-[15deg] w-[300px] h-auto opacity-[0.08] select-none" />
+                <Plante2Icon className="absolute bottom-0 left-0 -translate-x-[30%] translate-y-[30%] rotate-[160deg] w-[300px] h-auto opacity-[0.08] select-none" />
             </div>
 
             <div className="relative  mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">

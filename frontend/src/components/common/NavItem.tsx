@@ -2,11 +2,11 @@ import { NavLink } from 'react-router-dom'
 
 interface NavItemProps {
     to: string
-    icon: string
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
     label: string
 }
 
-export default function NavItem({ to, icon, label }: NavItemProps) {
+export default function NavItem({ to, icon: Icon, label }: NavItemProps) {
     return (
         <NavLink
             to={to}
@@ -18,7 +18,7 @@ export default function NavItem({ to, icon, label }: NavItemProps) {
                 }`
             }
         >
-            <img src={icon} alt="" className="w-5 h-5" />
+            <Icon className="w-5 h-5" />
             <span className="font-medium">{label}</span>
         </NavLink>
     )
