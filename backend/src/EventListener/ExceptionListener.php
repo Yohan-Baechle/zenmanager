@@ -24,7 +24,6 @@ class ExceptionListener
         $exception = $event->getThrowable();
         $request = $event->getRequest();
 
-        // Only handle API requests (starting with /api)
         if (!str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
@@ -43,22 +42,18 @@ class ExceptionListener
 
     private function getStatusCode(\Throwable $exception): int
     {
-        // HTTP exceptions
         if ($exception instanceof HttpExceptionInterface) {
             return $exception->getStatusCode();
         }
 
-        // Validation errors
         if ($exception instanceof ValidationFailedException) {
             return Response::HTTP_UNPROCESSABLE_ENTITY;
         }
 
-        // Entity not found
         if ($exception instanceof EntityNotFoundException) {
             return Response::HTTP_NOT_FOUND;
         }
 
-        // Default to 500 for unexpected errors
         return Response::HTTP_INTERNAL_SERVER_ERROR;
     }
 
@@ -69,14 +64,12 @@ class ExceptionListener
             'message' => $this->getErrorMessage($exception, $statusCode),
         ];
 
-        // Add validation errors if present
         if ($exception instanceof ValidationFailedException) {
             $data['errors'] = $this->formatValidationErrors($exception);
         } elseif ($exception instanceof UnprocessableEntityHttpException && $exception->getPrevious() instanceof ValidationFailedException) {
             $data['errors'] = $this->formatValidationErrors($exception->getPrevious());
         }
 
-        // Add exception details in dev environment
         $isDev = ($_ENV['APP_ENV'] ?? 'prod') === 'dev';
         if ($isDev && $statusCode >= 500) {
             $data['debug'] = [
@@ -106,7 +99,6 @@ class ExceptionListener
 
     private function getErrorMessage(\Throwable $exception, int $statusCode): string
     {
-        // For specific exceptions, use their message
         if ($exception instanceof NotFoundHttpException) {
             return $exception->getMessage() ?: 'Resource not found';
         }
@@ -131,12 +123,10 @@ class ExceptionListener
             return 'Resource not found';
         }
 
-        // For HTTP exceptions, use their message
         if ($exception instanceof HttpExceptionInterface) {
             return $exception->getMessage() ?: 'An error occurred';
         }
 
-        // For 500 errors, don't expose internal details in production
         $isDev = ($_ENV['APP_ENV'] ?? 'prod') === 'dev';
         if ($statusCode >= 500 && !$isDev) {
             return 'An internal server error occurred';
