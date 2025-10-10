@@ -101,8 +101,8 @@ class UserMapper
             id: $team->getId(),
             name: $team->getName(),
             description: $team->getDescription(),
-            manager: null, // Avoid circular reference
-            employees: [], // Avoid circular reference
+            manager: null,
+            employees: [],
             createdAt: $team->getCreatedAt(),
             updatedAt: $team->getUpdatedAt(),
         );
