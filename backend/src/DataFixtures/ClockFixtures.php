@@ -16,23 +16,19 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
         $faker = Factory::create('fr_FR');
 
         $maxUsers = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
-        $batchSize = 100;
+        $batchSize = 20; // Réduit de 100 à 20 pour libérer la mémoire plus souvent
         $counter = 0;
 
-        // Generate clock data for the last 30 days for each user
         for ($userIndex = 1; $userIndex <= $maxUsers; $userIndex++) {
-            // Generate 20-25 work days for each user (not all days)
             $workDays = $faker->numberBetween(20, 25);
 
             for ($day = 0; $day < $workDays; $day++) {
-                // Get user reference inside the loop to handle clear() properly
                 $user = $this->getReference('user-' . $userIndex, User::class);
 
-                // Random day in the last 30 days
                 $daysAgo = $faker->numberBetween(0, 29);
                 $date = new \DateTimeImmutable("-{$daysAgo} days");
 
-                // Clock in - morning (between 7:00 and 10:00)
+                // Clock in
                 $clockIn = new Clock();
                 $clockIn->setTime($date->setTime($faker->numberBetween(7, 9), $faker->numberBetween(0, 59)))
                     ->setStatus(true)
@@ -40,9 +36,8 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                 $manager->persist($clockIn);
                 $counter++;
 
-                // 80% chance to have a clock out (some days user might forget to clock out)
+                // Clock out (80% chance)
                 if ($faker->boolean(80)) {
-                    // Clock out - evening (between 16:00 and 20:00)
                     $clockOut = new Clock();
                     $clockOut->setTime($date->setTime($faker->numberBetween(16, 19), $faker->numberBetween(0, 59)))
                         ->setStatus(false)
@@ -51,14 +46,18 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                     $counter++;
                 }
 
+                // Flush et clear plus fréquemment
                 if ($counter % $batchSize === 0) {
                     $manager->flush();
-                    $manager->clear(Clock::class);
+                    $manager->clear(); // Clear TOUT, pas juste Clock
+                    gc_collect_cycles(); // Force le garbage collector PHP
                 }
             }
         }
 
+        // Final flush
         $manager->flush();
+        $manager->clear();
     }
 
     public function getDependencies(): array
