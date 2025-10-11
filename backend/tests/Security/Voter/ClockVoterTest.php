@@ -98,7 +98,9 @@ class ClockVoterTest extends TestCase
 
             if ($isManager) {
                 $managedTeams = $this->createMock(\Doctrine\Common\Collections\Collection::class);
-                $managedTeams->method('contains')->with($team)->willReturn(true);
+                $managedTeams->method('contains')->willReturnCallback(
+                    fn($checkTeam) => $checkTeam === $team
+                );
                 $user->method('getManagedTeams')->willReturn($managedTeams);
             }
         }
