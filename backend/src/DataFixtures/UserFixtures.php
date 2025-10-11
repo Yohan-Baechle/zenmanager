@@ -59,6 +59,8 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-2', $managerDev);
 
         $teamDev->setManager($managerDev);
+        $manager->persist($teamDev);
+
 
         // 3. EMPLOYEE 1 de l'équipe Dev
         $employeeDev1 = new User();
@@ -99,6 +101,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-5', $managerMarketing);
 
         $teamMarketing->setManager($managerMarketing);
+        $manager->persist($teamMarketing);
 
         $manager->flush();
     }
