@@ -27,7 +27,6 @@ class UserTestFixtures extends Fixture implements DependentFixtureInterface
         $admin->setFirstName('Admin');
         $admin->setLastName('System');
         $admin->setRoles(['ROLE_ADMIN']);
-        $admin->setBusinessRole('admin');
         $admin->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
         $manager->persist($admin);
 
