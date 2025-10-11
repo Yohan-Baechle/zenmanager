@@ -13,6 +13,8 @@ class TeamFixtures extends Fixture
     {
         $faker = Factory::create('fr_FR');
         $maxTeams = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
+        $batchSize = 20;
+
         // Create 30 teams (without managers for now)
         for ($i = 1; $i <= $maxTeams; $i++) {
             $team = new Team();
@@ -21,6 +23,11 @@ class TeamFixtures extends Fixture
 
             $manager->persist($team);
             $this->addReference('team-' . $i, $team);
+
+            if ($i % $batchSize === 0) {
+                $manager->flush();
+                $manager->clear(Team::class);
+            }
         }
 
         $manager->flush();
