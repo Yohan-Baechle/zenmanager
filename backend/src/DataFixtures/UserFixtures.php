@@ -48,8 +48,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-employee', $employee1);
 
         $maxUsers = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
-        $batchSize = 20; 
-        $counter = 0;
+        $maxTeams = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
 
         // Create users
         for ($i = 1; $i <= $maxUsers; $i++) {
@@ -58,7 +57,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
             // Assign a random team (80% chance to have a team)
             if ($faker->boolean(80)) {
-                $teamIndex = $faker->numberBetween(1, $maxUsers);
+                $teamIndex = $faker->numberBetween(1, $maxTeams);
                 $user->setTeam($this->getReference('team-' . $teamIndex, Team::class));
             }
 
@@ -73,12 +72,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
             $manager->persist($user);
             $this->addReference('user-' . $i, $user);
-            $counter++;
-
-            if ($counter % $batchSize === 0) {
-                $manager->flush();
-                $manager->clear(User::class);
-            }
         }
 
         $manager->flush();

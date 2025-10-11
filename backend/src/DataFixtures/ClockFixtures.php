@@ -50,6 +50,9 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                     $counter++;
                 }
 
+                if ($counter % $batchSize === 0) {
+                    $manager->flush();
+                }
             }
         }
 
