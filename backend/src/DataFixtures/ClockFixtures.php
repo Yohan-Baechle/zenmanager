@@ -21,12 +21,13 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
 
         // Generate clock data for the last 30 days for each user
         for ($userIndex = 1; $userIndex <= $maxUsers; $userIndex++) {
-            $user = $this->getReference('user-' . $userIndex, User::class);
-
             // Generate 20-25 work days for each user (not all days)
             $workDays = $faker->numberBetween(20, 25);
 
             for ($day = 0; $day < $workDays; $day++) {
+                // Get user reference inside the loop to handle clear() properly
+                $user = $this->getReference('user-' . $userIndex, User::class);
+
                 // Random day in the last 30 days
                 $daysAgo = $faker->numberBetween(0, 29);
                 $date = new \DateTimeImmutable("-{$daysAgo} days");
@@ -52,6 +53,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
 
                 if ($counter % $batchSize === 0) {
                     $manager->flush();
+                    $manager->clear(Clock::class);
                 }
             }
         }
