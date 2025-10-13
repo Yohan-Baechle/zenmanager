@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Users')]
@@ -111,6 +112,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}', name: 'api_users_show', methods: ['GET'])]
+    #[IsGranted('USER_VIEW', 'user')]
     #[OA\Get(
         path: '/api/users/{id}',
         summary: 'Get user by ID',
@@ -243,6 +245,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}', name: 'api_users_update', methods: ['PUT'])]
+    #[IsGranted('USER_EDIT', 'user')]
     #[OA\Put(
         path: '/api/users/{id}',
         summary: 'Update an existing user',
@@ -329,6 +332,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
+    #[IsGranted('USER_DELETE', 'user')]
     #[OA\Delete(
         path: '/api/users/{id}',
         summary: 'Delete a user',
@@ -362,6 +366,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}/clocks', name: 'api_users_clocks', methods: ['GET'])]
+    #[IsGranted('USER_VIEW_CLOCKS', 'user')]
     #[OA\Get(
         path: '/api/users/{id}/clocks',
         summary: 'Get a summary of the arrivals and departures of an employee',

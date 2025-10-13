@@ -1,0 +1,21 @@
+meta {
+  name: ❌ Cannot DELETE clock (route does not exist)
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{base_url}}/clocks/1216
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{employee_token}}
+}
+
+tests {
+  test("Status should be 404 (route not found)", function() {
+    expect(res.status).to.equal(404);
+  });
+}

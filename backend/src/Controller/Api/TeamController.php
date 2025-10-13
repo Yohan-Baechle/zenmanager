@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Teams')]
@@ -265,6 +266,7 @@ class TeamController extends AbstractController
     }
 
     #[Route('/teams/{id}', name: 'api_teams_update', methods: ['PUT'])]
+    #[IsGranted('TEAM_EDIT', 'team')]
     #[OA\Put(
         path: '/api/teams/{id}',
         summary: 'Update an existing team',
@@ -351,6 +353,7 @@ class TeamController extends AbstractController
     }
 
     #[Route('/teams/{id}', name: 'api_teams_delete', methods: ['DELETE'])]
+    #[IsGranted('TEAM_DELETE', 'team')]
     #[OA\Delete(
         path: '/api/teams/{id}',
         summary: 'Delete a team',
