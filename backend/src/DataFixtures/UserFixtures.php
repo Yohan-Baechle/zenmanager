@@ -42,7 +42,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setFirstName('Admin')
             ->setLastName('System')
             ->setRoles(['ROLE_ADMIN'])
-            ->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
+            ->setPassword($this->passwordHasher->hashPassword($admin, 'password123'));
         $manager->persist($admin);
         $this->addReference('user-1', $admin);
 
@@ -54,7 +54,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setLastName('Manager')
             ->setRoles(['ROLE_MANAGER'])
             ->setBusinessRole('manager')
-            ->setPassword($this->passwordHasher->hashPassword($managerDev, 'password'));
+            ->setPassword($this->passwordHasher->hashPassword($managerDev, 'password123'));
         $manager->persist($managerDev);
         $this->addReference('user-2', $managerDev);
 
@@ -70,7 +70,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setLastName('Developer')
             ->setRoles(['ROLE_USER'])
             ->setBusinessRole('employee')
-            ->setPassword($this->passwordHasher->hashPassword($employeeDev1, 'password'))
+            ->setPassword($this->passwordHasher->hashPassword($employeeDev1, 'password123'))
             ->setTeam($teamDev);
         $manager->persist($employeeDev1);
         $this->addReference('user-3', $employeeDev1);
@@ -83,7 +83,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setLastName('Developer')
             ->setRoles(['ROLE_USER'])
             ->setBusinessRole('employee')
-            ->setPassword($this->passwordHasher->hashPassword($employeeDev2, 'password'))
+            ->setPassword($this->passwordHasher->hashPassword($employeeDev2, 'password123'))
             ->setTeam($teamDev);
         $manager->persist($employeeDev2);
         $this->addReference('user-4', $employeeDev2);
@@ -96,7 +96,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setLastName('Marketing')
             ->setRoles(['ROLE_MANAGER'])
             ->setBusinessRole('manager')
-            ->setPassword($this->passwordHasher->hashPassword($managerMarketing, 'password'));
+            ->setPassword($this->passwordHasher->hashPassword($managerMarketing, 'password123'));
         $manager->persist($managerMarketing);
         $this->addReference('user-5', $managerMarketing);
 

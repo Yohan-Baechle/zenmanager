@@ -228,13 +228,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Get the business role (employee or manager) from Symfony roles
+     * Get the business role (employee, manager, or admin) from Symfony roles
      */
     public function getBusinessRole(): string
     {
         $roles = $this->getRoles();
 
-        if (in_array('ROLE_MANAGER', $roles)) {
+        if (in_array('ROLE_ADMIN', $roles)) {
+            return 'admin';
+        } else if (in_array('ROLE_MANAGER', $roles)) {
             return 'manager';
         } else if (in_array('ROLE_EMPLOYEE', $roles)) {
             return 'employee';
