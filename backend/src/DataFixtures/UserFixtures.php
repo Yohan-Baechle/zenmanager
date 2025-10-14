@@ -35,7 +35,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $teamDev = $this->getReference('team-1', Team::class);
         $teamMarketing = $this->getReference('team-2', Team::class);
 
-        // 1. ADMIN
         $admin = new User();
         $admin->setUsername('admin')
             ->setEmail('admin@test.com')
@@ -46,14 +45,12 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $manager->persist($admin);
         $this->addReference('user-1', $admin);
 
-        // 2. MANAGER de l'équipe Dev
         $managerDev = new User();
         $managerDev->setUsername('manager_dev')
             ->setEmail('manager.dev@test.com')
             ->setFirstName('John')
             ->setLastName('Manager')
             ->setRoles(['ROLE_MANAGER'])
-            ->setBusinessRole('manager')
             ->setPassword($this->passwordHasher->hashPassword($managerDev, 'password'));
         $manager->persist($managerDev);
         $this->addReference('user-2', $managerDev);
@@ -61,41 +58,34 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $teamDev->setManager($managerDev);
         $manager->persist($teamDev);
 
-
-        // 3. EMPLOYEE 1 de l'équipe Dev
         $employeeDev1 = new User();
         $employeeDev1->setUsername('employee_dev1')
             ->setEmail('emp1.dev@test.com')
             ->setFirstName('Alice')
             ->setLastName('Developer')
-            ->setRoles(['ROLE_USER'])
-            ->setBusinessRole('employee')
+            ->setRoles(['ROLE_EMPLOYEE'])
             ->setPassword($this->passwordHasher->hashPassword($employeeDev1, 'password'))
             ->setTeam($teamDev);
         $manager->persist($employeeDev1);
         $this->addReference('user-3', $employeeDev1);
 
-        // 4. EMPLOYEE 2 de l'équipe Dev
         $employeeDev2 = new User();
         $employeeDev2->setUsername('employee_dev2')
             ->setEmail('emp2.dev@test.com')
             ->setFirstName('Bob')
             ->setLastName('Developer')
-            ->setRoles(['ROLE_USER'])
-            ->setBusinessRole('employee')
+            ->setRoles(['ROLE_EMPLOYEE'])
             ->setPassword($this->passwordHasher->hashPassword($employeeDev2, 'password'))
             ->setTeam($teamDev);
         $manager->persist($employeeDev2);
         $this->addReference('user-4', $employeeDev2);
 
-        // 5. MANAGER de l'équipe Marketing
         $managerMarketing = new User();
         $managerMarketing->setUsername('manager_marketing')
             ->setEmail('manager.marketing@test.com')
             ->setFirstName('Sarah')
             ->setLastName('Marketing')
             ->setRoles(['ROLE_MANAGER'])
-            ->setBusinessRole('manager')
             ->setPassword($this->passwordHasher->hashPassword($managerMarketing, 'password'));
         $manager->persist($managerMarketing);
         $this->addReference('user-5', $managerMarketing);
@@ -111,7 +101,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $maxUsers = 30;
         $maxTeams = 30;
 
-        // Créer 2 users fixes supplémentaires pour dev
         $manager1 = new User();
         $manager1->setEmail('manager@test.com')
             ->setUsername('Theking')
@@ -119,7 +108,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setLastName('MichMich')
             ->setPhoneNumber('0800123123')
             ->setRoles(['ROLE_MANAGER'])
-            ->setBusinessRole('manager')
             ->setPassword($this->passwordHasher->hashPassword($manager1, 'password123'));
         $manager->persist($manager1);
         $this->addReference('user-manager', $manager1);
@@ -130,18 +118,15 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setFirstName('Pol-Mattis')
             ->setLastName('PM')
             ->setPhoneNumber('0345566667')
-            ->setRoles(['ROLE_USER'])
-            ->setBusinessRole('employee')
+            ->setRoles(['ROLE_EMPLOYEE'])
             ->setPassword($this->passwordHasher->hashPassword($employee1, 'password123'));
         $manager->persist($employee1);
         $this->addReference('user-employee', $employee1);
 
-        // Créer 30 users générés
         for ($i = 6; $i <= $maxUsers + 5; $i++) {
             $user = new User();
-            $role = $i <= 15 ? 'manager' : 'employee'; // 10 managers (6-15), 20 employees (16-35)
+            $role = $i <= 15 ? 'ROLE_MANAGER' : 'ROLE_EMPLOYEE';
 
-            // Assigner une équipe aléatoire (80% de chance)
             if ($faker->boolean(80)) {
                 $teamIndex = $faker->numberBetween(1, $maxTeams);
                 $user->setTeam($this->getReference('team-' . $teamIndex, Team::class));
@@ -153,7 +138,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
                 ->setLastName($faker->lastName())
                 ->setPhoneNumber($faker->phoneNumber())
                 ->setPassword($this->passwordHasher->hashPassword($user, 'password123'))
-                ->setBusinessRole($role);
+                ->setRoles([$role]);
 
             $manager->persist($user);
             $this->addReference('user-' . $i, $user);

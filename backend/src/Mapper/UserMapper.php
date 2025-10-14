@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Dto\Team\TeamOutputDto;
-use App\Dto\User\UserInputDto;
 use App\Dto\User\UserOutputDto;
 use App\Dto\User\UserUpdateDto;
 use App\Entity\Team;
@@ -25,40 +24,16 @@ class UserMapper
             firstName: $user->getFirstName(),
             lastName: $user->getLastName(),
             phoneNumber: $user->getPhoneNumber(),
-            role: $user->getBusinessRole(),
+            role: $user->getRoleForDisplay(),
             team: $user->getTeam() ? $this->teamToOutputDto($user->getTeam()) : null,
             createdAt: $user->getCreatedAt(),
             updatedAt: $user->getUpdatedAt(),
         );
     }
 
-    /**
-     * @param User[] $users
-     * @return UserOutputDto[]
-     */
     public function toOutputDtoCollection(array $users): array
     {
         return array_map(fn(User $user) => $this->toOutputDto($user), $users);
-    }
-
-    public function toEntity(UserInputDto $dto, ?Team $team = null): User
-    {
-        $user = new User();
-
-        $user->setUsername($dto->username);
-        $user->setEmail($dto->email);
-        $user->setFirstName($dto->firstName);
-        $user->setLastName($dto->lastName);
-        $user->setPhoneNumber($dto->phoneNumber);
-        $user->setBusinessRole($dto->role);
-        $user->setTeam($team);
-
-        if ($dto->password) {
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->password);
-            $user->setPassword($hashedPassword);
-        }
-
-        return $user;
     }
 
     public function updateEntity(User $user, UserUpdateDto $dto, ?Team $team = null): void
@@ -84,7 +59,11 @@ class UserMapper
         }
 
         if ($dto->role !== null) {
-            $user->setBusinessRole($dto->role);
+            if ($dto->role === 'manager') {
+                $user->setRoles(['ROLE_MANAGER']);
+            } elseif ($dto->role === 'employee') {
+                $user->setRoles(['ROLE_EMPLOYEE']);
+            }
         }
 
         if ($dto->password !== null) {

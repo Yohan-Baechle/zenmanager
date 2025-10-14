@@ -2,7 +2,7 @@
 
 namespace App\Controller\Api;
 
-use App\Dto\User\UserInputDto;
+use App\Dto\User\UserAdminCreateDto;
 use App\Dto\User\UserUpdateDto;
 use App\Entity\Clock;
 use App\Entity\Team;
@@ -11,7 +11,10 @@ use App\Mapper\ClockMapper;
 use App\Mapper\UserMapper;
 use App\Repository\UserRepository;
 use App\Service\Paginator;
+use App\Service\PasswordGeneratorService;
+use App\Service\UserCreationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,7 +31,10 @@ class UserController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly UserMapper $userMapper,
         private readonly ClockMapper $clockMapper,
-        private readonly Paginator $paginator
+        private readonly Paginator $paginator,
+        private readonly UserCreationService $userCreationService,
+        private readonly PasswordGeneratorService $passwordGenerator,
+        private readonly UserPasswordHasherInterface $passwordHasher
     ) {}
 
     #[Route('/users', name: 'api_users_index', methods: ['GET'])]
@@ -162,17 +168,19 @@ class UserController extends AbstractController
     }
 
     #[Route('/users', name: 'api_users_create', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     #[OA\Post(
         path: '/api/users',
-        summary: 'Create a new user',
+        summary: 'Create a new user (Admin only)',
+        description: 'Creates a new user with an automatically generated secure password. The password will be sent to the user via email and must be changed on first login.',
+        security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['username', 'email', 'password', 'firstName', 'lastName', 'role'],
+                required: ['username', 'email', 'firstName', 'lastName', 'role'],
                 properties: [
                     new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
                     new OA\Property(property: 'email', type: 'string', format: 'email', example: 'newuser@example.com'),
-                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'SecurePass123!'),
                     new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                     new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
@@ -185,7 +193,7 @@ class UserController extends AbstractController
         responses: [
             new OA\Response(
                 response: 201,
-                description: 'User created successfully',
+                description: 'User created successfully. A secure password has been generated and sent to the user via email.',
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 1),
@@ -219,13 +227,17 @@ class UserController extends AbstractController
                 )
             ),
             new OA\Response(
+                response: 403,
+                description: 'Access denied - Admin role required'
+            ),
+            new OA\Response(
                 response: 404,
                 description: 'Team not found'
             )
         ]
     )]
     public function create(
-        #[MapRequestPayload] UserInputDto $dto
+        #[MapRequestPayload] UserAdminCreateDto $dto
     ): JsonResponse {
         $team = null;
         if ($dto->teamId !== null) {
@@ -235,10 +247,15 @@ class UserController extends AbstractController
             }
         }
 
-        $user = $this->userMapper->toEntity($dto, $team);
+        ['user' => $user, 'temporaryPassword' => $temporaryPassword] = $this->userCreationService->createUser($dto, $team);
 
         $this->em->persist($user);
         $this->em->flush();
+
+        try {
+            $this->userCreationService->sendWelcomeEmail($user, $temporaryPassword);
+        } catch (\Exception $e) {
+        }
 
         $outputDto = $this->userMapper->toOutputDto($user);
         return $this->json($outputDto, Response::HTTP_CREATED);
@@ -329,6 +346,62 @@ class UserController extends AbstractController
 
         $outputDto = $this->userMapper->toOutputDto($user);
         return $this->json($outputDto);
+    }
+
+    #[Route('/users/{id}/regenerate-password', name: 'api_users_regenerate_password', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[OA\Post(
+        path: '/api/users/{id}/regenerate-password',
+        summary: 'Regenerate user password (Admin only)',
+        description: 'Generates a new secure password for a user and sends it via email',
+        security: [['Bearer' => []]],
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Password regenerated and sent to user email',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Password regenerated and sent to user email')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - Admin role required'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found'
+            )
+        ]
+    )]
+    public function regeneratePassword(User $user): JsonResponse
+    {
+        $temporaryPassword = $this->passwordGenerator->generate();
+
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $temporaryPassword);
+        $user->setPassword($hashedPassword);
+
+        $this->em->flush();
+
+        try {
+            $this->userCreationService->sendPasswordRegeneratedEmail($user, $temporaryPassword);
+        } catch (\Exception $e) {
+        }
+
+        return $this->json([
+            'message' => 'Password regenerated and sent to user email'
+        ]);
     }
 
     #[Route('/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
