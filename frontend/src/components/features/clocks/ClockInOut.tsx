@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Button from '../../common/Button'
 import Card from '../../common/Card'
 import { clocksApi } from '../../../api/clocks.api'
@@ -7,7 +7,16 @@ import { AlarmAddIcon } from '../../../assets/icons/alarm-add.tsx'
 
 export default function ClockInOut() {
     const [loading, setLoading] = useState(false)
+    const [currentTime, setCurrentTime] = useState(new Date())
     const { user } = useAuth()
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date())
+        }, 1000)
+
+        return () => clearInterval(interval)
+    }, [])
 
     const handleClock = async () => {
         if (!user) return
@@ -28,7 +37,7 @@ export default function ClockInOut() {
 
     return (
         <Card
-            title="Pointer"
+            title={`Pointer ${currentTime.toLocaleTimeString()}`}
             icon={AlarmAddIcon}
         >
             <Button
@@ -36,7 +45,7 @@ export default function ClockInOut() {
                 disabled={loading}
                 className="w-full"
             >
-                Pointer
+                Cliquer ici pour pointer
             </Button>
         </Card>
     )
