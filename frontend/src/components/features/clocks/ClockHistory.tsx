@@ -82,7 +82,7 @@ export default function ClockHistory({ clocks }: ClockHistoryProps) {
         <Card
             title="Historique des pointages"
             icon={HistoryIcon}
-            className="max-h-[calc(100vh-192px)] min-w-[570px] overflow-hidden"
+            className="min-w-[570px] overflow-hidden"
         >
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center text-sm text-[var(--c5)]">
