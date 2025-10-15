@@ -46,23 +46,17 @@
         - name: Install Composer dependencies
           run: composer install --no-scripts --no-interaction --no-progress --prefer-dist
 
-        #maybe just change the working directory ?
-        - name: create root .env file
-          run: |
-            echo "POSTGRES_DB=best_db" > ../.env
-            echo "POSTGRES_USER=user_dot_com" >> ../.env
-            echo "POSTGRES_PASSWORD=shhhhhhh" >> ../.env
-
-            echo "POSTGRES_DB=best_db" >> $GITHUB_ENV
-            echo "POSTGRES_USER=user_dot_com" >> $GITHUB_ENV
-            echo "POSTGRES_PASSWORD=shhhhhhh" >> $GITHUB_ENV
-
+        # maybe just change the working directory ?
         # the best practice *for symfony* is to create a .env.test file
         # but to keep the repo clean and for ci/cd experimenting reason (I'm here to learn about it), we create a .env file here 
         # for now the file is tiny so it's not a big deal, but we'll change that if the file grows 
-        - name: Create backend .env file
+        - name: create .env file
+          working-directory: ./
           run: |
-            echo "APP_ENV=test" > .env
+            echo "POSTGRES_DB=best_db" >> .env
+            echo "POSTGRES_USER=user_dot_com" >> .env
+            echo "POSTGRES_PASSWORD=shhhhhhh" >> .env
+            echo "APP_ENV=test" >> .env
             echo "APP_SECRET=dummy_secret" >> .env
             echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" >> .env
             echo "DEFAULT_URI=http://localhost" >> .env
@@ -109,23 +103,6 @@
             docker compose exec backend php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction
             docker compose exec backend php -d memory_limit=512M bin/console doctrine:fixtures:load --no-interaction
 
-        #- name: Debug database URL
-        #  run: |
-        #    echo "Current DATABASE_URL:"
-        #    cat .env | grep DATABASE_URL
-
-        #- name: Check DB connection
-        #  run: docker compose exec backend php bin/console doctrine:query:sql "SELECT 1;"   
-
-        #- name: Check routes
-        #  run: php bin/console debug:router
-
-        #- name: Clear cache and var in docker container
-        #  run: docker compose exec backend rm -rf var/cache/*
-
-        #- name: Run PHPUnit tests (Entities only)
-        #  run: php bin/phpunit tests/Entity/UserTest.php
-          
         - name: Run PHPUnit tests
           run: |
             php bin/phpunit --testdox
