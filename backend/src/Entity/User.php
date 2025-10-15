@@ -28,6 +28,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public const LAST_NAME_MIN_LENGTH = 2;
     public const LAST_NAME_MAX_LENGTH = 100;
+
+    public const EMAIL_MAX_LENGTH = 180;
     
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -39,7 +41,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Length(min: User::USERNAME_MIN_LENGTH, max: User::USERNAME_MAX_LENGTH)]
     private ?string $username = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: User::EMAIL_MAX_LENGTH, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
     private ?string $email = null;
@@ -138,6 +140,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): static
     {
+        $length = mb_strlen($email); #jfyi : strlen doesn't work properly with multibyte chars that's why we use mb_strlen here
+
+        if ($length > self::EMAIL_MAX_LENGTH) {
+            throw new \InvalidArgumentException(
+                sprintf('Email must not exceed %d characters. Got %d.', self::EMAIL_MAX_LENGTH, $length)
+            );
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid email format: "%s".', $email)
+            );
+        }
+
         $this->email = $email;
 
         return $this;

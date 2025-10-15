@@ -289,4 +289,50 @@ class UserTest extends TestCase
             $user->setLastName($lastName);
         }
     }
+
+
+    /**
+     * This test verifies email length and formatting constraints  
+     */
+    public function testEmailValidation(): void
+    {
+        $max = User::EMAIL_MAX_LENGTH;
+
+        $validEmails = [
+            'john.doe@example.com',
+            'user+label@sub.domain.co',
+            str_repeat('a', 64) . '@x.com', // 64 specifically because bigger is not considered as proper formatting
+        ];
+
+        foreach ($validEmails as $email) {
+            $user = new User();
+            $user->setEmail($email);
+            $this->assertSame($email, $user->getEmail());
+        }
+
+        $invalidFormats = [
+            'plainaddress',
+            '@missinglocal.com',
+            'missingatsign.com',
+            'john..doe@example.com',
+            'john.doe@.com',
+        ];
+
+        foreach ($invalidFormats as $email) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setEmail($email);
+        }
+
+        $tooLongEmail = [
+            str_repeat('a', 65) . '@x.com', 
+            "jaaj@". str_repeat('a', $max) .".com"
+        ];
+        foreach ($tooLongEmail as $tooLongEmail) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setEmail($tooLongEmail);
+        }
+    }
+
 }
