@@ -31,7 +31,7 @@ class ClockController extends AbstractController
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['time', 'status', 'userId'],
+                required: ['time', 'userId'],
                 properties: [
                     new OA\Property(
                         property: 'time',
@@ -42,9 +42,10 @@ class ClockController extends AbstractController
                     ),
                     new OA\Property(
                         property: 'status',
-                        description: 'true for clock-in (arrival), false for clock-out (departure)',
+                        description: 'Optional. true for clock-in, false for clock-out. If not provided, status is automatically alternated (clock-in after clock-out and vice versa). If last clock-in was on a previous day, an automatic clock-out at 23:59:59 is created first.',
                         type: 'boolean',
-                        example: true
+                        example: true,
+                        nullable: true
                     ),
                     new OA\Property(
                         property: 'userId',
@@ -94,10 +95,10 @@ class ClockController extends AbstractController
             ),
             new OA\Response(
                 response: 400,
-                description: 'Invalid input',
+                description: 'Invalid input or badging too quickly (less than 1 minute since last badge)',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'errors', type: 'object')
+                        new OA\Property(property: 'error', type: 'string', example: 'Cannot badge twice within 1 minute')
                     ]
                 )
             ),
@@ -116,6 +117,42 @@ class ClockController extends AbstractController
         }
 
         $this->denyAccessUnlessGranted('USER_EDIT', $user);
+
+        $lastClock = $this->em->getRepository(Clock::class)
+            ->findOneBy(['owner' => $user], ['time' => 'DESC']);
+
+        if ($dto->status === null) {
+            if ($lastClock) {
+                $timeDiff = $dto->time->getTimestamp() - $lastClock->getTime()->getTimestamp();
+                if ($timeDiff < 60) {
+                    return $this->json([
+                        'error' => 'Cannot badge twice within 1 minute'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                if ($lastClock->isStatus() === true) {
+                    $lastClockDate = $lastClock->getTime()->format('Y-m-d');
+                    $currentDate = $dto->time->format('Y-m-d');
+
+                    if ($lastClockDate !== $currentDate) {
+                        $autoClockOut = new Clock();
+                        $autoClockOut->setOwner($user);
+                        $autoClockOut->setStatus(false);
+                        $autoClockOut->setTime(
+                            \DateTimeImmutable::createFromFormat(
+                                'Y-m-d H:i:s',
+                                $lastClockDate . ' 23:59:59'
+                            )
+                        );
+                        $this->em->persist($autoClockOut);
+                    }
+                }
+
+                $dto->status = !$lastClock->isStatus();
+            } else {
+                $dto->status = true;
+            }
+        }
 
         $clock = $this->clockMapper->toEntity($dto, $user);
 
@@ -148,7 +185,29 @@ class ClockController extends AbstractController
                 new OA\Property(property: 'id', type: 'integer', example: 1),
                 new OA\Property(property: 'time', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'status', type: 'boolean', example: true),
-                new OA\Property(property: 'owner', type: 'object'),
+                new OA\Property(
+                    property: 'owner',
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                        new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                        new OA\Property(
+                            property: 'team',
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                            ],
+                            type: 'object',
+                            nullable: true
+                        ),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                    ],
+                    type: 'object'
+                ),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
             ]
         )
