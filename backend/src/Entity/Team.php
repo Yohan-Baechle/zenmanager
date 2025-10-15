@@ -12,17 +12,24 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Team
 {
+    public const MIN_NAME_LENGTH = 2;
+    public const MAX_NAME_LENGTH = 100;
+
+    public const MIN_DESCRIPTION_LENGTH = 0;
+    public const MAX_DESCRIPTION_LENGTH = 1000;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: Team::MAX_NAME_LENGTH)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 100)]
+    #[Assert\Length(min: Team::MIN_NAME_LENGTH, max: Team::MAX_NAME_LENGTH)]
     private ?string $name = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Assert\Length(min: Team::MIN_DESCRIPTION_LENGTH, max: Team::MAX_DESCRIPTION_LENGTH)]
     private ?string $description = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'managedTeams')]
@@ -69,6 +76,12 @@ class Team
 
     public function setName(string $name): static
     {
+        $length = strlen($name);
+
+        if ($length < Team::MIN_NAME_LENGTH || $length > Team::MAX_NAME_LENGTH) {
+            throw new \InvalidArgumentException("Name must be between " . Team::MIN_NAME_LENGTH . " and " . Team::MAX_NAME_LENGTH . " characters. Got {$length}.");
+        }
+
         $this->name = $name;
 
         return $this;
@@ -81,6 +94,12 @@ class Team
 
     public function setDescription(?string $description): static
     {
+        $length = strlen($description);
+
+        if ($length < Team::MIN_DESCRIPTION_LENGTH || $length > Team::MAX_DESCRIPTION_LENGTH) {
+            throw new \InvalidArgumentException("Description must be between " . Team::MIN_DESCRIPTION_LENGTH . " and " . Team::MAX_DESCRIPTION_LENGTH . " characters. Got {$length}.");
+        }
+
         $this->description = $description;
 
         return $this;
@@ -108,6 +127,14 @@ class Team
 
     public function addEmployee(User $employee): static
     {
+        if ($this->getManager() === $employee) {
+            throw new \LogicException('A manager cannot be an employee of their own team.');
+        }
+
+        if ($employee->getTeam() !== null && $employee->getTeam() !== $this) {
+            throw new \InvalidArgumentException('This employee already belongs to another team.');
+        }
+
         if (!$this->employees->contains($employee)) {
             $this->employees->add($employee);
             $employee->setTeam($this);
