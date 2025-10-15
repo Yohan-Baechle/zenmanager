@@ -11,9 +11,10 @@ import {CompareArrowsIcon} from "../../../assets/icons/compare-arrows.tsx";
 
 interface ClockRequestProps {
     clocks: Clock[]
+    onOpenModal: () => void
 }
 
-export default function ClockRequest({ clocks }: ClockRequestProps) {
+export default function ClockRequest({ clocks, onOpenModal }: ClockRequestProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -134,7 +135,7 @@ export default function ClockRequest({ clocks }: ClockRequestProps) {
             </div>
             <Table data={paginatedClocks} columns={columns}/>
             <div className="flex justify-end mt-4">
-                <Button>Nouvelle demande</Button>
+                <Button onClick={onOpenModal}>Nouvelle demande</Button>
             </div>
         </Card>
     )
