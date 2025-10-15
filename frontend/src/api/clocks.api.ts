@@ -8,7 +8,7 @@ export const clocksApi = {
     },
 
     getUserClocks: async (userId: number): Promise<Clock[]> => {
-        const response = await apiClient.get<Clock[]>(`/users/${userId}/clocks`)
+        const response = await apiClient.get<Clock[]>(`/clocks/${userId}`)
         return response.data
     },
 
