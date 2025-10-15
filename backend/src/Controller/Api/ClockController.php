@@ -8,7 +8,6 @@ use App\Entity\Clock;
 use App\Entity\ClockRequest;
 use App\Entity\User;
 use App\Mapper\ClockMapper;
-use App\Repository\ClockRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Clocks')]
@@ -67,17 +67,18 @@ class ClockController extends AbstractController
     #[OA\Post(
         path: '/api/clocks',
         summary: 'Set the arrival/departure of the authenticated user',
+        security: [['Bearer' => []]],
         requestBody: new OA\RequestBody(
-            required: true,
+            required: false,
             content: new OA\JsonContent(
-                required: ['time', 'userId'],
                 properties: [
                     new OA\Property(
                         property: 'time',
-                        description: 'Clock time',
+                        description: 'Optional. Clock time. If not provided, the current server time will be used automatically.',
                         type: 'string',
                         format: 'date-time',
-                        example: '2025-10-08T09:00:00+00:00'
+                        example: '2025-10-08T09:00:00+00:00',
+                        nullable: true
                     ),
                     new OA\Property(
                         property: 'status',
@@ -85,12 +86,6 @@ class ClockController extends AbstractController
                         type: 'boolean',
                         example: true,
                         nullable: true
-                    ),
-                    new OA\Property(
-                        property: 'userId',
-                        description: 'User ID',
-                        type: 'integer',
-                        example: 1
                     )
                 ]
             )
@@ -142,17 +137,32 @@ class ClockController extends AbstractController
                 )
             ),
             new OA\Response(
-                response: 404,
-                description: 'User not found'
+                response: 401,
+                description: 'Unauthorized - Invalid or missing JWT token',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Authentication required')
+                    ]
+                )
             )
         ]
     )]
     public function create(
-        #[MapRequestPayload] ClockInputDto $dto
+        #[CurrentUser] ?User $user,
+        #[MapRequestPayload] ClockInputDto $dto = null
     ): JsonResponse {
-        $user = $this->em->getRepository(User::class)->find($dto->userId);
         if (!$user) {
-            return $this->json(['error' => 'User not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Initialize DTO if null (empty body)
+        if ($dto === null) {
+            $dto = new ClockInputDto();
+        }
+
+        // Automatically generate timestamp if not provided
+        if ($dto->time === null) {
+            $dto->time = new \DateTimeImmutable();
         }
 
         $this->denyAccessUnlessGranted('USER_EDIT', $user);
