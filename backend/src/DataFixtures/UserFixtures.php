@@ -145,11 +145,10 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $manager->flush();
-
-        // Assigner des managers aux équipes
+      
         for ($i = 3; $i <= $maxTeams; $i++) {
             if ($faker->boolean(70)) {
-                $managerIndex = $faker->numberBetween(6, 15); // Managers (user-6 à user-15)
+                $managerIndex = $faker->numberBetween(6, 15);
                 $team = $this->getReference('team-' . $i, Team::class);
                 $team->setManager($this->getReference('user-' . $managerIndex, User::class));
             }
