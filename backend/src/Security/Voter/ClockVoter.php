@@ -10,10 +10,12 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class ClockVoter extends Voter
 {
     public const VIEW = 'CLOCK_VIEW';
+    public const EDIT = 'CLOCK_EDIT';
+    public const DELETE = 'CLOCK_DELETE';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === self::VIEW && $subject instanceof Clock;
+        return in_array($attribute, [self::VIEW, self::EDIT, self::DELETE]) && $subject instanceof Clock;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -27,7 +29,12 @@ class ClockVoter extends Voter
         /** @var Clock $clock */
         $clock = $subject;
 
-        return $this->canView($clock, $user);
+        return match($attribute) {
+            self::VIEW => $this->canView($clock, $user),
+            self::EDIT => $this->canEdit($clock, $user),
+            self::DELETE => $this->canDelete($clock, $user),
+            default => false,
+        };
     }
 
     private function canView(Clock $clock, User $user): bool
@@ -37,6 +44,42 @@ class ClockVoter extends Voter
         }
 
         if ($clock->getOwner() === $user) {
+            return true;
+        }
+
+        if (in_array('ROLE_MANAGER', $user->getRoles())) {
+            $clockOwner = $clock->getOwner();
+            $clockOwnerTeam = $clockOwner?->getTeam();
+
+            if ($clockOwnerTeam !== null) {
+                return $user->getManagedTeams()->contains($clockOwnerTeam);
+            }
+        }
+
+        return false;
+    }
+
+    private function canEdit(Clock $clock, User $user): bool
+    {
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+            return true;
+        }
+
+        if (in_array('ROLE_MANAGER', $user->getRoles())) {
+            $clockOwner = $clock->getOwner();
+            $clockOwnerTeam = $clockOwner?->getTeam();
+
+            if ($clockOwnerTeam !== null) {
+                return $user->getManagedTeams()->contains($clockOwnerTeam);
+            }
+        }
+
+        return false;
+    }
+
+    private function canDelete(Clock $clock, User $user): bool
+    {
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
             return true;
         }
 
