@@ -11,7 +11,6 @@ import TeamsPage from './pages/teams/TeamsPage'
 import CreateTeamPage from './pages/teams/CreateTeamPage'
 import EditTeamPage from './pages/teams/EditTeamPage'
 import ClockPage from './pages/clocks/ClockPage'
-import ClockHistoryPage from './pages/clocks/ClockHistoryPage'
 import EmployeeDashboard from './pages/dashboard/EmployeeDashboard'
 import ManagerDashboard from './pages/dashboard/ManagerDashboard'
 import EmployeeDetailDashboard from './pages/dashboard/EmployeeDetailDashboard'
@@ -49,12 +48,6 @@ function App() {
                         <Route path="/clock" element={
                             <ProtectedRoute>
                                 <ClockPage />
-                            </ProtectedRoute>
-                        } />
-
-                        <Route path="/clock/history" element={
-                            <ProtectedRoute>
-                                <ClockHistoryPage />
                             </ProtectedRoute>
                         } />
 
