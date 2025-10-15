@@ -111,7 +111,7 @@ export default function ClockHistory({ clocks }: ClockHistoryProps) {
                                 setStartDate(e.target.value)
                                 setCurrentPage(1)
                             }}
-                            className="focus:outline-none bg-[var(--c2)] p-1 rounded-lg"
+                            className="focus:outline-none bg-[var(--c2)] p-1 rounded-lg cursor-pointer"
                         />
                     </label>
                     <label className="flex items-center gap-2 ml-2">
@@ -123,7 +123,7 @@ export default function ClockHistory({ clocks }: ClockHistoryProps) {
                                 setEndDate(e.target.value)
                                 setCurrentPage(1)
                             }}
-                            className="focus:outline-none bg-[var(--c2)] p-1 rounded-lg"
+                            className="focus:outline-none bg-[var(--c2)] p-1 rounded-lg cursor-pointer"
                         />
                     </label>
                 </div>
