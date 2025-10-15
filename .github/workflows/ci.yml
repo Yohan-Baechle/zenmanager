@@ -22,8 +22,8 @@
             username: ${{ vars.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_TOKEN }} 
 
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v3
+        #- name: Set up QEMU
+        #  uses: docker/setup-qemu-action@v3
 
         - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
@@ -109,22 +109,22 @@
             docker compose exec backend php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction
             docker compose exec backend php -d memory_limit=512M bin/console doctrine:fixtures:load --no-interaction
 
-        - name: Debug database URL
-          run: |
-            echo "Current DATABASE_URL:"
-            cat .env | grep DATABASE_URL
+        #- name: Debug database URL
+        #  run: |
+        #    echo "Current DATABASE_URL:"
+        #    cat .env | grep DATABASE_URL
 
-        - name: Check DB connection
-          run: docker compose exec backend php bin/console doctrine:query:sql "SELECT 1;"   
+        #- name: Check DB connection
+        #  run: docker compose exec backend php bin/console doctrine:query:sql "SELECT 1;"   
 
-        - name: Check routes
-          run: php bin/console debug:router
+        #- name: Check routes
+        #  run: php bin/console debug:router
 
-        - name: Clear cache and var in docker container
-          run: docker compose exec backend rm -rf var/cache/*
+        #- name: Clear cache and var in docker container
+        #  run: docker compose exec backend rm -rf var/cache/*
 
-        - name: Run PHPUnit tests (Entities only)
-          run: php bin/phpunit tests/Entity/UserTest.php
+        #- name: Run PHPUnit tests (Entities only)
+        #  run: php bin/phpunit tests/Entity/UserTest.php
           
         - name: Run PHPUnit tests
           run: |
