@@ -13,7 +13,7 @@ export interface CreateClockDto {
     userId: number
 }
 
-export interface ClockRequestDto {
+export interface ClockRequest {
     id: number
     requestedTime: string
     requestedStatus: boolean
@@ -25,4 +25,13 @@ export interface ClockRequestDto {
     reviewedAt?: string
     createdAt: string
     updatedAt: string
+}
+
+export interface ClockRequestDto {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    type?: 'CREATE'
+    requestedTime?: string
+    requestedStatus?: boolean
+    targetClockId?: number
+    reason?: string
 }

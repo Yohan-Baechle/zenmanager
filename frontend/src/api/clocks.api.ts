@@ -16,4 +16,9 @@ export const clocksApi = {
         const response = await apiClient.get<Clock[]>(`/clock-requests`, { params: data })
         return response.data
     },
+
+    postClockRequest: async (data: Partial<ClockRequestDto>): Promise<ClockRequestDto> => {
+        const response = await apiClient.post<ClockRequestDto>('/clock-requests', data)
+        return response.data
+    },
 }
