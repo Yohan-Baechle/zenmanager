@@ -180,4 +180,159 @@ class UserTest extends TestCase
         $user->setTeam(null);
         $this->assertNull($user->getTeam());
     }
+
+    /**
+     * This test verifies that a user can only have one role
+     * (the app is not complex enough to need multiple roles per user)
+     */
+    public function testUserCantHaveMultipleRoles(): void
+    {
+        $user = new User();
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $user->setRoles(['ROLE_EMPLOYEE', 'ROLE_MANAGER', 'ROLE_ADMIN', 'ROLE_USER', 'ROLE_EMPLOYEE']);
+    } 
+
+    /**
+     * This test verifies username length constraints  
+     */
+    public function testUsernameLengthValidation(): void
+    {
+        $min = User::USERNAME_MIN_LENGTH;
+        $max = User::USERNAME_MAX_LENGTH;
+
+        $validCases = [
+            str_repeat('a', $min),
+            str_repeat('a', $max),
+        ];
+
+        foreach ($validCases as $username) {
+            $user = new User();
+            $user->setUsername($username);
+            $this->assertSame($username, $user->getUsername());
+        }
+
+       $invalidCases = [
+            '',
+            str_repeat('a', $min - 1),
+            str_repeat('a', $max + 1),
+        ];
+
+        foreach ($invalidCases as $username) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setUsername($username);
+        }
+    }
+
+    /**
+     * This test verifies first name length constraints  
+     */
+    public function testFirstNameLengthValidation(): void
+    {
+        $min = User::FIRST_NAME_MIN_LENGTH;
+        $max = User::FIRST_NAME_MAX_LENGTH;
+
+        $validCases = [
+            str_repeat('a', $min),
+            str_repeat('a', $max),
+        ];
+
+        foreach ($validCases as $firstName) {
+            $user = new User();
+            $user->setFirstName($firstName);
+            $this->assertSame($firstName, $user->getFirstName());
+        }
+
+       $invalidCases = [
+            '',
+            str_repeat('a', $min - 1),
+            str_repeat('a', $max + 1),
+        ];
+
+        foreach ($invalidCases as $firstName) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setFirstName($firstName);
+        }
+    }
+
+    /**
+     * This test verifies last name length constraints  
+     */
+    public function testLastNameLengthValidation(): void
+    {
+        $min = User::LAST_NAME_MIN_LENGTH;
+        $max = User::LAST_NAME_MAX_LENGTH;
+
+        $validCases = [
+            str_repeat('a', $min),
+            str_repeat('a', $max),
+        ];
+
+        foreach ($validCases as $lastName) {
+            $user = new User();
+            $user->setLastName($lastName);
+            $this->assertSame($lastName, $user->getLastName());
+        }
+
+       $invalidCases = [
+            '',
+            str_repeat('a', $min - 1),
+            str_repeat('a', $max + 1),
+        ];
+
+        foreach ($invalidCases as $lastName) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setLastName($lastName);
+        }
+    }
+
+
+    /**
+     * This test verifies email length and formatting constraints  
+     */
+    public function testEmailValidation(): void
+    {
+        $max = User::EMAIL_MAX_LENGTH;
+
+        $validEmails = [
+            'john.doe@example.com',
+            'user+label@sub.domain.co',
+            str_repeat('a', 64) . '@x.com', // 64 specifically because bigger is not considered as proper formatting
+        ];
+
+        foreach ($validEmails as $email) {
+            $user = new User();
+            $user->setEmail($email);
+            $this->assertSame($email, $user->getEmail());
+        }
+
+        $invalidFormats = [
+            'plainaddress',
+            '@missinglocal.com',
+            'missingatsign.com',
+            'john..doe@example.com',
+            'john.doe@.com',
+        ];
+
+        foreach ($invalidFormats as $email) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setEmail($email);
+        }
+
+        $tooLongEmail = [
+            str_repeat('a', 65) . '@x.com', 
+            "jaaj@". str_repeat('a', $max) .".com"
+        ];
+        foreach ($tooLongEmail as $tooLongEmail) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setEmail($tooLongEmail);
+        }
+    }
+
 }
