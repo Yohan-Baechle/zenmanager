@@ -13,10 +13,16 @@ export interface CreateClockDto {
     userId: number
 }
 
-export interface WorkingHoursSummary {
-    userId: number
-    totalHours: number
-    dailyAverage: number
-    weeklyAverage: number
-    clocks: Clock[]
+export interface ClockRequestDto {
+    id: number
+    requestedTime: string
+    requestedStatus: boolean
+    status: 'PENDING' | 'APPROVED' | 'REJECTED'
+    reason: string
+    user: User
+    targetClock?: Clock
+    reviewedBy?: User
+    reviewedAt?: string
+    createdAt: string
+    updatedAt: string
 }
