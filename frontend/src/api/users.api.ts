@@ -25,4 +25,13 @@ export const usersApi = {
     delete: async (id: number): Promise<void> => {
         await apiClient.delete(`/users/${id}`)
     },
+
+    getClocks: async (id: number, start?: string, end?: string): Promise<any> => {
+        const params: Record<string, string> = {}
+        if (start) params.start = start
+        if (end) params.end = end
+
+        const response = await apiClient.get<any>(`/users/${id}/clocks`, { params })
+        return response.data
+    }
 }

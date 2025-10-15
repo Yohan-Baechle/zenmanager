@@ -1,10 +1,10 @@
-export type ClockType = 'in' | 'out'
+import type { User } from './user.types'
 
 export interface Clock {
     id: number
-    userId: number
-    type: ClockType
-    timestamp: string
+    time: string
+    status: boolean
+    owner: User
     createdAt: string
 }
 

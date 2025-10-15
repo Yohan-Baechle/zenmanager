@@ -1,7 +1,7 @@
 import ClockInOut from '../../components/features/clocks/ClockInOut'
 import ClockHistory from "../../components/features/clocks/ClockHistory.tsx";
 import { useAuth } from "../../hooks/useAuth.ts";
-import { clocksApi } from "../../api/clocks.api.ts";
+import { usersApi } from "../../api/users.api.ts";
 import { useState, useEffect } from "react";
 import type { Clock } from '../../types/clock.types'
 
@@ -15,7 +15,7 @@ export default function ClockPage() {
 
         setLoading(true)
         try {
-            const data = await clocksApi.getUserClocks(user.id)
+            const data = await usersApi.getClocks(user.id)
             setClocks(data)
         } catch (error) {
             alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
