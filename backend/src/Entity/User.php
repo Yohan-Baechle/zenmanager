@@ -20,17 +20,28 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[UniqueEntity(fields: ['username'], message: 'This username is already used')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public const USERNAME_MIN_LENGTH = 3;
+    public const USERNAME_MAX_LENGTH = 50;
+
+    public const FIRST_NAME_MIN_LENGTH = 2;
+    public const FIRST_NAME_MAX_LENGTH = 100;
+
+    public const LAST_NAME_MIN_LENGTH = 2;
+    public const LAST_NAME_MAX_LENGTH = 100;
+
+    public const EMAIL_MAX_LENGTH = 180;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50, unique: true)]
+    #[ORM\Column(length: User::USERNAME_MAX_LENGTH, unique: true)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 3, max: 50)]
+    #[Assert\Length(min: User::USERNAME_MIN_LENGTH, max: User::USERNAME_MAX_LENGTH)]
     private ?string $username = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(length: User::EMAIL_MAX_LENGTH, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
     private ?string $email = null;
@@ -48,14 +59,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: User::FIRST_NAME_MAX_LENGTH)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 100)]
+    #[Assert\Length(min: User::FIRST_NAME_MIN_LENGTH, max: User::FIRST_NAME_MAX_LENGTH)]
     private ?string $firstName = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: User::LAST_NAME_MAX_LENGTH)]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 2, max: 100)]
+    #[Assert\Length(min: User::LAST_NAME_MIN_LENGTH, max: User::LAST_NAME_MAX_LENGTH)]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -111,6 +122,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setUsername(string $username): static
     {
+        $length = strlen($username);
+
+        if ($length < User::USERNAME_MIN_LENGTH || $length > User::USERNAME_MAX_LENGTH) {
+            throw new \InvalidArgumentException("Username must be between " . User::USERNAME_MIN_LENGTH . " and " . User::USERNAME_MAX_LENGTH . " characters. Got {$length}.");
+        }
+
         $this->username = $username;
 
         return $this;
@@ -123,6 +140,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): static
     {
+        $length = mb_strlen($email); #jfyi : strlen doesn't work properly with multibyte chars that's why we use mb_strlen here
+
+        if ($length > self::EMAIL_MAX_LENGTH) {
+            throw new \InvalidArgumentException(
+                sprintf('Email must not exceed %d characters. Got %d.', self::EMAIL_MAX_LENGTH, $length)
+            );
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid email format: "%s".', $email)
+            );
+        }
+
         $this->email = $email;
 
         return $this;
@@ -154,6 +185,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function setRoles(array $roles): static
     {
+        if (count($roles) > 1) {
+            throw new \InvalidArgumentException('A user can only have one role.');
+        }
+
+        // Symfony expects an array of roles, so we keep it as an array
         $this->roles = $roles;
 
         return $this;
@@ -198,6 +234,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setFirstName(string $firstName): static
     {
+        $length = strlen($firstName);
+
+        if ($length < User::FIRST_NAME_MIN_LENGTH || $length > User::FIRST_NAME_MAX_LENGTH) {
+            throw new \InvalidArgumentException("First name must be between " . User::FIRST_NAME_MIN_LENGTH . " and " . User::FIRST_NAME_MAX_LENGTH . " characters. Got {$length}.");
+        }
+
         $this->firstName = $firstName;
 
         return $this;
@@ -210,6 +252,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setLastName(string $lastName): static
     {
+        $length = strlen($lastName);
+
+        if ($length < User::LAST_NAME_MIN_LENGTH || $length > User::LAST_NAME_MAX_LENGTH) {
+            throw new \InvalidArgumentException("Last name must be between " . User::LAST_NAME_MIN_LENGTH . " and " . User::LAST_NAME_MAX_LENGTH . " characters. Got {$length}.");
+        }
+
         $this->lastName = $lastName;
 
         return $this;
