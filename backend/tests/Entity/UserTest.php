@@ -69,57 +69,39 @@ class UserTest extends TestCase
         $this->assertSame('JohnDoe', $user->getUserIdentifier());
     }
 
-     /**
-     * This test checks the business role logic
-     * - `getBusinessRole()` converts Symfony security roles into business terms (manager/employee)
-     * - `setBusinessRole()` must mirror this behavior.
-     */
-    public function testBusinessRoleMethods(): void
+    public function testRoleForDisplayWithManager(): void
     {
         $user = new User();
-        $user->setBusinessRole('manager');
+        $user->setRoles(['ROLE_MANAGER']);
+
         $this->assertContains('ROLE_MANAGER', $user->getRoles());
-        $this->assertSame('manager', $user->getBusinessRole());
+        $this->assertSame('manager', $user->getRoleForDisplay());
+    }
 
-        $user->setBusinessRole('employee');
+    public function testRoleForDisplayWithEmployee(): void
+    {
+        $user = new User();
+        $user->setRoles(['ROLE_EMPLOYEE']);
+
         $this->assertContains('ROLE_EMPLOYEE', $user->getRoles());
-        $this->assertSame('employee', $user->getBusinessRole());
+        $this->assertSame('employee', $user->getRoleForDisplay());
     }
 
-
-    /**
-     * This test ensures that setting an invalid business role throws an exception
-     * - Prevents silent failures or inconsistent state
-     * - It will help spots error if we decide to add a new role in the future
-     */
-    public function testSetBusinessRoleRejectsInvalidRole(): void
+    public function testRoleForDisplayWithAdmin(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
         $user = new User();
-        $user->setBusinessRole('Blafeuh blafeuh blafeuh');
+        $user->setRoles(['ROLE_ADMIN']);
+
+        $this->assertContains('ROLE_ADMIN', $user->getRoles());
+        $this->assertSame('manager', $user->getRoleForDisplay());
     }
 
-    /**
-     * This test ensures that getting a business role when none is set throws an exception
-     */
-    public function testGetBusinessRoleThrowsExceptionWhenNoRole(): void
+    public function testRoleForDisplayDefaultsToEmployee(): void
     {
         $user = new User();
-        $user->setRoles([]); // no business role
+        $user->setRoles([]);
 
-        $this->expectException(\LogicException::class);
-        
-        $user->getBusinessRole();
-    }
-
-    public function testGetBusinessRoleThrowsExceptionWhenNoValidRole(): void
-    {
-        $user = new User();
-        $user->setRoles(["Epic Gamer"]); // no VALID business role
-
-        $this->expectException(\LogicException::class);
-        
-        $user->getBusinessRole();
+        $this->assertSame('employee', $user->getRoleForDisplay());
     }
 
     /**

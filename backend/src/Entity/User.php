@@ -41,6 +41,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+
     /**
      * @var string The hashed password
      */
@@ -143,7 +144,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
@@ -227,39 +227,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * Get the business role (employee, manager, or admin) from Symfony roles
-     */
-    public function getBusinessRole(): string
+    public function getRoleForDisplay(): string
     {
         $roles = $this->getRoles();
 
-        if (in_array('ROLE_ADMIN', $roles)) {
-            return 'admin';
-        } else if (in_array('ROLE_MANAGER', $roles)) {
+        if (in_array('ROLE_MANAGER', $roles) || in_array('ROLE_ADMIN', $roles)) {
             return 'manager';
-        } else if (in_array('ROLE_EMPLOYEE', $roles)) {
-            return 'employee';
-        }
-        else {
-            throw new \LogicException('User has no valid business role assigned');
-        }
-    }
-
-    /**
-     * Set the business role (employee or manager) by converting to Symfony roles
-     */
-    public function setBusinessRole(string $role): static
-    {
-        if ($role === 'manager') {
-            $this->setRoles(['ROLE_MANAGER']);
-        } else if ($role === 'employee') {
-            $this->setRoles(['ROLE_EMPLOYEE']);
-        } else {
-            throw new \InvalidArgumentException('Invalid business role: ' . $role);
         }
 
-        return $this;
+        return 'employee';
     }
 
     /**
