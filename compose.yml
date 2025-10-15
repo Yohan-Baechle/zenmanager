@@ -49,6 +49,18 @@ services:
     depends_on:
       - database
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: timemanager_mailpit
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP
+    networks:
+      - timemanager_network
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
   frontend:
     image: node:22-alpine
     container_name: timemanager_frontend
