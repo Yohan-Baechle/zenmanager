@@ -31,6 +31,10 @@ class UserMapper
         );
     }
 
+    /**
+     * @param User[] $users
+     * @return UserOutputDto[]
+     */
     public function toOutputDtoCollection(array $users): array
     {
         return array_map(fn(User $user) => $this->toOutputDto($user), $users);

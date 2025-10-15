@@ -11,9 +11,10 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
 
+
 /**
- * Service de création d'utilisateurs par les administrateurs
- * Génère automatiquement un mot de passe sécurisé et l'envoie par email
+ * Service for creating users by administrators.
+ * Automatically generates a secure password and sends it via email.
  */
 class UserCreationService
 {

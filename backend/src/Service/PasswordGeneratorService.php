@@ -3,9 +3,9 @@
 namespace App\Service;
 
 /**
- * Service de génération de mots de passe conformes aux recommandations ANSSI
- * Longueur : 16 caractères
- * Mélange de majuscules, minuscules, chiffres et caractères spéciaux
+ * Service for generating passwords compliant with ANSSI recommendations
+ * Length: 16 characters
+ * Mix of uppercase, lowercase, digits, and special characters
  */
 class PasswordGeneratorService
 {
