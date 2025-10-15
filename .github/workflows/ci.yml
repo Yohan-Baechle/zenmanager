@@ -31,10 +31,10 @@
         - name: Set up Docker Compose
           uses: docker/setup-compose-action@v1
 
-        - name: Build and push
-          uses: docker/build-push-action@v6
-          with:
-            push: false
+        #- name: Build and push
+        #  uses: docker/build-push-action@v6
+        #  with:
+        #    push: false
 
         - name: Set up PHP
           uses: shivammathur/setup-php@v2
