@@ -14,7 +14,7 @@ interface TableProps<T> {
 
 export default function Table<T>({ data, columns }: TableProps<T>) {
     return (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-hidden overflow-y-scroll max-h-[520px]">
             <table className="min-w-full divide-y divide-[var(--c2)]">
                 <thead className="">
                 <tr>

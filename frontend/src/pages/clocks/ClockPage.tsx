@@ -29,10 +29,14 @@ export default function ClockPage() {
     }, [user])
 
     return (
-        <div className="max-w-2xl">
+        <div className="">
             <h1 className="text-2xl font-bold mb-6">Pointeuse</h1>
-            <ClockInOut />
-            {loading ? <p>Chargement...</p> : <ClockHistory clocks={clocks} />}
+            <div className="flex flex-col 2xl:flex-row gap-4">
+                <div className="w-full 2xl:w-[570px]">
+                    <ClockInOut />
+                </div>
+                {loading ? <p>Chargement...</p> : <ClockHistory clocks={clocks} />}
+            </div>
         </div>
     )
 }
