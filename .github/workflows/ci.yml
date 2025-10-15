@@ -84,10 +84,10 @@
         - name: Check Symfony container is valid
           run: php bin/console lint:container
 
-        - name: Install Docker Compose plugin
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y docker-compose-plugin
+        #- name: Install Docker Compose plugin
+        #  run: |
+        #    sudo apt-get update
+        #    sudo apt-get install -y docker-compose-plugin
 
         
         - name: boot Docker
