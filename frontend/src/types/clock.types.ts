@@ -9,7 +9,8 @@ export interface Clock {
 }
 
 export interface CreateClockDto {
-    type: ClockType
+    time: string
+    userId: number
 }
 
 export interface WorkingHoursSummary {
