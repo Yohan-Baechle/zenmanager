@@ -7,6 +7,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 class UserUpdateDto
 {
     #[Assert\Length(min: 3, max: 50)]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_-]+$/',
+        message: 'Username can only contain letters, numbers, underscores and hyphens'
+    )]
     public ?string $username = null;
 
     #[Assert\Email]
