@@ -200,7 +200,7 @@ class ClockRequestController extends AbstractController
             $qb->andWhere('cr.user = :user')
                ->setParameter('user', $currentUser);
         } elseif (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
-            // Admin sees all requests
+            
         } elseif (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $managedTeams = $currentUser->getManagedTeams();
 
