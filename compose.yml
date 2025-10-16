@@ -29,6 +29,11 @@ services:
       - ./logs/database:/var/log/postgresql
     networks:
       - timemanager_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-user_dot_com}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -51,7 +56,8 @@ services:
     networks:
       - timemanager_network
     depends_on:
-      - database
+      database:
+        condition: service_started
 
   adminer:
     image: adminer:latest
