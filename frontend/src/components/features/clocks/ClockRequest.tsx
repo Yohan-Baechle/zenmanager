@@ -3,14 +3,15 @@ import {HistoryIcon} from "../../../assets/icons/history.tsx";
 import {ArrowBackIosNewIcon} from "../../../assets/icons/arrow-back-ios-new.tsx";
 import Button from "../../common/Button.tsx";
 import Table from "../../common/Table.tsx";
-import type {Clock} from "../../../types/clock.types.ts";
+import type {ClockRequest} from "../../../types/clock.types.ts";
 import {useMemo, useState} from "react";
 import {CalendarTodayIcon} from "../../../assets/icons/calendar-today.tsx";
 import {ClockFarsightAnalogIcon} from "../../../assets/icons/clock-farsight-analog.tsx";
 import {CompareArrowsIcon} from "../../../assets/icons/compare-arrows.tsx";
+import {SettingsIcon} from "../../../assets/icons/settings.tsx";
 
 interface ClockRequestProps {
-    clocks: Clock[]
+    clocks: ClockRequest[]
     onOpenModal: () => void
 }
 
@@ -25,18 +26,18 @@ export default function ClockRequest({ clocks, onOpenModal }: ClockRequestProps)
 
         if (startDate) {
             filtered = filtered.filter(clock =>
-                new Date(clock.time) >= new Date(startDate)
+                new Date(clock.requestedTime) >= new Date(startDate)
             )
         }
 
         if (endDate) {
             filtered = filtered.filter(clock =>
-                new Date(clock.time) <= new Date(endDate + 'T23:59:59')
+                new Date(clock.requestedTime) <= new Date(endDate + 'T23:59:59')
             )
         }
 
         return filtered.sort((a, b) =>
-            new Date(b.time).getTime() - new Date(a.time).getTime()
+            new Date(b.requestedTime).getTime() - new Date(a.requestedTime).getTime()
         )
     }, [clocks, startDate, endDate])
 
@@ -56,29 +57,37 @@ export default function ClockRequest({ clocks, onOpenModal }: ClockRequestProps)
         {
             header: 'Date',
             icon: CalendarTodayIcon,
-            accessor: (clock: Clock) => new Date(clock.time).toLocaleDateString()
+            accessor: (clock: ClockRequest) => new Date(clock.requestedTime).toLocaleDateString()
         },
         {
             header: 'Heure',
             icon: ClockFarsightAnalogIcon,
-            accessor: (clock: Clock) => new Date(clock.time).toLocaleTimeString()
+            accessor: (clock: ClockRequest) => new Date(clock.requestedTime).toLocaleTimeString()
         },
         {
             header: 'Type',
             icon: CompareArrowsIcon,
-            accessor: (clock: Clock) => (
+            accessor: (clock: ClockRequest) => (
                 <span className="text-sm font-medium text-[var(--c1)] bg-[var(--c4)] px-2 py-0.5 rounded-full inline-block w-fit">
-                    {clock.status ? '↓ Entrée' : '↑ Sortie'}
+                    {clock.requestedStatus ? '↓ Entrée' : '↑ Sortie'}
                 </span>
             )
         },
         {
             header: 'Statut',
             icon: CompareArrowsIcon,
-            accessor: (clock: Clock) => (
+            accessor: (clock: ClockRequest) => (
                 <span className="text-sm font-medium text-[var(--c1)] bg-[var(--c4)] px-2 py-0.5 rounded-full inline-block w-fit">
-                    {clock.status ? 'En attente' : 'Approuvé'}
+                    {clock.status ? 'En attente' : clock.status === 'APPROVED' ? 'Approuvé' : 'Rejeté'}
                 </span>
+            )
+        },
+        {
+            header: '',
+            accessor: () => (
+                <div className="relative">
+                    <SettingsIcon className="absolute top-1/2 -translate-y-1/2 -right-1 h-5 w-5 text-[var(--c5)] cursor-pointer "/>
+                </div>
             )
         },
     ]

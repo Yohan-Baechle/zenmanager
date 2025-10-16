@@ -4,13 +4,13 @@ import { useAuth } from "../../hooks/useAuth.ts";
 import { usersApi } from "../../api/users.api.ts";
 import { clocksApi } from "../../api/clocks.api.ts";
 import { useState, useEffect } from "react";
-import type { Clock } from '../../types/clock.types'
-import ClockRequest from "../../components/features/clocks/ClockRequest.tsx";
+import type { Clock, ClockRequest } from '../../types/clock.types'
+import ClockRequestComponent from "../../components/features/clocks/ClockRequest.tsx";
 import ClockRequestModal from "../../components/features/clocks/ClockRequestModal.tsx";
 
 export default function ClockPage() {
     const [clocks, setClocks] = useState<Clock[]>([])
-    const [clocksRequest, setClocksRequest] = useState<Clock[]>([])
+    const [clocksRequest, setClocksRequest] = useState<ClockRequest[]>([])
     const [loading, setLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const { user } = useAuth()
@@ -35,7 +35,7 @@ export default function ClockPage() {
         setLoading(true)
         try {
             const data = await clocksApi.getClocksRequest()
-            setClocksRequest(data)
+            setClocksRequest(data as unknown as ClockRequest[])
         } catch (error) {
             alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
         } finally {
@@ -55,7 +55,7 @@ export default function ClockPage() {
                 <div className="flex flex-col 2xl:flex-row gap-4">
                     <div className="w-full 2xl:w-[570px] flex flex-col gap-4">
                         <ClockInOut onClockSuccess={fetchClocks} />
-                        <ClockRequest
+                        <ClockRequestComponent
                             clocks={clocksRequest}
                             onOpenModal={() => setIsModalOpen(true)}
                         />
