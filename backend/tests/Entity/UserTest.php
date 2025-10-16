@@ -344,4 +344,25 @@ class UserTest extends TestCase
         $user->setUsername('Chad McMan');
         $this->assertSame('Chad McMan', $user->getUserIdentifier());
     }
+
+    /**
+     * This test ensures there is no space nowhere in the name
+     */
+    public function testUsernameHasNoSpaces(): void
+    {
+        $invalidUsernames = [
+            'John Doe',
+            ' JaneDoe',
+            'JaneDoe ',
+            'Jane  Doe',
+            "Jane\tDoe",
+            "Jane\nDoe",
+        ];
+
+        foreach ($invalidUsernames as $username) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setUsername($username);
+        }
+    }
 }
