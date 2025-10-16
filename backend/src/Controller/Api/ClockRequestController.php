@@ -192,11 +192,9 @@ class ClockRequestController extends AbstractController
             $managedTeams = $currentUser->getManagedTeams();
 
             if ($managedTeams->isEmpty()) {
-                // If no managed teams, manager only sees their own requests
                 $qb->andWhere('cr.user = :user')
                    ->setParameter('user', $currentUser);
             } else {
-                // Manager sees their own requests + their team's requests
                 $qb->join('cr.user', 'u')
                    ->andWhere('cr.user = :user OR u.team IN (:teams)')
                    ->setParameter('user', $currentUser)
