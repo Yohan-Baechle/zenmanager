@@ -8,6 +8,7 @@ import type { Clock, ClockRequest } from '../../types/clock.types'
 import ClockRequestComponent from "../../components/features/clocks/ClockRequest.tsx";
 import ClockRequestModal from "../../components/features/clocks/ClockRequestModal.tsx";
 import ClockRequestEditModal from "../../components/features/clocks/ClockRequestEditModal.tsx";
+import Loader from "../../components/common/Loader.tsx";
 
 export default function ClockPage() {
     const [clocks, setClocks] = useState<Clock[]>([])
@@ -61,16 +62,20 @@ export default function ClockPage() {
             <div className="">
                 <h1 className="text-2xl font-bold mb-6">Pointeuse</h1>
                 <div className="flex flex-col 2xl:flex-row gap-4">
-                    <div className="w-full 2xl:w-[570px] flex flex-col gap-4">
-                        <ClockInOut onClockSuccess={fetchClocks} />
-                        <ClockRequestComponent
-                            clocks={clocksRequest}
-                            onOpenModal={() => setIsModalOpen(true)}
-                            onRefresh={fetchClocksRequest}
-                            onEdit={handleEditRequest}
-                        />
-                    </div>
-                    {loading ? <p>Chargement...</p> : <ClockHistory clocks={clocks} />}
+                    {loading ? <Loader/> : (
+                        <>
+                            <div className="w-full 2xl:w-[570px] flex flex-col gap-4">
+                                <ClockInOut onClockSuccess={fetchClocks}/>
+                                <ClockRequestComponent
+                                    clocks={clocksRequest}
+                                    onOpenModal={() => setIsModalOpen(true)}
+                                    onRefresh={fetchClocksRequest}
+                                    onEdit={handleEditRequest}
+                                />
+                            </div>
+                            <ClockHistory clocks={clocks}/>
+                        </>
+                    )}
                 </div>
             </div>
             <ClockRequestModal
