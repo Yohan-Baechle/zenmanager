@@ -335,4 +335,13 @@ class UserTest extends TestCase
         }
     }
 
+    /**
+     * This test ensures the email is used as user identifier
+     */
+    public function testGetUserIdentifierReturnsEmail(): void
+    {
+        $user = new User();
+        $user->setUsername('Chad McMan');
+        $this->assertSame('Chad McMan', $user->getUserIdentifier());
+    }
 }
