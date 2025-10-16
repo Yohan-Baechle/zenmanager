@@ -83,12 +83,10 @@ class ClockRequestVoter extends Voter
 
     private function canEdit(ClockRequest $clockRequest, User $user): bool
     {
-        // Only the owner can edit their own request
         if ($clockRequest->getUser() !== $user) {
             return false;
         }
 
-        // Can only edit if status is PENDING
         return $clockRequest->getStatus() === 'PENDING';
     }
 }
