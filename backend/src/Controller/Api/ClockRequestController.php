@@ -141,7 +141,7 @@ class ClockRequestController extends AbstractController
     #[Route('/clock-requests', name: 'api_clock_requests_list', methods: ['GET'])]
     #[OA\Get(
         path: '/api/clock-requests',
-        description: 'Returns clock requests based on user role: ADMIN sees all, MANAGER sees their own requests + their team members\' requests, EMPLOYEE sees only their own requests.',
+        description: 'Returns clock requests based on user role: ADMIN sees all, MANAGER sees their own requests + their team members\' requests, EMPLOYEE sees only their own requests. Use ?own=true to see only your own requests regardless of role.',
         summary: 'List clock requests (filtered by role)',
         tags: ['Clock Requests']
     )]
@@ -151,6 +151,13 @@ class ClockRequestController extends AbstractController
         in: 'query',
         required: false,
         schema: new OA\Schema(type: 'string', enum: ['PENDING', 'APPROVED', 'REJECTED'])
+    )]
+    #[OA\Parameter(
+        name: 'own',
+        description: 'If true, returns only the current user\'s clock requests (useful for managers/admins)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'boolean')
     )]
     #[OA\Response(
         response: 200,
@@ -187,7 +194,14 @@ class ClockRequestController extends AbstractController
                ->setParameter('status', $status);
         }
 
-        if (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+        // If 'own' parameter is true, only show current user's requests (regardless of role)
+        $ownOnly = $request->query->getBoolean('own', false);
+
+        if ($ownOnly) {
+            $qb->andWhere('cr.user = :user')
+               ->setParameter('user', $currentUser);
+        } elseif (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+            // Admin sees all requests
         } elseif (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $managedTeams = $currentUser->getManagedTeams();
 
@@ -201,6 +215,7 @@ class ClockRequestController extends AbstractController
                    ->setParameter('teams', $managedTeams);
             }
         } else {
+            // Employee sees only their own requests
             $qb->andWhere('cr.user = :user')
                ->setParameter('user', $currentUser);
         }
@@ -409,7 +424,7 @@ class ClockRequestController extends AbstractController
         content: new OA\JsonContent(
             required: ['rejectionReason'],
             properties: [
-                new OA\Property(property: 'rejectionReason', type: 'string', minLength: 10, maxLength: 1000, example: 'The requested time conflicts with another team member\'s schedule.', description: 'Detailed reason for rejection (10-1000 chars)')
+                new OA\Property(property: 'rejectionReason', description: 'Detailed reason for rejection (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'The requested time conflicts with another team member\'s schedule.')
             ]
         )
     )]
