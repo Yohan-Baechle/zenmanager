@@ -13,9 +13,11 @@ import {SettingsIcon} from "../../../assets/icons/settings.tsx";
 interface ClockRequestProps {
     clocks: ClockRequest[]
     onOpenModal: () => void
+    onRefresh: () => void
+    onEdit: (request: ClockRequest) => void
 }
 
-export default function ClockRequest({ clocks, onOpenModal }: ClockRequestProps) {
+export default function ClockRequest({ clocks, onOpenModal, onEdit }: ClockRequestProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -84,9 +86,12 @@ export default function ClockRequest({ clocks, onOpenModal }: ClockRequestProps)
         },
         {
             header: '',
-            accessor: () => (
+            accessor: (clock: ClockRequest) => (
                 <div className="relative">
-                    <SettingsIcon className="absolute top-1/2 -translate-y-1/2 -right-1 h-5 w-5 text-[var(--c5)] cursor-pointer "/>
+                    <SettingsIcon
+                        className="absolute top-1/2 -translate-y-1/2 -right-1 h-5 w-5 text-[var(--c5)] cursor-pointer hover:text-[var(--c4)] transition-colors"
+                        onClick={() => onEdit(clock)}
+                    />
                 </div>
             )
         },

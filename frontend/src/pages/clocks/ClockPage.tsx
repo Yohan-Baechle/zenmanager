@@ -7,12 +7,15 @@ import { useState, useEffect } from "react";
 import type { Clock, ClockRequest } from '../../types/clock.types'
 import ClockRequestComponent from "../../components/features/clocks/ClockRequest.tsx";
 import ClockRequestModal from "../../components/features/clocks/ClockRequestModal.tsx";
+import ClockRequestEditModal from "../../components/features/clocks/ClockRequestEditModal.tsx";
 
 export default function ClockPage() {
     const [clocks, setClocks] = useState<Clock[]>([])
     const [clocksRequest, setClocksRequest] = useState<ClockRequest[]>([])
     const [loading, setLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [selectedRequest, setSelectedRequest] = useState<ClockRequest | null>(null)
     const { user } = useAuth()
 
     const fetchClocks = async () => {
@@ -43,6 +46,11 @@ export default function ClockPage() {
         }
     }
 
+    const handleEditRequest = (request: ClockRequest) => {
+        setSelectedRequest(request)
+        setIsEditModalOpen(true)
+    }
+
     useEffect(() => {
         fetchClocks()
         fetchClocksRequest()
@@ -58,6 +66,8 @@ export default function ClockPage() {
                         <ClockRequestComponent
                             clocks={clocksRequest}
                             onOpenModal={() => setIsModalOpen(true)}
+                            onRefresh={fetchClocksRequest}
+                            onEdit={handleEditRequest}
                         />
                     </div>
                     {loading ? <p>Chargement...</p> : <ClockHistory clocks={clocks} />}
@@ -68,6 +78,17 @@ export default function ClockPage() {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchClocksRequest}
             />
+            {selectedRequest && (
+                <ClockRequestEditModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false)
+                        setSelectedRequest(null)
+                    }}
+                    clockRequest={selectedRequest}
+                    onSuccess={fetchClocksRequest}
+                />
+            )}
         </>
     )
 }
