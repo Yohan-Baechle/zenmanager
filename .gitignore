@@ -3,3 +3,8 @@
 backend/.env
 
 .env
+
+# Logs
+/logs/
+
+CLAUDE.md
