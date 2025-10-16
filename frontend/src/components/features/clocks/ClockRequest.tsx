@@ -8,7 +8,7 @@ import {useMemo, useState} from "react";
 import {CalendarTodayIcon} from "../../../assets/icons/calendar-today.tsx";
 import {ClockFarsightAnalogIcon} from "../../../assets/icons/clock-farsight-analog.tsx";
 import {CompareArrowsIcon} from "../../../assets/icons/compare-arrows.tsx";
-import {SettingsIcon} from "../../../assets/icons/settings.tsx";
+import {EditSquareIcon} from "../../../assets/icons/edit-square.tsx";
 
 interface ClockRequestProps {
     clocks: ClockRequest[]
@@ -88,7 +88,7 @@ export default function ClockRequest({ clocks, onOpenModal, onEdit }: ClockReque
             header: '',
             accessor: (clock: ClockRequest) => (
                 <div className="relative">
-                    <SettingsIcon
+                    <EditSquareIcon
                         className="absolute top-1/2 -translate-y-1/2 -right-1 h-5 w-5 text-[var(--c5)] cursor-pointer hover:text-[var(--c4)] transition-colors"
                         onClick={() => onEdit(clock)}
                     />
