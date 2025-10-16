@@ -45,8 +45,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 <input
                     ref={ref}
                     type={inputType}
-                    className="peer w-full border border-[var(--c3)] bg-[var(--c1)] text-[var(--c5)] rounded-[14px] py-[14px] px-[44px] outline-none text-base transition-[border-color,outline-color,transform] duration-150
-                               active:translate-y-px active:duration-75 focus:border-[var(--c4)] focus:border-[3px]"
+                    className={`peer w-full border border-[var(--c3)] bg-[var(--c1)] text-[var(--c5)] rounded-[14px] py-[14px] outline-none text-base transition-[border-color,outline-color,transform] duration-150
+                               active:translate-y-px active:duration-75 focus:border-[var(--c4)] focus:border-[3px] ${Icon ? 'px-[44px]' : visible ? 'pl-[14px] pr-[44px]' : 'px-[14px]'}`}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onChange={handleChange}
@@ -54,7 +54,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 />
                 {label && (
                     <label
-                        className={`absolute left-[44px] text-[var(--c3)] pointer-events-none transition-all duration-150
+                        className={`absolute ${Icon ? 'left-[44px]' : 'left-[14px]'} text-[var(--c3)] pointer-events-none transition-all duration-150
                                     ${isLabelFloating
                             ? 'top-[-8px] translate-y-0 text-[0.78rem] bg-[var(--c1)] rounded-full px-[6px]'
                             : 'top-1/2 -translate-y-1/2 text-base text-[var(--c4)] bg-transparent px-[2px]'
