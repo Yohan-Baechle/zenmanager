@@ -36,7 +36,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $teamDev = $this->getReference('team-1', Team::class);
         $teamMarketing = $this->getReference('team-2', Team::class);
 
-        // Admin user (no team)
         $admin = $this->createUser(
             username: 'admin',
             email: 'admin@test.com',
@@ -145,13 +144,13 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
 
         for ($i = 3; $i <= $maxTeams; $i++) {
             if ($faker->boolean(70)) {
-                $managerIndex = $faker->numberBetween(7, 16); // Random manager from generated users
+                $managerIndex = $faker->numberBetween(7, 16);
                 $team = $this->getReference('team-' . $i, Team::class);
                 $team->setManager($this->getReference('user-' . $managerIndex, User::class));
             }
         }
     }
-    
+
     private function createUser(
         string $username,
         string $email,
