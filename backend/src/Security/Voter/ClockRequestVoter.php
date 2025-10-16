@@ -11,10 +11,11 @@ class ClockRequestVoter extends Voter
 {
     public const VIEW = 'CLOCK_REQUEST_VIEW';
     public const REVIEW = 'CLOCK_REQUEST_REVIEW';
+    public const EDIT = 'CLOCK_REQUEST_EDIT';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::VIEW, self::REVIEW]) && $subject instanceof ClockRequest;
+        return in_array($attribute, [self::VIEW, self::REVIEW, self::EDIT]) && $subject instanceof ClockRequest;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -31,6 +32,7 @@ class ClockRequestVoter extends Voter
         return match($attribute) {
             self::VIEW => $this->canView($clockRequest, $user),
             self::REVIEW => $this->canReview($clockRequest, $user),
+            self::EDIT => $this->canEdit($clockRequest, $user),
             default => false,
         };
     }
@@ -77,5 +79,14 @@ class ClockRequestVoter extends Voter
         }
 
         return false;
+    }
+
+    private function canEdit(ClockRequest $clockRequest, User $user): bool
+    {
+        if ($clockRequest->getUser() !== $user) {
+            return false;
+        }
+
+        return $clockRequest->getStatus() === 'PENDING';
     }
 }
