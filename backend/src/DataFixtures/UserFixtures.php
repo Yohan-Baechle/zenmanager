@@ -48,7 +48,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $manager->persist($admin);
         $this->addReference('user-1', $admin);
 
-        // Theking - Manager of Marketing Team
         $theKing = $this->createUser(
             username: 'Theking',
             email: 'manager@test.com',
@@ -64,7 +63,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-2', $theKing);
         $this->addReference('user-manager', $theKing);
 
-        // TheJoker - Employee in Dev Team
         $theJoker = $this->createUser(
             username: 'TheJoker',
             email: 'employee@test.com',
@@ -79,7 +77,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-3', $theJoker);
         $this->addReference('user-employee', $theJoker);
 
-        // Alice - Employee in Dev Team
         $employeeDev1 = $this->createUser(
             username: 'employee_dev1',
             email: 'emp1.dev@test.com',
@@ -92,7 +89,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $manager->persist($employeeDev1);
         $this->addReference('user-4', $employeeDev1);
 
-        // Bob - Employee in Dev Team
         $employeeDev2 = $this->createUser(
             username: 'employee_dev2',
             email: 'emp2.dev@test.com',
@@ -105,7 +101,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $manager->persist($employeeDev2);
         $this->addReference('user-5', $employeeDev2);
 
-        // Sarah - Manager of Marketing Team
         $managerMarketing = $this->createUser(
             username: 'manager_marketing',
             email: 'manager.marketing@test.com',
@@ -124,12 +119,10 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $maxUsers = 30;
         $maxTeams = 30;
 
-        // Generate random users
         for ($i = 7; $i <= $maxUsers + 6; $i++) {
             $role = $i <= 16 ? 'ROLE_MANAGER' : 'ROLE_EMPLOYEE';
             $team = null;
 
-            // 80% chance to assign a team
             if ($faker->boolean(80)) {
                 $teamIndex = $faker->numberBetween(1, $maxTeams);
                 $team = $this->getReference('team-' . $teamIndex, Team::class);
@@ -150,7 +143,6 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $this->addReference('user-' . $i, $user);
         }
 
-        // Assign managers to teams
         for ($i = 3; $i <= $maxTeams; $i++) {
             if ($faker->boolean(70)) {
                 $managerIndex = $faker->numberBetween(7, 16); // Random manager from generated users
@@ -159,10 +151,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             }
         }
     }
-
-    /**
-     * Helper method to create a user with reduced code duplication
-     */
+    
     private function createUser(
         string $username,
         string $email,
