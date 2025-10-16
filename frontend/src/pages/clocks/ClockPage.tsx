@@ -54,7 +54,7 @@ export default function ClockPage() {
                 <h1 className="text-2xl font-bold mb-6">Pointeuse</h1>
                 <div className="flex flex-col 2xl:flex-row gap-4">
                     <div className="w-full 2xl:w-[570px] flex flex-col gap-4">
-                        <ClockInOut />
+                        <ClockInOut onClockSuccess={fetchClocks} />
                         <ClockRequest
                             clocks={clocksRequest}
                             onOpenModal={() => setIsModalOpen(true)}

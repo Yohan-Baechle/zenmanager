@@ -5,7 +5,11 @@ import { clocksApi } from '../../../api/clocks.api'
 import { useAuth } from "../../../hooks/useAuth.ts";
 import { AlarmAddIcon } from '../../../assets/icons/alarm-add.tsx'
 
-export default function ClockInOut() {
+interface ClockInOutProps {
+    onClockSuccess?: () => void
+}
+
+export default function ClockInOut({ onClockSuccess }: ClockInOutProps) {
     const [loading, setLoading] = useState(false)
     const [currentTime, setCurrentTime] = useState(new Date())
     const { user } = useAuth()
@@ -28,6 +32,7 @@ export default function ClockInOut() {
                 userId: user.id
             })
             alert('Clock enregistré !')
+            onClockSuccess?.()
         } catch (error) {
             alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
         } finally {
