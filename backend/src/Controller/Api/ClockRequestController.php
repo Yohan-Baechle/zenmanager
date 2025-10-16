@@ -31,8 +31,8 @@ class ClockRequestController extends AbstractController
     #[Route('/clock-requests', name: 'api_clock_requests_create', methods: ['POST'])]
     #[OA\Post(
         path: '/api/clock-requests',
-        summary: 'Create a manual clock request (employees)',
         description: 'Allows employees to submit a request for manual clock entry. Supports three types: CREATE (new clock), UPDATE (modify existing clock), DELETE (remove clock).',
+        summary: 'Create a manual clock request (employees)',
         tags: ['Clock Requests']
     )]
     #[OA\RequestBody(
@@ -40,11 +40,11 @@ class ClockRequestController extends AbstractController
         content: new OA\JsonContent(
             required: ['type', 'requestedTime', 'reason'],
             properties: [
-                new OA\Property(property: 'type', type: 'string', enum: ['CREATE', 'UPDATE', 'DELETE'], example: 'CREATE', description: 'Type of request'),
-                new OA\Property(property: 'requestedTime', type: 'string', format: 'date-time', example: '2025-10-15T08:00:00+00:00', description: 'Time to be clocked (ISO 8601)'),
-                new OA\Property(property: 'requestedStatus', type: 'boolean', nullable: true, example: true, description: 'Clock status (true=in, false=out). Required for CREATE type'),
-                new OA\Property(property: 'targetClockId', type: 'integer', nullable: true, example: 42, description: 'ID of clock to modify/delete. Required for UPDATE/DELETE types'),
-                new OA\Property(property: 'reason', type: 'string', minLength: 10, maxLength: 1000, example: 'I forgot to clock in this morning when I arrived.', description: 'Detailed justification (10-1000 chars)')
+                new OA\Property(property: 'type', description: 'Type of request', type: 'string', enum: ['CREATE', 'UPDATE', 'DELETE'], example: 'CREATE'),
+                new OA\Property(property: 'requestedTime', description: 'Time to be clocked (ISO 8601)', type: 'string', format: 'date-time', example: '2025-10-15T08:00:00+00:00'),
+                new OA\Property(property: 'requestedStatus', description: 'Clock status (true=in, false=out). Required for CREATE type', type: 'boolean', example: true, nullable: true),
+                new OA\Property(property: 'targetClockId', description: 'ID of clock to modify/delete. Required for UPDATE/DELETE types', type: 'integer', example: 42, nullable: true),
+                new OA\Property(property: 'reason', description: 'Detailed justification (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'I forgot to clock in this morning when I arrived.')
             ]
         )
     )]
@@ -141,16 +141,23 @@ class ClockRequestController extends AbstractController
     #[Route('/clock-requests', name: 'api_clock_requests_list', methods: ['GET'])]
     #[OA\Get(
         path: '/api/clock-requests',
+        description: 'Returns clock requests based on user role: ADMIN sees all, MANAGER sees their own requests + their team members\' requests, EMPLOYEE sees only their own requests. Use ?own=true to see only your own requests regardless of role.',
         summary: 'List clock requests (filtered by role)',
-        description: 'Returns clock requests based on user role: ADMIN sees all, MANAGER sees their team members\' requests, EMPLOYEE sees only their own requests.',
         tags: ['Clock Requests']
     )]
     #[OA\Parameter(
         name: 'status',
-        in: 'query',
         description: 'Filter by request status',
+        in: 'query',
         required: false,
         schema: new OA\Schema(type: 'string', enum: ['PENDING', 'APPROVED', 'REJECTED'])
+    )]
+    #[OA\Parameter(
+        name: 'own',
+        description: 'If true, returns only the current user\'s clock requests (useful for managers/admins)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'boolean')
     )]
     #[OA\Response(
         response: 200,
@@ -187,16 +194,25 @@ class ClockRequestController extends AbstractController
                ->setParameter('status', $status);
         }
 
-        if (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+        $ownOnly = $request->query->getBoolean('own', false);
+
+        if ($ownOnly) {
+            $qb->andWhere('cr.user = :user')
+               ->setParameter('user', $currentUser);
+        } elseif (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
+            
         } elseif (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $managedTeams = $currentUser->getManagedTeams();
-            if ($managedTeams->isEmpty()) {
-                return $this->json([]);
-            }
 
-            $qb->join('cr.user', 'u')
-               ->andWhere('u.team IN (:teams)')
-               ->setParameter('teams', $managedTeams);
+            if ($managedTeams->isEmpty()) {
+                $qb->andWhere('cr.user = :user')
+                   ->setParameter('user', $currentUser);
+            } else {
+                $qb->join('cr.user', 'u')
+                   ->andWhere('cr.user = :user OR u.team IN (:teams)')
+                   ->setParameter('user', $currentUser)
+                   ->setParameter('teams', $managedTeams);
+            }
         } else {
             $qb->andWhere('cr.user = :user')
                ->setParameter('user', $currentUser);
@@ -214,14 +230,14 @@ class ClockRequestController extends AbstractController
     #[IsGranted('CLOCK_REQUEST_VIEW', 'clockRequest')]
     #[OA\Get(
         path: '/api/clock-requests/{id}',
+        description: 'Returns details of a single clock request. Access control: users can see their own requests, managers can see their own requests + their team members\' requests, admins can see all.',
         summary: 'Get a specific clock request',
-        description: 'Returns details of a single clock request. Access control: users can see their own requests, managers can see their team members\' requests, admins can see all.',
         tags: ['Clock Requests']
     )]
     #[OA\Parameter(
         name: 'id',
-        in: 'path',
         description: 'Clock request ID',
+        in: 'path',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
@@ -273,24 +289,24 @@ class ClockRequestController extends AbstractController
     #[IsGranted('CLOCK_REQUEST_REVIEW', 'clockRequest')]
     #[OA\Post(
         path: '/api/clock-requests/{id}/approve',
-        summary: 'Approve a clock request (managers/admins only)',
         description: 'Approves a pending clock request and executes the action (CREATE/UPDATE/DELETE clock). Managers can approve requests from their team, admins can approve any request. Optional override values can be provided.',
+        summary: 'Approve a clock request (managers/admins only)',
         tags: ['Clock Requests']
     )]
     #[OA\Parameter(
         name: 'id',
-        in: 'path',
         description: 'Clock request ID',
+        in: 'path',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
     #[OA\RequestBody(
-        required: false,
         description: 'Optional: override the requested time and/or status',
+        required: false,
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'approvedTime', type: 'string', format: 'date-time', nullable: true, example: '2025-10-15T08:30:00+00:00', description: 'Override the requested time (optional)'),
-                new OA\Property(property: 'approvedStatus', type: 'boolean', nullable: true, example: true, description: 'Override the requested status (optional)')
+                new OA\Property(property: 'approvedTime', description: 'Override the requested time (optional)', type: 'string', format: 'date-time', example: '2025-10-15T08:30:00+00:00', nullable: true),
+                new OA\Property(property: 'approvedStatus', description: 'Override the requested status (optional)', type: 'boolean', example: true, nullable: true)
             ]
         )
     )]
@@ -390,14 +406,14 @@ class ClockRequestController extends AbstractController
     #[IsGranted('CLOCK_REQUEST_REVIEW', 'clockRequest')]
     #[OA\Post(
         path: '/api/clock-requests/{id}/reject',
-        summary: 'Reject a clock request (managers/admins only)',
         description: 'Rejects a pending clock request with a mandatory rejection reason. Managers can reject requests from their team, admins can reject any request. The rejection reason is appended to the original request reason.',
+        summary: 'Reject a clock request (managers/admins only)',
         tags: ['Clock Requests']
     )]
     #[OA\Parameter(
         name: 'id',
-        in: 'path',
         description: 'Clock request ID',
+        in: 'path',
         required: true,
         schema: new OA\Schema(type: 'integer')
     )]
@@ -406,7 +422,7 @@ class ClockRequestController extends AbstractController
         content: new OA\JsonContent(
             required: ['rejectionReason'],
             properties: [
-                new OA\Property(property: 'rejectionReason', type: 'string', minLength: 10, maxLength: 1000, example: 'The requested time conflicts with another team member\'s schedule.', description: 'Detailed reason for rejection (10-1000 chars)')
+                new OA\Property(property: 'rejectionReason', description: 'Detailed reason for rejection (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'The requested time conflicts with another team member\'s schedule.')
             ]
         )
     )]
@@ -420,7 +436,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'requestedTime', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'requestedStatus', type: 'boolean', nullable: true),
                 new OA\Property(property: 'status', type: 'string', example: 'REJECTED'),
-                new OA\Property(property: 'reason', type: 'string', description: 'Original reason + rejection reason'),
+                new OA\Property(property: 'reason', description: 'Original reason + rejection reason', type: 'string'),
                 new OA\Property(property: 'user', type: 'object'),
                 new OA\Property(property: 'targetClock', type: 'object', nullable: true),
                 new OA\Property(property: 'reviewedBy', type: 'object'),
