@@ -39,6 +39,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: User::USERNAME_MAX_LENGTH, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Length(min: User::USERNAME_MIN_LENGTH, max: User::USERNAME_MAX_LENGTH)]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_-]+$/',
+        message: 'Username can only contain letters, numbers, underscores and hyphens'
+    )]
     private ?string $username = null;
 
     #[ORM\Column(length: User::EMAIL_MAX_LENGTH, unique: true)]
@@ -126,6 +130,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         if ($length < User::USERNAME_MIN_LENGTH || $length > User::USERNAME_MAX_LENGTH) {
             throw new \InvalidArgumentException("Username must be between " . User::USERNAME_MIN_LENGTH . " and " . User::USERNAME_MAX_LENGTH . " characters. Got {$length}.");
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+            throw new \InvalidArgumentException("Username can only contain letters, numbers, underscores and hyphens.");
         }
 
         $this->username = $username;
