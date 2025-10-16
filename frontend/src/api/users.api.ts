@@ -33,5 +33,10 @@ export const usersApi = {
 
         const response = await apiClient.get<any>(`/users/${id}/clocks`, { params })
         return response.data
-    }
+    },
+
+    regeneratePassword: async (id: number): Promise<void> => {
+        const response = await apiClient.post(`/users/${id}/regenerate-password`)
+        return response.data
+    },
 }

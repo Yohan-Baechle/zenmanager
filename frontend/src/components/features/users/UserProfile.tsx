@@ -8,12 +8,32 @@ import {AdminPanelSettingsIcon} from "../../../assets/icons/admin-panel-settings
 import {AlternateEmailIcon} from "../../../assets/icons/alternate-email.tsx";
 import {IdCardIcon} from "../../../assets/icons/id-card.tsx";
 import {PhoneInTalkIcon} from "../../../assets/icons/phone-in-talk.tsx";
+import {usersApi} from "../../../api/users.api.ts";
+import {useState} from "react";
 
 interface UserProfileProps {
     data: User
 }
 
 export default function UserProfile({ data }: UserProfileProps) {
+    const [loading, setLoading] = useState(false)
+
+    const handleRegeneratePassword = async () => {
+        if (!confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe ?')) {
+            return
+        }
+
+        setLoading(true)
+        try {
+            await usersApi.regeneratePassword(data.id)
+            alert('Le mot de passe a été réinitialisé avec succès. Un nouveau mot de passe a été envoyé par e-mail.')
+        } catch (error) {
+            alert(`Erreur lors de la réinitialisation : ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="">
             <div className="grid grid-cols-1 sm:grid-cols-[max-content_1fr] gap-0 items-center text-[var(--c5)]">
@@ -70,8 +90,8 @@ export default function UserProfile({ data }: UserProfileProps) {
                 <a className="underline cursor-pointer px-5 text-[var(--c4)] hover:text-[var(--c5)]"
                    onClick={() => alert('Fonctionnalité à venir')}
                 >Modifier le profil</a>
-                <Button onClick={() => alert('Fonctionnalité à venir')}>
-                    Réinitialiser le mot de passe
+                <Button onClick={handleRegeneratePassword} disabled={loading}>
+                    {loading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
                 </Button>
             </div>
         </div>
