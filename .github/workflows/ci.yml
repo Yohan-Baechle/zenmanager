@@ -49,9 +49,6 @@ jobs:
           echo "POSTGRES_USER=user_dot_com" >> $GITHUB_ENV
           echo "POSTGRES_PASSWORD=shhhhhhh" >> $GITHUB_ENV
 
-      # the best practice *for symfony* is to create a .env.test file
-      # but to keep the repo clean and for ci/cd experimenting reason (I'm here to learn about it), we create a .env file here
-      # for now the file is tiny so it's not a big deal, but we'll change that if the file grows
       - name: Create backend .env file
         run: |
           echo "APP_ENV=test" > .env
