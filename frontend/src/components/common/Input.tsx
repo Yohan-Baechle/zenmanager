@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes } from 'react'
 import { forwardRef, useState } from 'react'
+import React from 'react'
 import { VisibilityIcon } from '../../assets/icons/visibility'
 import { VisibilityOffIcon } from '../../assets/icons/visibility-off'
 
@@ -9,15 +10,22 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
     visible?: boolean
     error?: string
+    floatingLabel?: boolean
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, type, icon: Icon, visible, error, ...props }, ref) => {
+    ({ label, type, icon: Icon, visible, error, floatingLabel = false, ...props }, ref) => {
         const [showPassword, setShowPassword] = useState(false)
         const [isFocused, setIsFocused] = useState(false)
         const [hasValue, setHasValue] = useState(false)
 
         const inputType = visible && showPassword ? 'text' : type
+
+        React.useEffect(() => {
+            if (props.value || props.defaultValue) {
+                setHasValue(true)
+            }
+        }, [props.value, props.defaultValue])
 
         const handleToggle = () => {
             setShowPassword(!showPassword)
@@ -38,7 +46,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             props.onChange?.(e)
         }
 
-        const isLabelFloating = isFocused || hasValue
+        const isLabelFloating = floatingLabel || isFocused || hasValue
 
         return (
             <div className="w-full relative">

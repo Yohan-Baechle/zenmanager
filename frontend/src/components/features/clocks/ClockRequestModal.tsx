@@ -50,6 +50,7 @@ export default function ClockRequestModal({ isOpen, onClose, onSuccess }: ClockR
                 <Input
                     type="datetime-local"
                     label="Date et heure"
+                    floatingLabel={true}
                     value={formData.requestedTime}
                     onChange={(e) => setFormData({...formData, requestedTime: e.target.value})}
                     required
