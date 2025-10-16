@@ -194,7 +194,6 @@ class ClockRequestController extends AbstractController
                ->setParameter('status', $status);
         }
 
-        // If 'own' parameter is true, only show current user's requests (regardless of role)
         $ownOnly = $request->query->getBoolean('own', false);
 
         if ($ownOnly) {
@@ -215,7 +214,6 @@ class ClockRequestController extends AbstractController
                    ->setParameter('teams', $managedTeams);
             }
         } else {
-            // Employee sees only their own requests
             $qb->andWhere('cr.user = :user')
                ->setParameter('user', $currentUser);
         }
