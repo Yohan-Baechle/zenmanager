@@ -93,7 +93,6 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
         $batchSize = 20;
         $counter = 0;
 
-        // Generated users start at index 7 now
         for ($userIndex = 7; $userIndex <= $maxUsers + 6; $userIndex++) {
             $workDays = $faker->numberBetween(20, 25);
 
