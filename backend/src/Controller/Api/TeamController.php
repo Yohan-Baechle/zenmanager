@@ -110,7 +110,19 @@ class TeamController extends AbstractController
         $page = $request->query->getInt('page', Paginator::DEFAULT_PAGE);
         $limit = $request->query->getInt('limit', Paginator::DEFAULT_LIMIT);
 
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
         $queryBuilder = $teamRepository->createQueryBuilder('t');
+
+        if (!in_array('ROLE_ADMIN', $user->getRoles())) {
+            $queryBuilder
+                ->where('t.manager = :user')
+                ->setParameter('user', $user);
+        }
+
         $paginatedResult = $this->paginator->paginate($queryBuilder, $page, $limit);
 
         $dtos = $this->teamMapper->toOutputDtoCollection($paginatedResult['items']);
