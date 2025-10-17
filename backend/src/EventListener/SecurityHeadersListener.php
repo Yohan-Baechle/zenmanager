@@ -36,8 +36,7 @@ class SecurityHeadersListener
             "form-action 'self'"
         );
 
-        // HSTS - Uncomment in production with HTTPS
-        // Forces browsers to use HTTPS for all future requests
+        // TODO - Uncomment in production with HTTPS
         // $headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     }
 }
