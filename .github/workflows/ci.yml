@@ -50,7 +50,7 @@ jobs:
         run: |
           echo "APP_ENV=test" > .env
           echo "APP_SECRET=dummy_secret" >> .env
-          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" >> .env
+          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" >> .env
           echo "DEFAULT_URI=http://localhost" >> .env
           echo "CORS_ALLOW_ORIGIN=true" >> .env
           echo "JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem" >> .env 
@@ -97,4 +97,5 @@ jobs:
 
       - name: Run PHPUnit tests
         run: |
+          DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" \
           php bin/phpunit --testdox
