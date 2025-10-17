@@ -33,8 +33,8 @@ class UserAdminCreateDto
     public ?string $phoneNumber = null;
 
     #[Assert\NotBlank]
-    #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
     public ?string $role = null;
+    #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
 
     public ?int $teamId = null;
 }
