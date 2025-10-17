@@ -89,7 +89,7 @@ export default function UserProfile({ data }: UserProfileProps) {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <a className="underline cursor-pointer px-5 text-[var(--c4)] hover:text-[var(--c5)]"
                    onClick={() => alert('Fonctionnalité à venir')}
-                >Modifier le profil</a>
+                ><span className="hidden">Modifier le profil</span></a>
                 <Button onClick={handleRegeneratePassword} disabled={loading}>
                     {loading ? 'Réinitialisation...' : 'Réinitialiser le mot de passe'}
                 </Button>
