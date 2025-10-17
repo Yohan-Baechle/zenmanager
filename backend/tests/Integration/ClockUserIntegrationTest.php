@@ -6,10 +6,11 @@ use App\Entity\Clock;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ClockUserIntegrationTest extends KernelTestCase
 {
-    private $em;
+    private EntityManagerInterface $em;
 
     protected function setUp(): void
     {
