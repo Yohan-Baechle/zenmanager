@@ -5,10 +5,11 @@ namespace App\Tests\Integration;
 use App\Entity\User;
 use App\Entity\Team;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 class UserTeamIntegrationTest extends KernelTestCase
 {
-    private $em;
+    private EntityManagerInterface $em;
 
     protected function setUp(): void
     {
