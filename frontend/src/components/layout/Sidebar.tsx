@@ -5,7 +5,6 @@ import SectionDivider from '../common/SectionDivider.tsx'
 
 import { DashboardIcon } from '../../assets/icons/dashboard'
 import { AlarmAddIcon } from '../../assets/icons/alarm-add'
-import { HistoryIcon } from '../../assets/icons/history'
 import { AccountCircleIcon } from '../../assets/icons/account-circle'
 import { PersonIcon } from '../../assets/icons/person'
 import { SupervisorAccountIcon } from '../../assets/icons/supervisor-account'
@@ -29,8 +28,7 @@ export default function Sidebar() {
 
             <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
                 <NavItem to="/dashboard" icon={DashboardIcon} label="Tableau de Bord" />
-                <NavItem to="/clock" icon={AlarmAddIcon} label="Pointer" />
-                <NavItem to="/clock/history" icon={HistoryIcon} label="Historique Pointage" />
+                <NavItem to="/clock" icon={AlarmAddIcon} label="Pointeuse" />
                 <NavItem to="/profile" icon={AccountCircleIcon} label="Mon Profil" />
 
                 {isManager && (
