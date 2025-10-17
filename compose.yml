@@ -11,11 +11,11 @@ services:
     command:
       - postgres
       - -c
-      - log_statement=all
+      - log_statement=none
       - -c
-      - log_min_duration_statement=0
+      - log_min_duration_statement=1000
       - -c
-      - "log_line_prefix=%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h "
+      - "log_line_prefix=%t [%p]: user=%u,db=%d "
     ports:
       - "5432:5432"
     volumes:
