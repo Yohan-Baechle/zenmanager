@@ -335,4 +335,44 @@ class UserTest extends TestCase
         }
     }
 
+    /**
+     * This test ensures the email is used as user identifier
+     */
+    public function testGetUserIdentifierReturnsEmail(): void
+    {
+        $user = new User();
+        $user->setUsername('ChadMcMan');
+        $this->assertSame('ChadMcMan', $user->getUserIdentifier());
+    }
+
+    /**
+     * This test ensures there is no space nowhere in the name
+     */
+    public function testUsernameHasNoSpaces(): void
+    {
+        $invalidUsernames = [
+            'John Doe',
+            ' JaneDoe',
+            'JaneDoe ',
+            'Jane  Doe',
+            "Jane\tDoe",
+            "Jane\nDoe",
+        ];
+
+        foreach ($invalidUsernames as $username) {
+            $this->expectException(\InvalidArgumentException::class);
+            $user = new User();
+            $user->setUsername($username);
+        }
+    }
+
+    public function testUserIdentifierDoesNotReturnEmail(): void
+    {
+        $user = new User();
+        $user->setUsername('JohnDoe');
+        $user->setEmail('john@example.com');
+
+        $this->assertNotSame($user->getEmail(), $user->getUserIdentifier(), "User identifier should not be email");
+        $this->assertSame('JohnDoe', $user->getUserIdentifier());
+    }
 }
