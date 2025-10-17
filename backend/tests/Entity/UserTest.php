@@ -341,8 +341,8 @@ class UserTest extends TestCase
     public function testGetUserIdentifierReturnsEmail(): void
     {
         $user = new User();
-        $user->setUsername('Chad McMan');
-        $this->assertSame('Chad McMan', $user->getUserIdentifier());
+        $user->setUsername('ChadMcMan');
+        $this->assertSame('ChadMcMan', $user->getUserIdentifier());
     }
 
     /**
@@ -364,5 +364,15 @@ class UserTest extends TestCase
             $user = new User();
             $user->setUsername($username);
         }
+    }
+
+    public function testUserIdentifierDoesNotReturnEmail(): void
+    {
+        $user = new User();
+        $user->setUsername('JohnDoe');
+        $user->setEmail('john@example.com');
+
+        $this->assertNotSame($user->getEmail(), $user->getUserIdentifier(), "User identifier should not be email");
+        $this->assertSame('JohnDoe', $user->getUserIdentifier());
     }
 }
