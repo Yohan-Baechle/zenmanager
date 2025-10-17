@@ -349,11 +349,10 @@ class UserController extends AbstractController
     }
 
     #[Route('/users/{id}/regenerate-password', name: 'api_users_regenerate_password', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     #[OA\Post(
         path: '/api/users/{id}/regenerate-password',
-        summary: 'Regenerate user password (Admin only)',
-        description: 'Generates a new secure password for a user and sends it via email',
+        description: 'Generates a new secure password for a user and sends it via email. Admins can reset any user password. Regular users can only reset their own password.',
+        summary: 'Regenerate user password',
         security: [['Bearer' => []]],
         tags: ['Users'],
         parameters: [
@@ -377,7 +376,7 @@ class UserController extends AbstractController
             ),
             new OA\Response(
                 response: 403,
-                description: 'Access denied - Admin role required'
+                description: 'Access denied - You can only reset your own password'
             ),
             new OA\Response(
                 response: 404,
@@ -387,6 +386,15 @@ class UserController extends AbstractController
     )]
     public function regeneratePassword(User $user): JsonResponse
     {
+        $currentUser = $this->getUser();
+
+        if (!$this->isGranted('ROLE_ADMIN') && $currentUser !== $user) {
+            return $this->json(
+                ['error' => 'You can only reset your own password'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
         $temporaryPassword = $this->passwordGenerator->generate();
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $temporaryPassword);
