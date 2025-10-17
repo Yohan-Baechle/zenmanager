@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Dto\ClockRequest\CreateClockRequestDto;
+use App\Dto\ClockRequest\UpdateClockRequestDto;
 use App\Dto\ClockRequest\ApproveClockRequestDto;
 use App\Dto\ClockRequest\RejectClockRequestDto;
 use App\Entity\Clock;
@@ -283,6 +284,137 @@ class ClockRequestController extends AbstractController
     {
         $dto = $this->clockRequestMapper->toOutputDto($clockRequest);
         return $this->json($dto);
+    }
+
+    #[Route('/clock-requests/{id}', name: 'api_clock_requests_update', methods: ['PATCH'])]
+    #[IsGranted('CLOCK_REQUEST_EDIT', 'clockRequest')]
+    #[OA\Patch(
+        path: '/api/clock-requests/{id}',
+        description: 'Allows an employee to update their own PENDING clock request. Only the owner can modify the request and only while it\'s still pending.',
+        summary: 'Update a pending clock request (owner only)',
+        tags: ['Clock Requests']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'Clock request ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\RequestBody(
+        description: 'Fields to update (all optional)',
+        required: false,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'requestedTime', description: 'New requested time (ISO 8601)', type: 'string', format: 'date-time', example: '2025-10-15T09:00:00+00:00', nullable: true),
+                new OA\Property(property: 'requestedStatus', description: 'New requested status (true=in, false=out)', type: 'boolean', example: true, nullable: true),
+                new OA\Property(property: 'reason', description: 'New reason (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, nullable: true)
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Clock request updated successfully',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'type', type: 'string', example: 'CREATE'),
+                new OA\Property(property: 'requestedTime', type: 'string', format: 'date-time'),
+                new OA\Property(property: 'requestedStatus', type: 'boolean', nullable: true),
+                new OA\Property(property: 'status', type: 'string', example: 'PENDING'),
+                new OA\Property(property: 'reason', type: 'string'),
+                new OA\Property(property: 'user', type: 'object'),
+                new OA\Property(property: 'targetClock', type: 'object', nullable: true),
+                new OA\Property(property: 'reviewedBy', type: 'object', nullable: true),
+                new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time', nullable: true),
+                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Access denied - user cannot edit this clock request (not owner or not pending)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Clock request not found',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+            ]
+        )
+    )]
+    public function update(
+        ClockRequest $clockRequest,
+        #[MapRequestPayload] UpdateClockRequestDto $dto
+    ): JsonResponse {
+        if ($dto->requestedTime !== null) {
+            $clockRequest->setRequestedTime($dto->requestedTime);
+        }
+
+        if ($dto->requestedStatus !== null) {
+            $clockRequest->setRequestedStatus($dto->requestedStatus);
+        }
+
+        if ($dto->reason !== null) {
+            $clockRequest->setReason($dto->reason);
+        }
+
+        $this->em->flush();
+
+        $outputDto = $this->clockRequestMapper->toOutputDto($clockRequest);
+        return $this->json($outputDto);
+    }
+
+    #[Route('/clock-requests/{id}', name: 'api_clock_requests_delete', methods: ['DELETE'])]
+    #[IsGranted('CLOCK_REQUEST_EDIT', 'clockRequest')]
+    #[OA\Delete(
+        path: '/api/clock-requests/{id}',
+        description: 'Allows an employee to delete their own PENDING clock request. Only the owner can delete the request and only while it\'s still pending.',
+        summary: 'Delete a pending clock request (owner only)',
+        tags: ['Clock Requests']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'Clock request ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 204,
+        description: 'Clock request deleted successfully'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Access denied - user cannot delete this clock request (not owner or not pending)',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Clock request not found',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+            ]
+        )
+    )]
+    public function delete(ClockRequest $clockRequest): JsonResponse
+    {
+        $this->em->remove($clockRequest);
+        $this->em->flush();
+
+        return $this->json(null, Response::HTTP_NO_CONTENT);
     }
 
     #[Route('/clock-requests/{id}/approve', name: 'api_clock_requests_approve', methods: ['POST'])]

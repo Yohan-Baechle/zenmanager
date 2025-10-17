@@ -13,7 +13,7 @@ use Faker\Factory;
 class UserFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(
-        private UserPasswordHasherInterface $passwordHasher
+        private readonly UserPasswordHasherInterface $passwordHasher
     ) {
     }
 
@@ -22,12 +22,13 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $faker = Factory::create('fr_FR');
         $isTest = ($_ENV['APP_ENV'] ?? 'dev') === 'test';
 
-        if ($isTest) {
-            $this->loadTestUsers($manager);
-        } else {
-            $this->loadTestUsers($manager);
+        $this->loadTestUsers($manager);
+
+        if (!$isTest) {
             $this->loadGeneratedUsers($manager, $faker);
         }
+
+        $manager->flush();
     }
 
     private function loadTestUsers(ObjectManager $manager): void
@@ -35,65 +36,81 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $teamDev = $this->getReference('team-1', Team::class);
         $teamMarketing = $this->getReference('team-2', Team::class);
 
-        $admin = new User();
-        $admin->setUsername('admin')
-            ->setEmail('admin@test.com')
-            ->setFirstName('Admin')
-            ->setLastName('System')
-            ->setRoles(['ROLE_ADMIN'])
-            ->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
+        $admin = $this->createUser(
+            username: 'admin',
+            email: 'admin@test.com',
+            firstName: 'Admin',
+            lastName: 'System',
+            roles: ['ROLE_ADMIN'],
+            password: 'admin123'
+        );
         $manager->persist($admin);
         $this->addReference('user-1', $admin);
 
-        $managerDev = new User();
-        $managerDev->setUsername('manager_dev')
-            ->setEmail('manager.dev@test.com')
-            ->setFirstName('John')
-            ->setLastName('Manager')
-            ->setRoles(['ROLE_MANAGER'])
-            ->setPassword($this->passwordHasher->hashPassword($managerDev, 'password'));
-        $manager->persist($managerDev);
-        $this->addReference('user-2', $managerDev);
+        $theKing = $this->createUser(
+            username: 'Theking',
+            email: 'manager@test.com',
+            firstName: 'Michel',
+            lastName: 'MichMich',
+            roles: ['ROLE_MANAGER'],
+            password: 'password123',
+            phoneNumber: '0800123123',
+            team: $teamMarketing
+        );
+        $teamDev->setManager($theKing);
+        $manager->persist($theKing);
+        $this->addReference('user-2', $theKing);
+        $this->addReference('user-manager', $theKing);
 
-        $teamDev->setManager($managerDev);
-        $manager->persist($teamDev);
+        $theJoker = $this->createUser(
+            username: 'TheJoker',
+            email: 'employee@test.com',
+            firstName: 'Pol-Mattis',
+            lastName: 'PM',
+            roles: ['ROLE_EMPLOYEE'],
+            password: 'password123',
+            phoneNumber: '0345566667',
+            team: $teamDev
+        );
+        $manager->persist($theJoker);
+        $this->addReference('user-3', $theJoker);
+        $this->addReference('user-employee', $theJoker);
 
-        $employeeDev1 = new User();
-        $employeeDev1->setUsername('employee_dev1')
-            ->setEmail('emp1.dev@test.com')
-            ->setFirstName('Alice')
-            ->setLastName('Developer')
-            ->setRoles(['ROLE_EMPLOYEE'])
-            ->setPassword($this->passwordHasher->hashPassword($employeeDev1, 'password'))
-            ->setTeam($teamDev);
+        $employeeDev1 = $this->createUser(
+            username: 'employee_dev1',
+            email: 'emp1.dev@test.com',
+            firstName: 'Alice',
+            lastName: 'Developer',
+            roles: ['ROLE_EMPLOYEE'],
+            password: 'password',
+            team: $teamDev
+        );
         $manager->persist($employeeDev1);
-        $this->addReference('user-3', $employeeDev1);
+        $this->addReference('user-4', $employeeDev1);
 
-        $employeeDev2 = new User();
-        $employeeDev2->setUsername('employee_dev2')
-            ->setEmail('emp2.dev@test.com')
-            ->setFirstName('Bob')
-            ->setLastName('Developer')
-            ->setRoles(['ROLE_EMPLOYEE'])
-            ->setPassword($this->passwordHasher->hashPassword($employeeDev2, 'password'))
-            ->setTeam($teamDev);
+        $employeeDev2 = $this->createUser(
+            username: 'employee_dev2',
+            email: 'emp2.dev@test.com',
+            firstName: 'Bob',
+            lastName: 'Developer',
+            roles: ['ROLE_EMPLOYEE'],
+            password: 'password',
+            team: $teamDev
+        );
         $manager->persist($employeeDev2);
-        $this->addReference('user-4', $employeeDev2);
+        $this->addReference('user-5', $employeeDev2);
 
-        $managerMarketing = new User();
-        $managerMarketing->setUsername('manager_marketing')
-            ->setEmail('manager.marketing@test.com')
-            ->setFirstName('Sarah')
-            ->setLastName('Marketing')
-            ->setRoles(['ROLE_MANAGER'])
-            ->setPassword($this->passwordHasher->hashPassword($managerMarketing, 'password'));
-        $manager->persist($managerMarketing);
-        $this->addReference('user-5', $managerMarketing);
-
+        $managerMarketing = $this->createUser(
+            username: 'manager_marketing',
+            email: 'manager.marketing@test.com',
+            firstName: 'Sarah',
+            lastName: 'Marketing',
+            roles: ['ROLE_MANAGER'],
+            password: 'password'
+        );
         $teamMarketing->setManager($managerMarketing);
-        $manager->persist($teamMarketing);
-
-        $manager->flush();
+        $manager->persist($managerMarketing);
+        $this->addReference('user-6', $managerMarketing);
     }
 
     private function loadGeneratedUsers(ObjectManager $manager, $faker): void
@@ -101,60 +118,67 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $maxUsers = 30;
         $maxTeams = 30;
 
-        $manager1 = new User();
-        $manager1->setEmail('manager@test.com')
-            ->setUsername('Theking')
-            ->setFirstName('Michel')
-            ->setLastName('MichMich')
-            ->setPhoneNumber('0800123123')
-            ->setRoles(['ROLE_MANAGER'])
-            ->setPassword($this->passwordHasher->hashPassword($manager1, 'password123'));
-        $manager->persist($manager1);
-        $this->addReference('user-manager', $manager1);
-
-        $employee1 = new User();
-        $employee1->setEmail('employee@test.com')
-            ->setUsername('TheJoker')
-            ->setFirstName('Pol-Mattis')
-            ->setLastName('PM')
-            ->setPhoneNumber('0345566667')
-            ->setRoles(['ROLE_EMPLOYEE'])
-            ->setPassword($this->passwordHasher->hashPassword($employee1, 'password123'));
-        $manager->persist($employee1);
-        $this->addReference('user-employee', $employee1);
-
-        for ($i = 6; $i <= $maxUsers + 5; $i++) {
-            $user = new User();
-            $role = $i <= 15 ? 'ROLE_MANAGER' : 'ROLE_EMPLOYEE';
+        for ($i = 7; $i <= $maxUsers + 6; $i++) {
+            $role = $i <= 16 ? 'ROLE_MANAGER' : 'ROLE_EMPLOYEE';
+            $team = null;
 
             if ($faker->boolean(80)) {
                 $teamIndex = $faker->numberBetween(1, $maxTeams);
-                $user->setTeam($this->getReference('team-' . $teamIndex, Team::class));
+                $team = $this->getReference('team-' . $teamIndex, Team::class);
             }
 
-            $user->setEmail($faker->email() . $i)
-                ->setUsername($faker->userName() . $i)
-                ->setFirstName($faker->firstName())
-                ->setLastName($faker->lastName())
-                ->setPhoneNumber($faker->phoneNumber())
-                ->setPassword($this->passwordHasher->hashPassword($user, 'password123'))
-                ->setRoles([$role]);
+            $user = $this->createUser(
+                username: $faker->userName() . $i,
+                email: $faker->email() . $i,
+                firstName: $faker->firstName(),
+                lastName: $faker->lastName(),
+                roles: [$role],
+                password: 'password123',
+                phoneNumber: $faker->phoneNumber(),
+                team: $team
+            );
 
             $manager->persist($user);
             $this->addReference('user-' . $i, $user);
         }
 
-        $manager->flush();
-      
         for ($i = 3; $i <= $maxTeams; $i++) {
             if ($faker->boolean(70)) {
-                $managerIndex = $faker->numberBetween(6, 15);
+                $managerIndex = $faker->numberBetween(7, 16);
                 $team = $this->getReference('team-' . $i, Team::class);
                 $team->setManager($this->getReference('user-' . $managerIndex, User::class));
             }
         }
+    }
 
-        $manager->flush();
+    private function createUser(
+        string $username,
+        string $email,
+        string $firstName,
+        string $lastName,
+        array $roles,
+        string $password,
+        ?string $phoneNumber = null,
+        ?Team $team = null
+    ): User {
+        $username = preg_replace('/[^a-zA-Z0-9_-]/', '_', $username);
+        $user = new User();
+        $user->setUsername($username)
+            ->setEmail($email)
+            ->setFirstName($firstName)
+            ->setLastName($lastName)
+            ->setRoles($roles)
+            ->setPassword($this->passwordHasher->hashPassword($user, $password));
+
+        if ($phoneNumber !== null) {
+            $user->setPhoneNumber($phoneNumber);
+        }
+
+        if ($team !== null) {
+            $user->setTeam($team);
+        }
+
+        return $user;
     }
 
     public function getDependencies(): array

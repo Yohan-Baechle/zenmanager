@@ -8,6 +8,10 @@ class UserAdminCreateDto
 {
     #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 50)]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_-]+$/',
+        message: 'Username can only contain letters, numbers, underscores and hyphens'
+    )]
     public ?string $username = null;
 
     #[Assert\NotBlank]
