@@ -39,7 +39,7 @@ class ClockRepositoryTest extends KernelTestCase
         $this->em->flush();
         $this->em->clear();
 
-        $foundClock = $this->em->getRepository(Clock::class)->findOneBy(['status' => true]);
+        $foundClock = $this->em->getRepository(Clock::class)->findOneBy(['owner' => $user]);
         $this->assertNotNull($foundClock);
         $this->assertSame('ClockyMan', $foundClock->getOwner()->getUsername());
     }
