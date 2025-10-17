@@ -161,6 +161,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         ?string $phoneNumber = null,
         ?Team $team = null
     ): User {
+        $username = preg_replace('/[^a-zA-Z0-9_-]/', '_', $username);
         $user = new User();
         $user->setUsername($username)
             ->setEmail($email)

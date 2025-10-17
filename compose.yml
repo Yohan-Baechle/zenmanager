@@ -8,13 +8,26 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      - postgres
+      - -c
+      - log_statement=all
+      - -c
+      - log_min_duration_statement=0
+      - -c
+      - "log_line_prefix=%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h "
     ports:
       - "5432:5432"
     volumes:
       - timemanager_db_data:/var/lib/postgresql/data
-      - ./logs/database:/var/log/postgresql
     networks:
       - timemanager_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build:
@@ -27,7 +40,7 @@ services:
       - "8080:8000"
     volumes:
       - ./backend:/var/www/symfony
-      - ./logs/backend:/var/www/symfony/var/log
+      - timemanager_backend_logs:/var/www/symfony/var/log
     command: >
       sh -c "composer install --no-scripts &&
              echo '⏳ Waiting for database...' &&
@@ -37,7 +50,8 @@ services:
     networks:
       - timemanager_network
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   adminer:
     image: adminer:latest
@@ -72,7 +86,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - ./logs/frontend:/app/logs
+      - timemanager_frontend_logs:/app/logs
     command: sh -c "npm install && npm run dev -- --host"
     networks:
       - timemanager_network
@@ -81,6 +95,8 @@ services:
 
 volumes:
   timemanager_db_data:
+  timemanager_backend_logs:
+  timemanager_frontend_logs:
 
 networks:
   timemanager_network:
