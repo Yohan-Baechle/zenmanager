@@ -118,6 +118,14 @@ class ReportsController extends AbstractController
         description: 'Invalid date format'
     )]
     #[OA\Response(
+        response: 401,
+        description: 'User not authenticated'
+    )]
+    #[OA\Response(
+        response: 403,
+        description: 'Access denied - Manager can only view reports for their managed teams'
+    )]
+    #[OA\Response(
         response: 500,
         description: 'Error calculating KPIs'
     )]
@@ -127,6 +135,46 @@ class ReportsController extends AbstractController
         $endDateStr = $request->query->get('end_date');
         $teamId = $request->query->get('team_id') ? (int)$request->query->get('team_id') : null;
         $userId = $request->query->get('user_id') ? (int)$request->query->get('user_id') : null;
+
+        /** @var \App\Entity\User $currentUser */
+        $currentUser = $this->getUser();
+
+        if (!$currentUser) {
+            return $this->json([
+                'success' => false,
+                'error' => 'User not authenticated'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userRoles = $currentUser->getRoles();
+        $isAdmin = in_array('ROLE_ADMIN', $userRoles);
+        $isManager = in_array('ROLE_MANAGER', $userRoles);
+
+        if ($isManager && !$isAdmin) {
+            $managedTeams = $currentUser->getManagedTeams();
+            $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
+
+            if ($teamId === null) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Managers must specify a team_id parameter',
+                    'managed_team_ids' => $managedTeamIds
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            if (!in_array($teamId, $managedTeamIds)) {
+                return $this->json([
+                    'success' => false,
+                    'error' => 'Access denied. You can only view reports for teams you manage.',
+                    'managed_team_ids' => $managedTeamIds
+                ], Response::HTTP_FORBIDDEN);
+            }
+        }
+
+        if (!$isManager && !$isAdmin) {
+            $userId = $currentUser->getId();
+            $teamId = null;
+        }
 
         try {
             $startDate = null;
@@ -230,9 +278,9 @@ class ReportsController extends AbstractController
     }
 
     private function calculateAbsentDays(
-        ?string $startDate, 
-        ?string $endDate, 
-        ?int $userId, 
+        ?string $startDate,
+        ?string $endDate,
+        ?int $userId,
         int $presentDays
     ): int {
         if (!$startDate || !$endDate) {
@@ -244,14 +292,14 @@ class ReportsController extends AbstractController
 
         $workingDays = 0;
         $current = clone $start;
-        
+
         while ($current <= $end) {
             $dayOfWeek = (int)$current->format('N');
-            
+
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
                 $workingDays++;
             }
-            
+
             $current->modify('+1 day');
         }
 
