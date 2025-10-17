@@ -63,5 +63,3 @@ class UserTeamIntegrationTest extends KernelTestCase
         $this->assertSame('Dream Team', $foundUser->getTeam()->getName());
     }
 }
-
-
