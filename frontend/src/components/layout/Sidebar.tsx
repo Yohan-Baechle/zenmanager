@@ -12,7 +12,7 @@ import { ReportIcon } from '../../assets/icons/report'
 import { AdminPanelSettingsIcon } from '../../assets/icons/admin-panel-settings'
 
 export default function Sidebar() {
-    const { user, isManager } = useAuth()
+    const { user, role } = useAuth()
 
     return (
         <aside className="w-64 bg-[var(--c1)] shadow-lg h-[calc(100vh-73px)] border-r border-[var(--c3)] flex flex-col">
@@ -20,7 +20,7 @@ export default function Sidebar() {
                 <UserBadge
                     firstName={user?.firstName}
                     lastName={user?.lastName}
-                    role={isManager ? 'Manager' : undefined}
+                    role={role === 'manager' ? 'Manager' : role === 'admin' ? 'Admin' : 'Employee'}
                 />
 
                 <SectionDivider />
@@ -31,16 +31,19 @@ export default function Sidebar() {
                 <NavItem to="/clock" icon={AlarmAddIcon} label="Pointeuse" />
                 <NavItem to="/profile" icon={AccountCircleIcon} label="Mon Profil" />
 
-                {isManager && (
+                {role === 'manager' && (
                     <>
                         <SectionDivider label="Manager" />
-                        <NavItem
-                            to="/manager/dashboard"
-                            icon={DashboardIcon}
-                            label="Manager Dashboard"
-                        />
+                        <NavItem to="/manager/dashboard" icon={DashboardIcon} label="Manager Dashboard" />
                         <NavItem to="/users" icon={PersonIcon} label="Utilisateurs" />
                         <NavItem to="/teams" icon={SupervisorAccountIcon} label="Équipes" />
+                        <NavItem to="/reports" icon={ReportIcon} label="Reports" />
+                    </>
+                )}
+
+                {role === 'admin' && (
+                    <>
+                        <SectionDivider label="Administration" />
                         <NavItem to="/reports" icon={ReportIcon} label="Reports" />
                         <NavItem to="/admin" icon={AdminPanelSettingsIcon} label="Administration" />
                     </>
