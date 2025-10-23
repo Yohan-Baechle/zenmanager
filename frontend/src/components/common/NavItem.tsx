@@ -12,7 +12,7 @@ export default function NavItem({ to, icon: Icon, label, iconOnly = false }: Nav
         <NavLink
             to={to}
             className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                `flex items-center gap-3 px-[13.5px] py-3 rounded-lg transition-all duration-200 ${
                     isActive
                         ? 'bg-[var(--c5)] text-white shadow-md'
                         : 'text-[var(--c4)] hover:bg-[var(--c2)] hover:text-[var(--c5)]'

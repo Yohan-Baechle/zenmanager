@@ -41,7 +41,7 @@ export default function Sidebar() {
                 </div>
             )}
 
-            <nav className="flex-1 overflow-y-auto px-4 pb-4 space-y-1">
+            <nav className={`flex-1 overflow-y-auto px-4 pb-4 space-y-1 ${isSemi ? 'py-4' : ''}`}>
                 <NavItem to="/dashboard" icon={DashboardIcon} label="Tableau de Bord" iconOnly={isSemi} />
                 <NavItem to="/clock" icon={AlarmAddIcon} label="Pointeuse" iconOnly={isSemi} />
                 <NavItem to="/profile" icon={AccountCircleIcon} label="Mon Profil" iconOnly={isSemi} />
@@ -49,7 +49,7 @@ export default function Sidebar() {
                 {role === 'manager' && (
                     <>
                         {!isSemi && <SectionDivider label="Manager" />}
-                        {isSemi && <div className="h-4" />}
+                        {isSemi && <SectionDivider />}
                         <NavItem to="/manager/dashboard" icon={DashboardIcon} label="Manager Dashboard" iconOnly={isSemi} />
                         <NavItem to="/users" icon={PersonIcon} label="Utilisateurs" iconOnly={isSemi} />
                         <NavItem to="/teams" icon={SupervisorAccountIcon} label="Équipes" iconOnly={isSemi} />
@@ -60,7 +60,7 @@ export default function Sidebar() {
                 {role === 'admin' && (
                     <>
                         {!isSemi && <SectionDivider label="Administration" />}
-                        {isSemi && <div className="h-4" />}
+                        {isSemi && <SectionDivider />}
                         <NavItem to="/reports" icon={ReportIcon} label="Reports" iconOnly={isSemi} />
                         <NavItem to="/admin" icon={AdminPanelSettingsIcon} label="Administration" iconOnly={isSemi} />
                     </>
