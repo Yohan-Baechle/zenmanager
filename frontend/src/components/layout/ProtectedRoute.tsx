@@ -3,9 +3,11 @@ import { useAuth } from '../../hooks/useAuth'
 import type { ReactNode } from 'react'
 import Loader from '../common/Loader'
 
+type Role = 'manager' | 'employee' | 'admin'
+
 interface ProtectedRouteProps {
     children: ReactNode
-    requiredRole?: 'manager' | 'employee'
+    requiredRole?: Role[]
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -19,8 +21,11 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         return <Navigate to="/login" replace />
     }
 
-    if (requiredRole && user?.role !== requiredRole) {
-        return <Navigate to="/dashboard" replace />
+    if (requiredRole && requiredRole.length > 0) {
+        const role = user?.role as Role | undefined
+        if (!role || !requiredRole.includes(role)) {
+            return <Navigate to="/dashboard" replace />
+        }
     }
 
     return <>{children}</>
