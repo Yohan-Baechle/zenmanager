@@ -21,7 +21,7 @@ export default function NavItem({ to, icon: Icon, label, iconOnly = false }: Nav
             title={iconOnly ? label : undefined}
         >
             <Icon className="w-5 h-5 flex-shrink-0" />
-            {!iconOnly && <span className="font-medium">{label}</span>}
+            {!iconOnly && <span className="font-medium truncate">{label}</span>}
         </NavLink>
     )
 }
