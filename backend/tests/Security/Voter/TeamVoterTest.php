@@ -18,8 +18,6 @@ class TeamVoterTest extends TestCase
         $this->voter = new TeamVoter();
     }
 
-    // ========== VIEW TESTS ==========
-
     public function testEveryoneCanViewTeam(): void
     {
         $user = $this->createUser('employee');
@@ -30,8 +28,6 @@ class TeamVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
-
-    // ========== EDIT TESTS ==========
 
     public function testAdminCanEditTeam(): void
     {
@@ -78,8 +74,6 @@ class TeamVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    // ========== DELETE TESTS ==========
-
     public function testAdminCanDeleteTeam(): void
     {
         $admin = $this->createUser('admin');
@@ -113,8 +107,6 @@ class TeamVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    // ========== MANAGE TESTS ==========
-
     public function testAdminCanManageTeam(): void
     {
         $admin = $this->createUser('admin');
@@ -147,8 +139,6 @@ class TeamVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
-
-    // ========== HELPER METHODS ==========
 
     private function createUser(string $role): User
     {

@@ -18,8 +18,6 @@ class UserVoterTest extends TestCase
         $this->voter = new UserVoter();
     }
 
-    // ========== VIEW TESTS ==========
-
     public function testAdminCanViewAnyUser(): void
     {
         $admin = $this->createUser('admin');
@@ -63,8 +61,6 @@ class UserVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
-
-    // ========== EDIT TESTS ==========
 
     public function testAdminCanEditAnyUser(): void
     {
@@ -123,8 +119,6 @@ class UserVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    // ========== DELETE TESTS ==========
-
     public function testAdminCanDeleteUser(): void
     {
         $admin = $this->createUser('admin');
@@ -180,8 +174,6 @@ class UserVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
-
-    // ========== VIEW_CLOCKS TESTS ==========
 
     public function testAdminCanViewAnyClock(): void
     {
@@ -239,8 +231,6 @@ class UserVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
-
-    // ========== HELPER METHODS ==========
 
     private function createUser(string $role, ?Team $team = null, bool $isManager = false): User
     {

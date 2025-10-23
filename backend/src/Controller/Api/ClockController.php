@@ -156,12 +156,10 @@ class ClockController extends AbstractController
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Initialize DTO if null (empty body)
         if (null === $dto) {
             $dto = new ClockInputDto();
         }
 
-        // Automatically generate timestamp if not provided
         if (null === $dto->time) {
             $dto->time = new \DateTimeImmutable();
         }

@@ -19,8 +19,6 @@ class WorkingTimeVoterTest extends TestCase
         $this->voter = new WorkingTimeVoter();
     }
 
-    // ========== VIEW TESTS ==========
-
     public function testOwnerCanViewOwnWorkingTime(): void
     {
         $user = $this->createUser('employee');
@@ -83,8 +81,6 @@ class WorkingTimeVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
 
-    // ========== EDIT TESTS ==========
-
     public function testOwnerCanEditOwnWorkingTime(): void
     {
         $user = $this->createUser('employee');
@@ -133,8 +129,6 @@ class WorkingTimeVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
 
-    // ========== DELETE TESTS ==========
-
     public function testOwnerCanDeleteOwnWorkingTime(): void
     {
         $user = $this->createUser('employee');
@@ -182,8 +176,6 @@ class WorkingTimeVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
-
-    // ========== HELPER METHODS ==========
 
     private function createUser(string $role, ?Team $team = null, bool $isManager = false): User
     {
