@@ -136,10 +136,9 @@ class ReportsController extends AbstractController
         $teamId = $request->query->get('team_id') ? (int) $request->query->get('team_id') : null;
         $userId = $request->query->get('user_id') ? (int) $request->query->get('user_id') : null;
 
-        /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
 
-        if (!$currentUser) {
+        if (!$currentUser instanceof \App\Entity\User) {
             return $this->json([
                 'success' => false,
                 'error' => 'User not authenticated',
@@ -309,6 +308,9 @@ class ReportsController extends AbstractController
         return 0;
     }
 
+    /**
+     * @return array{total_days: int|null, working_days: int|null, weekend_days: int|null}
+     */
     private function getPeriodInfo(?string $startDate, ?string $endDate): array
     {
         if (!$startDate || !$endDate) {

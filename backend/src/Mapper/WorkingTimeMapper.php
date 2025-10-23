@@ -24,7 +24,7 @@ class WorkingTimeMapper
             id: $workingTime->getId(),
             startTime: $workingTime->getStartTime(),
             endTime: $workingTime->getEndTime(),
-            user: $this->userMapper->toOutputDto($workingTime->getUser()),
+            user: $this->userMapper->toOutputDto($workingTime->getOwner()),
             durationMinutes: $durationMinutes,
             createdAt: $workingTime->getCreatedAt(),
             updatedAt: $workingTime->getUpdatedAt(),
@@ -46,7 +46,7 @@ class WorkingTimeMapper
         $workingTime = new WorkingTime();
         $workingTime->setStartTime(\DateTimeImmutable::createFromInterface($dto->startTime));
         $workingTime->setEndTime(\DateTimeImmutable::createFromInterface($dto->endTime));
-        $workingTime->setUser($user);
+        $workingTime->setOwner($user);
 
         return $workingTime;
     }

@@ -87,6 +87,9 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
     }
 
+    /**
+     * @param \Faker\Generator $faker
+     */
     private function createRandomClocks(ObjectManager $manager, $faker): void
     {
         $maxUsers = 30;

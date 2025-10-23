@@ -205,7 +205,7 @@ class ClockController extends AbstractController
 
                         $dto->status = true;
                     } else {
-                        $dto->status = !$effectiveLastStatus;
+                        $dto->status = false;
                     }
                 } else {
                     $dto->status = !$effectiveLastStatus;

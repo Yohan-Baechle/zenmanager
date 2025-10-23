@@ -113,6 +113,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $this->addReference('user-6', $managerMarketing);
     }
 
+    /**
+     * @param \Faker\Generator $faker
+     */
     private function loadGeneratedUsers(ObjectManager $manager, $faker): void
     {
         $maxUsers = 30;
@@ -151,6 +154,9 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         }
     }
 
+    /**
+     * @param array<string> $roles
+     */
     private function createUser(
         string $username,
         string $email,

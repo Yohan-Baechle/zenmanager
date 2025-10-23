@@ -106,7 +106,7 @@ class WorkingTimeController extends AbstractController
                 new \DateTimeImmutable($end)
             );
         } else {
-            $workingTimes = $workingTimeRepository->findBy(['user' => $user], ['startTime' => 'DESC']);
+            $workingTimes = $workingTimeRepository->findBy(['owner' => $user], ['startTime' => 'DESC']);
         }
 
         $dtos = $this->workingTimeMapper->toOutputDtoCollection($workingTimes);

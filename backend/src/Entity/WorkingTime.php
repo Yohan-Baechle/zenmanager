@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\WorkingTimeRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkingTimeRepository::class)]
@@ -14,31 +13,25 @@ class WorkingTime
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['working_time:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(['working_time:read', 'working_time:write'])]
     #[Assert\NotNull]
     private ?\DateTimeImmutable $startTime = null;
 
     #[ORM\Column]
-    #[Groups(['working_time:read', 'working_time:write'])]
     #[Assert\NotNull]
     #[Assert\GreaterThan(propertyPath: 'startTime', message: 'End time must be after start time')]
     private ?\DateTimeImmutable $endTime = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['working_time:read'])]
     private ?User $owner = null;
 
     #[ORM\Column]
-    #[Groups(['working_time:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['working_time:read'])]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\PrePersist]

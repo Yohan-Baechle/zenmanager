@@ -17,7 +17,7 @@ class TeamFixtures extends Fixture
         for ($i = 1; $i <= $maxTeams; ++$i) {
             $team = new Team();
             $team->setName($faker->company().' Team')
-                ->setDescription($faker->catchPhrase());
+                ->setDescription($faker->sentence());
 
             $manager->persist($team);
             $this->addReference('team-'.$i, $team);

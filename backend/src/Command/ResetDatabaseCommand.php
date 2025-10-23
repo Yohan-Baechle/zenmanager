@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ResetDatabaseCommand extends Command
 {
-    public function __construct(private Connection $connection)
+    public function __construct()
     {
         parent::__construct();
     }
@@ -54,6 +54,8 @@ class ResetDatabaseCommand extends Command
 
     /**
      * Helper method to run another Symfony console command programmatically.
+     *
+     * @param array<string, mixed> $args
      */
     private function runSubCommand(SymfonyStyle $io, string $name, array $args = []): void
     {
