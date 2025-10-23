@@ -12,8 +12,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 class UserMapper
 {
     public function __construct(
-        private readonly UserPasswordHasherInterface $passwordHasher
-    ) {}
+        private readonly UserPasswordHasherInterface $passwordHasher,
+    ) {
+    }
 
     public function toOutputDto(User $user): UserOutputDto
     {
@@ -33,44 +34,45 @@ class UserMapper
 
     /**
      * @param User[] $users
+     *
      * @return UserOutputDto[]
      */
     public function toOutputDtoCollection(array $users): array
     {
-        return array_map(fn(User $user) => $this->toOutputDto($user), $users);
+        return array_map(fn (User $user) => $this->toOutputDto($user), $users);
     }
 
     public function updateEntity(User $user, UserUpdateDto $dto, ?Team $team = null): void
     {
-        if ($dto->username !== null) {
+        if (null !== $dto->username) {
             $user->setUsername($dto->username);
         }
 
-        if ($dto->email !== null) {
+        if (null !== $dto->email) {
             $user->setEmail($dto->email);
         }
 
-        if ($dto->firstName !== null) {
+        if (null !== $dto->firstName) {
             $user->setFirstName($dto->firstName);
         }
 
-        if ($dto->lastName !== null) {
+        if (null !== $dto->lastName) {
             $user->setLastName($dto->lastName);
         }
 
-        if ($dto->phoneNumber !== null) {
+        if (null !== $dto->phoneNumber) {
             $user->setPhoneNumber($dto->phoneNumber);
         }
 
-        if ($dto->role !== null) {
-            if ($dto->role === 'manager') {
+        if (null !== $dto->role) {
+            if ('manager' === $dto->role) {
                 $user->setRoles(['ROLE_MANAGER']);
-            } elseif ($dto->role === 'employee') {
+            } elseif ('employee' === $dto->role) {
                 $user->setRoles(['ROLE_EMPLOYEE']);
             }
         }
 
-        if ($dto->password !== null) {
+        if (null !== $dto->password) {
             $hashedPassword = $this->passwordHasher->hashPassword($user, $dto->password);
             $user->setPassword($hashedPassword);
         }

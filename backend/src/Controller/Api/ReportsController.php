@@ -4,21 +4,21 @@ namespace App\Controller\Api;
 
 use App\Repository\ClockRepository;
 use App\Repository\WorkingTimeRepository;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Reports')]
 class ReportsController extends AbstractController
 {
     public function __construct(
         private readonly ClockRepository $clockRepository,
-        private readonly WorkingTimeRepository $workingTimeRepository
-    ) {}
-
+        private readonly WorkingTimeRepository $workingTimeRepository,
+    ) {
+    }
 
     #[Route('/reports', name: 'api_reports', methods: ['GET'])]
     #[OA\Get(
@@ -70,7 +70,7 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'start_date', type: 'string', nullable: true),
                                 new OA\Property(property: 'end_date', type: 'string', nullable: true),
                                 new OA\Property(property: 'team_id', type: 'integer', nullable: true),
-                                new OA\Property(property: 'user_id', type: 'integer', nullable: true)
+                                new OA\Property(property: 'user_id', type: 'integer', nullable: true),
                             ],
                             type: 'object'
                         ),
@@ -79,7 +79,7 @@ class ReportsController extends AbstractController
                             properties: [
                                 new OA\Property(property: 'total_days', type: 'integer', example: 365),
                                 new OA\Property(property: 'working_days', type: 'integer', example: 261),
-                                new OA\Property(property: 'weekend_days', type: 'integer', example: 104)
+                                new OA\Property(property: 'weekend_days', type: 'integer', example: 104),
                             ],
                             type: 'object'
                         ),
@@ -90,7 +90,7 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'end_time', type: 'string', example: '17:00'),
                                 new OA\Property(property: 'tolerance_late', type: 'integer', example: 30),
                                 new OA\Property(property: 'tolerance_early_departure', type: 'integer', example: 30),
-                                new OA\Property(property: 'standard_hours_per_day', type: 'integer', example: 8)
+                                new OA\Property(property: 'standard_hours_per_day', type: 'integer', example: 8),
                             ],
                             type: 'object'
                         ),
@@ -103,13 +103,13 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'present_days_count', type: 'integer', example: 235),
                                 new OA\Property(property: 'absent_days_count', type: 'integer', example: 26),
                                 new OA\Property(property: 'incomplete_days_count', type: 'integer', example: 3),
-                                new OA\Property(property: 'total_exits_count', type: 'integer', example: 470)
+                                new OA\Property(property: 'total_exits_count', type: 'integer', example: 470),
                             ],
                             type: 'object'
-                        )
+                        ),
                     ],
                     type: 'object'
-                )
+                ),
             ]
         )
     )]
@@ -133,8 +133,8 @@ class ReportsController extends AbstractController
     {
         $startDateStr = $request->query->get('start_date');
         $endDateStr = $request->query->get('end_date');
-        $teamId = $request->query->get('team_id') ? (int)$request->query->get('team_id') : null;
-        $userId = $request->query->get('user_id') ? (int)$request->query->get('user_id') : null;
+        $teamId = $request->query->get('team_id') ? (int) $request->query->get('team_id') : null;
+        $userId = $request->query->get('user_id') ? (int) $request->query->get('user_id') : null;
 
         /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
@@ -142,7 +142,7 @@ class ReportsController extends AbstractController
         if (!$currentUser) {
             return $this->json([
                 'success' => false,
-                'error' => 'User not authenticated'
+                'error' => 'User not authenticated',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -152,13 +152,13 @@ class ReportsController extends AbstractController
 
         if ($isManager && !$isAdmin) {
             $managedTeams = $currentUser->getManagedTeams();
-            $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
+            $managedTeamIds = array_map(fn ($team) => $team->getId(), $managedTeams->toArray());
 
-            if ($teamId === null) {
+            if (null === $teamId) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Managers must specify a team_id parameter',
-                    'managed_team_ids' => $managedTeamIds
+                    'managed_team_ids' => $managedTeamIds,
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -166,7 +166,7 @@ class ReportsController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'error' => 'Access denied. You can only view reports for teams you manage.',
-                    'managed_team_ids' => $managedTeamIds
+                    'managed_team_ids' => $managedTeamIds,
                 ], Response::HTTP_FORBIDDEN);
             }
         }
@@ -185,7 +185,7 @@ class ReportsController extends AbstractController
             }
 
             if ($endDateStr) {
-                $endDate = new \DateTimeImmutable($endDateStr . ' 23:59:59');
+                $endDate = new \DateTimeImmutable($endDateStr.' 23:59:59');
             }
 
             $totalWorkingHours = $this->workingTimeRepository->calculateTotalWorkingHours(
@@ -246,8 +246,8 @@ class ReportsController extends AbstractController
                     'filters' => [
                         'start_date' => $startDateStr,
                         'end_date' => $endDateStr,
-                        'team_id' => $teamId ? (int)$teamId : null,
-                        'user_id' => $userId
+                        'team_id' => $teamId ? (int) $teamId : null,
+                        'user_id' => $userId,
                     ],
                     'period' => $periodInfo,
                     'work_schedule' => [
@@ -255,7 +255,7 @@ class ReportsController extends AbstractController
                         'end_time' => '17:00',
                         'tolerance_late' => 30,
                         'tolerance_early_departure' => 30,
-                        'standard_hours_per_day' => 8
+                        'standard_hours_per_day' => 8,
                     ],
                     'kpis' => [
                         'total_working_hours' => $totalWorkingHours,
@@ -264,15 +264,14 @@ class ReportsController extends AbstractController
                         'present_days_count' => $presentDays,
                         'absent_days_count' => $absentDays,
                         'incomplete_days_count' => $incompleteDays,
-                        'total_exits_count' => $totalExits
-                    ]
-                ]
+                        'total_exits_count' => $totalExits,
+                    ],
+                ],
             ]);
-
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
-                'error' => 'Error calculating KPIs: ' . $e->getMessage()
+                'error' => 'Error calculating KPIs: '.$e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -281,7 +280,7 @@ class ReportsController extends AbstractController
         ?string $startDate,
         ?string $endDate,
         ?int $userId,
-        int $presentDays
+        int $presentDays,
     ): int {
         if (!$startDate || !$endDate) {
             return 0;
@@ -294,10 +293,10 @@ class ReportsController extends AbstractController
         $current = clone $start;
 
         while ($current <= $end) {
-            $dayOfWeek = (int)$current->format('N');
+            $dayOfWeek = (int) $current->format('N');
 
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                $workingDays++;
+                ++$workingDays;
             }
 
             $current->modify('+1 day');
@@ -316,7 +315,7 @@ class ReportsController extends AbstractController
             return [
                 'total_days' => null,
                 'working_days' => null,
-                'weekend_days' => null
+                'weekend_days' => null,
             ];
         }
 
@@ -330,11 +329,11 @@ class ReportsController extends AbstractController
         $current = clone $start;
 
         while ($current <= $end) {
-            $dayOfWeek = (int)$current->format('N');
+            $dayOfWeek = (int) $current->format('N');
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                $workingDays++;
+                ++$workingDays;
             } else {
-                $weekendDays++;
+                ++$weekendDays;
             }
             $current->modify('+1 day');
         }
@@ -342,7 +341,7 @@ class ReportsController extends AbstractController
         return [
             'total_days' => $totalDays,
             'working_days' => $workingDays,
-            'weekend_days' => $weekendDays
+            'weekend_days' => $weekendDays,
         ];
     }
 }

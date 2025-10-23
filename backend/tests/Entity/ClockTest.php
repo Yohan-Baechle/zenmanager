@@ -5,8 +5,6 @@ namespace App\Tests\Entity;
 use App\Entity\Clock;
 use App\Entity\User;
 use PHPUnit\Framework\TestCase;
-use DateTimeImmutable;
-use Symfony\Component\Validator\Validation;
 
 class ClockTest extends TestCase
 {
@@ -33,7 +31,7 @@ class ClockTest extends TestCase
     {
         $clock = new Clock();
         $user = new User();
-        $time = new DateTimeImmutable('2025-01-01 12:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
 
         $clock->setTime($time);
         $clock->setStatus(true);
@@ -60,11 +58,11 @@ class ClockTest extends TestCase
 
         $clock->setCreatedAtValue();
 
-        $this->assertInstanceOf(DateTimeImmutable::class, $clock->getCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $clock->getCreatedAt());
     }
 
     /**
-     * We want to make sure setOwner() never accepts null, as per the entity definition
+     * We want to make sure setOwner() never accepts null, as per the entity definition.
      */
     public function testOwnerCannotBeNull(): void
     {

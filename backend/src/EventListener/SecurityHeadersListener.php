@@ -28,27 +28,27 @@ class SecurityHeadersListener
         if (str_starts_with($request->getPathInfo(), '/api/doc')) {
             $headers->set(
                 'Content-Security-Policy',
-                "default-src 'self'; " .
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; " .
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " .
-                "img-src 'self' data: https://cdn.jsdelivr.net; " .
-                "font-src 'self' data: https://cdn.jsdelivr.net; " .
-                "connect-src 'self'; " .
-                "frame-ancestors 'none'; " .
-                "base-uri 'self'; " .
+                "default-src 'self'; ".
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; ".
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; ".
+                "img-src 'self' data: https://cdn.jsdelivr.net; ".
+                "font-src 'self' data: https://cdn.jsdelivr.net; ".
+                "connect-src 'self'; ".
+                "frame-ancestors 'none'; ".
+                "base-uri 'self'; ".
                 "form-action 'self'"
             );
         } else {
             $headers->set(
                 'Content-Security-Policy',
-                "default-src 'self'; " .
-                "script-src 'self'; " .
-                "style-src 'self' 'unsafe-inline'; " .
-                "img-src 'self' data:; " .
-                "font-src 'self'; " .
-                "connect-src 'self'; " .
-                "frame-ancestors 'none'; " .
-                "base-uri 'self'; " .
+                "default-src 'self'; ".
+                "script-src 'self'; ".
+                "style-src 'self' 'unsafe-inline'; ".
+                "img-src 'self' data:; ".
+                "font-src 'self'; ".
+                "connect-src 'self'; ".
+                "frame-ancestors 'none'; ".
+                "base-uri 'self'; ".
                 "form-action 'self'"
             );
         }

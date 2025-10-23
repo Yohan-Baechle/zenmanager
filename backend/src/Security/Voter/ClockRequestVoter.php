@@ -29,7 +29,7 @@ class ClockRequestVoter extends Voter
         /** @var ClockRequest $clockRequest */
         $clockRequest = $subject;
 
-        return match($attribute) {
+        return match ($attribute) {
             self::VIEW => $this->canView($clockRequest, $user),
             self::REVIEW => $this->canReview($clockRequest, $user),
             self::EDIT => $this->canEdit($clockRequest, $user),
@@ -51,7 +51,7 @@ class ClockRequestVoter extends Voter
             $requestUser = $clockRequest->getUser();
             $requestUserTeam = $requestUser?->getTeam();
 
-            if ($requestUserTeam !== null) {
+            if (null !== $requestUserTeam) {
                 return $user->getManagedTeams()->contains($requestUserTeam);
             }
         }
@@ -61,7 +61,7 @@ class ClockRequestVoter extends Voter
 
     private function canReview(ClockRequest $clockRequest, User $user): bool
     {
-        if ($clockRequest->getStatus() !== 'PENDING') {
+        if ('PENDING' !== $clockRequest->getStatus()) {
             return false;
         }
 
@@ -73,7 +73,7 @@ class ClockRequestVoter extends Voter
             $requestUser = $clockRequest->getUser();
             $requestUserTeam = $requestUser?->getTeam();
 
-            if ($requestUserTeam !== null) {
+            if (null !== $requestUserTeam) {
                 return $user->getManagedTeams()->contains($requestUserTeam);
             }
         }
@@ -87,6 +87,6 @@ class ClockRequestVoter extends Voter
             return false;
         }
 
-        return $clockRequest->getStatus() === 'PENDING';
+        return 'PENDING' === $clockRequest->getStatus();
     }
 }

@@ -30,7 +30,7 @@ class UserVoter extends Voter
         /** @var User $targetUser */
         $targetUser = $subject;
 
-        return match($attribute) {
+        return match ($attribute) {
             self::VIEW => $this->canView($targetUser, $currentUser),
             self::EDIT => $this->canEdit($targetUser, $currentUser),
             self::DELETE => $this->canDelete($targetUser, $currentUser),
@@ -51,7 +51,7 @@ class UserVoter extends Voter
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $targetTeam = $targetUser->getTeam();
-            if ($targetTeam !== null) {
+            if (null !== $targetTeam) {
                 return $currentUser->getManagedTeams()->contains($targetTeam);
             }
         }
@@ -71,7 +71,7 @@ class UserVoter extends Voter
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $targetTeam = $targetUser->getTeam();
-            if ($targetTeam !== null) {
+            if (null !== $targetTeam) {
                 return $currentUser->getManagedTeams()->contains($targetTeam);
             }
         }
@@ -91,7 +91,7 @@ class UserVoter extends Voter
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $targetTeam = $targetUser->getTeam();
-            if ($targetTeam !== null) {
+            if (null !== $targetTeam) {
                 return $currentUser->getManagedTeams()->contains($targetTeam);
             }
         }
@@ -111,7 +111,7 @@ class UserVoter extends Voter
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $targetTeam = $targetUser->getTeam();
-            if ($targetTeam !== null) {
+            if (null !== $targetTeam) {
                 return $currentUser->getManagedTeams()->contains($targetTeam);
             }
         }

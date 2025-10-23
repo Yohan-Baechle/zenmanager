@@ -48,6 +48,7 @@ class ResetDatabaseCommand extends Command
         ]);
 
         $io->success('✅ Database has been successfully reset, migrated, and seeded!');
+
         return Command::SUCCESS;
     }
 
@@ -63,7 +64,7 @@ class ResetDatabaseCommand extends Command
         $input->setInteractive(false);
 
         $exitCode = $command->run($input, $io);
-        if ($exitCode !== Command::SUCCESS) {
+        if (Command::SUCCESS !== $exitCode) {
             throw new \RuntimeException(sprintf('The sub-command "%s" failed (exit code %d).', $name, $exitCode));
         }
     }

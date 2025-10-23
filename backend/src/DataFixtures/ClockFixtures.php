@@ -30,7 +30,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
     {
         $theKing = $this->getReference('user-manager', User::class);
 
-        for ($day = 0; $day < 7; $day++) {
+        for ($day = 0; $day < 7; ++$day) {
             $date = new \DateTimeImmutable("-{$day} days");
 
             $clockIn = new Clock();
@@ -48,7 +48,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
 
         $theJoker = $this->getReference('user-employee', User::class);
 
-        for ($day = 0; $day < 7; $day++) {
+        for ($day = 0; $day < 7; ++$day) {
             $date = new \DateTimeImmutable("-{$day} days");
 
             $clockIn = new Clock();
@@ -64,10 +64,10 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
             $manager->persist($clockOut);
         }
 
-        for ($userIndex = 1; $userIndex <= 6; $userIndex++) {
-            $user = $this->getReference('user-' . $userIndex, User::class);
+        for ($userIndex = 1; $userIndex <= 6; ++$userIndex) {
+            $user = $this->getReference('user-'.$userIndex, User::class);
 
-            for ($day = 0; $day < 5; $day++) {
+            for ($day = 0; $day < 5; ++$day) {
                 $date = new \DateTimeImmutable("-{$day} days");
 
                 $clockIn = new Clock();
@@ -93,11 +93,11 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
         $batchSize = 20;
         $counter = 0;
 
-        for ($userIndex = 7; $userIndex <= $maxUsers + 6; $userIndex++) {
+        for ($userIndex = 7; $userIndex <= $maxUsers + 6; ++$userIndex) {
             $workDays = $faker->numberBetween(20, 25);
 
-            for ($day = 0; $day < $workDays; $day++) {
-                $user = $this->getReference('user-' . $userIndex, User::class);
+            for ($day = 0; $day < $workDays; ++$day) {
+                $user = $this->getReference('user-'.$userIndex, User::class);
 
                 $daysAgo = $faker->numberBetween(0, 29);
                 $date = new \DateTimeImmutable("-{$daysAgo} days");
@@ -107,8 +107,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                     ->setStatus(true)
                     ->setOwner($user);
                 $manager->persist($clockIn);
-                $counter++;
-
+                ++$counter;
 
                 if ($faker->boolean(80)) {
                     $clockOut = new Clock();
@@ -116,10 +115,10 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
                         ->setStatus(false)
                         ->setOwner($user);
                     $manager->persist($clockOut);
-                    $counter++;
+                    ++$counter;
                 }
 
-                if ($counter % $batchSize === 0) {
+                if (0 === $counter % $batchSize) {
                     $manager->flush();
                     $manager->clear();
                     gc_collect_cycles();

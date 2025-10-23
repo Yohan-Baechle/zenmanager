@@ -2,8 +2,8 @@
 
 namespace App\Dto\ClockRequest;
 
-use App\Dto\User\UserOutputDto;
 use App\Dto\Clock\ClockOutputDto;
+use App\Dto\User\UserOutputDto;
 
 class ClockRequestOutputDto
 {
@@ -20,5 +20,6 @@ class ClockRequestOutputDto
         public readonly ?\DateTimeImmutable $reviewedAt,
         public readonly \DateTimeImmutable $createdAt,
         public readonly \DateTimeImmutable $updatedAt,
-    ) {}
+    ) {
+    }
 }

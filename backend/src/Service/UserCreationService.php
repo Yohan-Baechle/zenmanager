@@ -6,11 +6,10 @@ use App\Dto\User\UserAdminCreateDto;
 use App\Entity\Team;
 use App\Entity\User;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Twig\Environment;
-
 
 /**
  * Service for creating users by administrators.
@@ -24,8 +23,9 @@ class UserCreationService
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         #[Autowire('%env(MAILER_FROM)%')]
-        private readonly string $mailerFrom
-    ) {}
+        private readonly string $mailerFrom,
+    ) {
+    }
 
     /**
      * @return array{user: User, temporaryPassword: string}
@@ -42,9 +42,9 @@ class UserCreationService
         $user->setPhoneNumber($dto->phoneNumber);
         $user->setTeam($team);
 
-        if ($dto->role === 'manager') {
+        if ('manager' === $dto->role) {
             $user->setRoles(['ROLE_MANAGER']);
-        } elseif ($dto->role === 'employee') {
+        } elseif ('employee' === $dto->role) {
             $user->setRoles(['ROLE_EMPLOYEE']);
         }
 
@@ -53,7 +53,7 @@ class UserCreationService
 
         return [
             'user' => $user,
-            'temporaryPassword' => $temporaryPassword
+            'temporaryPassword' => $temporaryPassword,
         ];
     }
 

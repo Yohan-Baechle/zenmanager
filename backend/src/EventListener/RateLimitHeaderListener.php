@@ -4,7 +4,6 @@ namespace App\EventListener;
 
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\RateLimiter\LimiterInterface;
 
 #[AsEventListener(event: 'kernel.response')]
 class RateLimitHeaderListener

@@ -2,18 +2,18 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\User;
 use App\Entity\Team;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture implements DependentFixtureInterface
 {
     public function __construct(
-        private readonly UserPasswordHasherInterface $passwordHasher
+        private readonly UserPasswordHasherInterface $passwordHasher,
     ) {
     }
 
@@ -118,18 +118,18 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         $maxUsers = 30;
         $maxTeams = 30;
 
-        for ($i = 7; $i <= $maxUsers + 6; $i++) {
+        for ($i = 7; $i <= $maxUsers + 6; ++$i) {
             $role = $i <= 16 ? 'ROLE_MANAGER' : 'ROLE_EMPLOYEE';
             $team = null;
 
             if ($faker->boolean(80)) {
                 $teamIndex = $faker->numberBetween(1, $maxTeams);
-                $team = $this->getReference('team-' . $teamIndex, Team::class);
+                $team = $this->getReference('team-'.$teamIndex, Team::class);
             }
 
             $user = $this->createUser(
-                username: $faker->userName() . $i,
-                email: $faker->email() . $i,
+                username: $faker->userName().$i,
+                email: $faker->email().$i,
                 firstName: $faker->firstName(),
                 lastName: $faker->lastName(),
                 roles: [$role],
@@ -139,14 +139,14 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             );
 
             $manager->persist($user);
-            $this->addReference('user-' . $i, $user);
+            $this->addReference('user-'.$i, $user);
         }
 
-        for ($i = 3; $i <= $maxTeams; $i++) {
+        for ($i = 3; $i <= $maxTeams; ++$i) {
             if ($faker->boolean(70)) {
                 $managerIndex = $faker->numberBetween(7, 16);
-                $team = $this->getReference('team-' . $i, Team::class);
-                $team->setManager($this->getReference('user-' . $managerIndex, User::class));
+                $team = $this->getReference('team-'.$i, Team::class);
+                $team->setManager($this->getReference('user-'.$managerIndex, User::class));
             }
         }
     }
@@ -159,7 +159,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
         array $roles,
         string $password,
         ?string $phoneNumber = null,
-        ?Team $team = null
+        ?Team $team = null,
     ): User {
         $username = preg_replace('/[^a-zA-Z0-9_-]/', '_', $username);
         $user = new User();
@@ -170,11 +170,11 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             ->setRoles($roles)
             ->setPassword($this->passwordHasher->hashPassword($user, $password));
 
-        if ($phoneNumber !== null) {
+        if (null !== $phoneNumber) {
             $user->setPhoneNumber($phoneNumber);
         }
 
-        if ($team !== null) {
+        if (null !== $team) {
             $user->setTeam($team);
         }
 

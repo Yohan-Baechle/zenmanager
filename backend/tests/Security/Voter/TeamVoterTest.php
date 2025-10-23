@@ -154,10 +154,10 @@ class TeamVoterTest extends TestCase
     {
         $user = $this->createMock(User::class);
 
-        $roles = match($role) {
+        $roles = match ($role) {
             'admin' => ['ROLE_ADMIN'],
             'manager' => ['ROLE_MANAGER'],
-            default => ['ROLE_USER']
+            default => ['ROLE_USER'],
         };
 
         $user->method('getRoles')->willReturn($roles);
@@ -169,7 +169,7 @@ class TeamVoterTest extends TestCase
     {
         $team = $this->createMock(Team::class);
 
-        if ($manager !== null) {
+        if (null !== $manager) {
             $team->method('getManager')->willReturn($manager);
         }
 

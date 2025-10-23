@@ -246,21 +246,21 @@ class UserVoterTest extends TestCase
     {
         $user = $this->createMock(User::class);
 
-        $roles = match($role) {
+        $roles = match ($role) {
             'admin' => ['ROLE_ADMIN'],
             'manager' => ['ROLE_MANAGER'],
-            default => ['ROLE_USER']
+            default => ['ROLE_USER'],
         };
 
         $user->method('getRoles')->willReturn($roles);
 
-        if ($team !== null) {
+        if (null !== $team) {
             $user->method('getTeam')->willReturn($team);
 
             if ($isManager) {
                 $managedTeams = $this->createMock(\Doctrine\Common\Collections\Collection::class);
                 $managedTeams->method('contains')->willReturnCallback(
-                    fn($checkTeam) => $checkTeam === $team
+                    fn ($checkTeam) => $checkTeam === $team
                 );
                 $user->method('getManagedTeams')->willReturn($managedTeams);
             }

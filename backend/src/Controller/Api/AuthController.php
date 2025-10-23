@@ -4,19 +4,20 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Mapper\UserMapper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Authentication')]
 class AuthController extends AbstractController
 {
     public function __construct(
-        private readonly UserMapper $userMapper
-    ) {}
+        private readonly UserMapper $userMapper,
+    ) {
+    }
 
     #[Route('/login_check', name: 'api_login_check', methods: ['POST'])]
     public function loginCheck(#[CurrentUser] ?User $user): JsonResponse
@@ -29,7 +30,7 @@ class AuthController extends AbstractController
 
         return $this->json([
             'user' => $user,
-            'message' => 'Login successful'
+            'message' => 'Login successful',
         ], Response::HTTP_OK, [], ['groups' => 'user:read']);
     }
 
@@ -59,13 +60,13 @@ class AuthController extends AbstractController
                         new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                         new OA\Property(property: 'description', type: 'string', example: 'Main development team', nullable: true),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ],
                     type: 'object',
                     nullable: true
                 ),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -75,7 +76,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'code', type: 'integer', example: 401),
-                new OA\Property(property: 'message', type: 'string', example: 'JWT Token not found')
+                new OA\Property(property: 'message', type: 'string', example: 'JWT Token not found'),
             ]
         )
     )]

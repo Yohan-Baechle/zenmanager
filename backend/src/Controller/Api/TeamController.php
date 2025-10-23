@@ -10,6 +10,7 @@ use App\Mapper\TeamMapper;
 use App\Repository\TeamRepository;
 use App\Service\Paginator;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Teams')]
 class TeamController extends AbstractController
@@ -25,8 +25,9 @@ class TeamController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly TeamMapper $teamMapper,
-        private readonly Paginator $paginator
-    ) {}
+        private readonly Paginator $paginator,
+    ) {
+    }
 
     #[Route('/teams', name: 'api_teams_index', methods: ['GET'])]
     #[OA\Get(
@@ -68,7 +69,7 @@ class TeamController extends AbstractController
                                     new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                                     new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                                     new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                                    new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                                    new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                                 ],
                                 type: 'object',
                                 nullable: true
@@ -83,12 +84,12 @@ class TeamController extends AbstractController
                                         new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
                                         new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                                         new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
-                                        new OA\Property(property: 'role', type: 'string', example: 'employee')
+                                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
                                     ]
                                 )
                             ),
                             new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                         ]
                     )
                 ),
@@ -98,10 +99,10 @@ class TeamController extends AbstractController
                         new OA\Property(property: 'currentPage', type: 'integer', example: 1),
                         new OA\Property(property: 'itemsPerPage', type: 'integer', example: 20),
                         new OA\Property(property: 'totalItems', type: 'integer', example: 30),
-                        new OA\Property(property: 'totalPages', type: 'integer', example: 2)
+                        new OA\Property(property: 'totalPages', type: 'integer', example: 2),
                     ],
                     type: 'object'
-                )
+                ),
             ]
         )
     )]
@@ -129,7 +130,7 @@ class TeamController extends AbstractController
 
         return $this->json([
             'data' => $dtos,
-            'meta' => $paginatedResult['meta']
+            'meta' => $paginatedResult['meta'],
         ]);
     }
 
@@ -161,7 +162,7 @@ class TeamController extends AbstractController
                         new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                         new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                         new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                        new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                     ],
                     type: 'object',
                     nullable: true
@@ -176,12 +177,12 @@ class TeamController extends AbstractController
                             new OA\Property(property: 'email', type: 'string', example: 'employee@example.com'),
                             new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
                             new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
-                            new OA\Property(property: 'role', type: 'string', example: 'employee')
+                            new OA\Property(property: 'role', type: 'string', example: 'employee'),
                         ]
                     )
                 ),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -192,6 +193,7 @@ class TeamController extends AbstractController
     public function show(Team $team): JsonResponse
     {
         $dto = $this->teamMapper->toOutputDto($team);
+
         return $this->json($dto);
     }
 
@@ -206,7 +208,7 @@ class TeamController extends AbstractController
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Marketing Team'),
                     new OA\Property(property: 'description', type: 'string', example: 'Team responsible for marketing activities', nullable: true),
-                    new OA\Property(property: 'managerId', description: 'Manager User ID', type: 'integer', example: 1, nullable: true)
+                    new OA\Property(property: 'managerId', description: 'Manager User ID', type: 'integer', example: 1, nullable: true),
                 ]
             )
         ),
@@ -227,7 +229,7 @@ class TeamController extends AbstractController
                                 new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                                 new OA\Property(property: 'email', type: 'string', example: 'manager@example.com'),
                                 new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                                new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                                new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                             ],
                             type: 'object',
                             nullable: true
@@ -238,7 +240,7 @@ class TeamController extends AbstractController
                             items: new OA\Items(type: 'object')
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -247,21 +249,21 @@ class TeamController extends AbstractController
                 description: 'Invalid input',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'errors', type: 'object')
+                        new OA\Property(property: 'errors', type: 'object'),
                     ]
                 )
             ),
             new OA\Response(
                 response: 404,
                 description: 'Manager not found'
-            )
+            ),
         ]
     )]
     public function create(
-        #[MapRequestPayload] TeamInputDto $dto
+        #[MapRequestPayload] TeamInputDto $dto,
     ): JsonResponse {
         $manager = null;
-        if ($dto->managerId !== null) {
+        if (null !== $dto->managerId) {
             $manager = $this->em->getRepository(User::class)->find($dto->managerId);
             if (!$manager) {
                 return $this->json(['error' => 'Manager not found'], Response::HTTP_NOT_FOUND);
@@ -274,6 +276,7 @@ class TeamController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->teamMapper->toOutputDto($team);
+
         return $this->json($outputDto, Response::HTTP_CREATED);
     }
 
@@ -288,7 +291,7 @@ class TeamController extends AbstractController
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Updated Team Name'),
                     new OA\Property(property: 'description', type: 'string', example: 'Updated description', nullable: true),
-                    new OA\Property(property: 'managerId', description: 'Manager User ID', type: 'integer', example: 2, nullable: true)
+                    new OA\Property(property: 'managerId', description: 'Manager User ID', type: 'integer', example: 2, nullable: true),
                 ]
             )
         ),
@@ -300,7 +303,7 @@ class TeamController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -318,7 +321,7 @@ class TeamController extends AbstractController
                                 new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
                                 new OA\Property(property: 'email', type: 'string', example: 'newmanager@example.com'),
                                 new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
-                                new OA\Property(property: 'lastName', type: 'string', example: 'Smith')
+                                new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                             ],
                             type: 'object',
                             nullable: true
@@ -329,7 +332,7 @@ class TeamController extends AbstractController
                             items: new OA\Items(type: 'object')
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -340,16 +343,16 @@ class TeamController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'Team or Manager not found'
-            )
+            ),
         ]
     )]
     public function update(
         Team $team,
-        #[MapRequestPayload] TeamUpdateDto $dto
+        #[MapRequestPayload] TeamUpdateDto $dto,
     ): JsonResponse {
         $manager = $team->getManager();
 
-        if ($dto->managerId !== null) {
+        if (null !== $dto->managerId) {
             $manager = $this->em->getRepository(User::class)->find($dto->managerId);
             if (!$manager) {
                 return $this->json(['error' => 'Manager not found'], Response::HTTP_NOT_FOUND);
@@ -361,6 +364,7 @@ class TeamController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->teamMapper->toOutputDto($team);
+
         return $this->json($outputDto);
     }
 
@@ -377,7 +381,7 @@ class TeamController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -387,7 +391,7 @@ class TeamController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'Team not found'
-            )
+            ),
         ]
     )]
     public function delete(Team $team): JsonResponse
