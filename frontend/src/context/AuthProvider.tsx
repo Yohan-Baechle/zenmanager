@@ -55,7 +55,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         login,
         logout,
         isAuthenticated: !!user,
-        isManager: user?.role === 'manager',
+        role: user?.role,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
