@@ -4,6 +4,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import UserBadge from '../common/UserBadge.tsx'
 import NavItem from '../common/NavItem.tsx'
 import SectionDivider from '../common/SectionDivider.tsx'
+import { useNavigate } from 'react-router-dom'
 
 import { DashboardIcon } from '../../assets/icons/dashboard'
 import { AlarmAddIcon } from '../../assets/icons/alarm-add'
@@ -12,11 +13,19 @@ import { PersonIcon } from '../../assets/icons/person'
 import { SupervisorAccountIcon } from '../../assets/icons/supervisor-account'
 import { ReportIcon } from '../../assets/icons/report'
 import { AdminPanelSettingsIcon } from '../../assets/icons/admin-panel-settings'
+import { LogoutIcon } from "../../assets/icons/logout.tsx";
 
 export default function Sidebar() {
     const { user, role } = useAuth()
     const { sidebarState, toggleSidebar } = useSidebar()
     const deviceType = useMediaQuery()
+    const { logout } = useAuth()
+    const navigate = useNavigate()
+
+    const handleLogout = async () => {
+        await logout()
+        navigate('/login')
+    }
 
     const widthClasses = {
         open: 'w-64',
@@ -91,6 +100,15 @@ export default function Sidebar() {
                             {isSemi && <SectionDivider />}
                             <NavItem to="/reports" icon={ReportIcon} label="Reports" iconOnly={isSemi} />
                             <NavItem to="/admin" icon={AdminPanelSettingsIcon} label="Administration" iconOnly={isSemi} />
+                        </>
+                    )}
+
+                    {deviceType === 'mobile' && (
+                        <>
+                            <SectionDivider />
+                            <div onClick={handleLogout}>
+                                <NavItem to="" icon={LogoutIcon} label="Déconnexion" iconOnly={isSemi} />
+                            </div>
                         </>
                     )}
                 </nav>

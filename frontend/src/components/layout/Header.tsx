@@ -2,6 +2,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import DropdownMenu from '../common/DropdownMenu'
 import type { DropdownOption } from '../common/DropdownMenu'
+import { useMediaQuery } from '../../hooks/useMediaQuery.ts'
 import { LogoIcon } from '../../assets/logo'
 import { Plante1Icon } from '../../assets/plante1'
 import { Plante2Icon } from '../../assets/plante2'
@@ -14,6 +15,7 @@ export default function Header() {
     const { logout } = useAuth()
     const navigate = useNavigate()
     const { toggleSidebar } = useSidebar()
+    const deviceType = useMediaQuery()
 
     const handleLogout = async () => {
         await logout()
@@ -61,16 +63,18 @@ export default function Header() {
                     <h1 className="text-2xl font-bold text-[var(--c5)]">Time Manager</h1>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <DropdownMenu
-                        trigger={{
-                            text: 'Menu',
-                            icon: SettingsIcon,
-                        }}
-                        options={menuOptions}
-                        align="right"
-                    />
-                </div>
+                {deviceType !== 'mobile' && (
+                    <div className="flex items-center gap-4">
+                        <DropdownMenu
+                            trigger={{
+                                text: 'Menu',
+                                icon: SettingsIcon,
+                            }}
+                            options={menuOptions}
+                            align="right"
+                        />
+                    </div>
+                )}
             </div>
         </header>
     )
