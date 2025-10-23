@@ -14,7 +14,6 @@ parameters:
         - '#Comparison operation ">" between 0 and 0 is always false#'
         - '#Property .* type mapping mismatch#'
         - '#Comparison operation "<" between int<0, max> and 0 is always false#'
-        - '#Attribute class App\\Entity\\Groups does not exist#'
         - '#Property .* with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types#'
         - '#Class .* extends generic class .* but does not specify its types#'
         - '#Method .* has parameter .* with generic class .* but does not specify its types#'
