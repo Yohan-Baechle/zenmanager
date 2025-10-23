@@ -287,7 +287,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->getRoles();
 
-        if (in_array('ROLE_MANAGER', $roles) || in_array('ROLE_ADMIN', $roles)) {
+        if (in_array('ROLE_ADMIN', $roles)) {
+            return 'admin';
+        }
+
+        if (in_array('ROLE_MANAGER', $roles)) {
             return 'manager';
         }
 

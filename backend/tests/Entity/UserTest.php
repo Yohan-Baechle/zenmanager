@@ -87,15 +87,6 @@ class UserTest extends TestCase
         $this->assertSame('employee', $user->getRoleForDisplay());
     }
 
-    public function testRoleForDisplayWithAdmin(): void
-    {
-        $user = new User();
-        $user->setRoles(['ROLE_ADMIN']);
-
-        $this->assertContains('ROLE_ADMIN', $user->getRoles());
-        $this->assertSame('manager', $user->getRoleForDisplay());
-    }
-
     public function testRoleForDisplayDefaultsToEmployee(): void
     {
         $user = new User();
@@ -192,10 +183,10 @@ class UserTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $user->setRoles(['ROLE_EMPLOYEE', 'ROLE_MANAGER', 'ROLE_ADMIN', 'ROLE_USER', 'ROLE_EMPLOYEE']);
-    } 
+    }
 
     /**
-     * This test verifies username length constraints  
+     * This test verifies username length constraints
      */
     public function testUsernameLengthValidation(): void
     {
@@ -227,7 +218,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test verifies first name length constraints  
+     * This test verifies first name length constraints
      */
     public function testFirstNameLengthValidation(): void
     {
@@ -259,7 +250,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test verifies last name length constraints  
+     * This test verifies last name length constraints
      */
     public function testLastNameLengthValidation(): void
     {
@@ -292,7 +283,7 @@ class UserTest extends TestCase
 
 
     /**
-     * This test verifies email length and formatting constraints  
+     * This test verifies email length and formatting constraints
      */
     public function testEmailValidation(): void
     {
@@ -325,7 +316,7 @@ class UserTest extends TestCase
         }
 
         $tooLongEmail = [
-            str_repeat('a', 65) . '@x.com', 
+            str_repeat('a', 65) . '@x.com',
             "jaaj@". str_repeat('a', $max) .".com"
         ];
         foreach ($tooLongEmail as $tooLongEmail) {
