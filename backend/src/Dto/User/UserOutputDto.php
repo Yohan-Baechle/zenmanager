@@ -17,5 +17,6 @@ class UserOutputDto
         public readonly ?TeamOutputDto $team,
         public readonly \DateTimeImmutable $createdAt,
         public readonly \DateTimeImmutable $updatedAt,
-    ) {}
+    ) {
+    }
 }

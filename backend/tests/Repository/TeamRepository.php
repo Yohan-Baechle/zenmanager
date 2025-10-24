@@ -48,7 +48,7 @@ class TeamRepositoryTest extends KernelTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if ($this->em !== null) {
+        if (null !== $this->em) {
             $this->em->close();
         }
     }

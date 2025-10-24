@@ -4,15 +4,13 @@ namespace App\Tests\Entity;
 
 use App\Entity\Team;
 use App\Entity\User;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class TeamTest extends TestCase
 {
     /**
-     * This ensures a new Team starts in a known clean state
+     * This ensures a new Team starts in a known clean state.
      */
     public function testInitialStateIsNull(): void
     {
@@ -29,7 +27,7 @@ class TeamTest extends TestCase
     }
 
     /**
-     * This test ensures that setters and getters work as expected
+     * This test ensures that setters and getters work as expected.
      */
     public function testSettersAndGettersWork(): void
     {
@@ -95,8 +93,8 @@ class TeamTest extends TestCase
 
         $team->setCreatedAtValue();
 
-        $this->assertInstanceOf(DateTimeImmutable::class, $team->getCreatedAt());
-        $this->assertInstanceOf(DateTimeImmutable::class, $team->getUpdatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $team->getCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $team->getUpdatedAt());
 
         $initialUpdatedAt = $team->getUpdatedAt();
 
@@ -107,7 +105,7 @@ class TeamTest extends TestCase
     }
 
     /**
-     * createdAt should be set only once, calling the lifecycle method again shouldn't overwrite it
+     * createdAt should be set only once, calling the lifecycle method again shouldn't overwrite it.
      */
     public function testCreatedAtNotOverwrittenOnSecondPersist(): void
     {
@@ -123,7 +121,7 @@ class TeamTest extends TestCase
     }
 
     /**
-     * Ensures a manager cannot be added as an employee of their own team
+     * Ensures a manager cannot be added as an employee of their own team.
      */
     public function testManagerCannotBeEmployeeOfOwnTeam(): void
     {
@@ -138,7 +136,7 @@ class TeamTest extends TestCase
     }
 
     /**
-     * Ensures adding the same employee twice does not duplicate
+     * Ensures adding the same employee twice does not duplicate.
      */
     public function testAddingSameEmployeeTwiceDoesNotDuplicate(): void
     {
@@ -152,7 +150,7 @@ class TeamTest extends TestCase
     }
 
     /**
-     * Ensures removing the manager does not touch what's in the team
+     * Ensures removing the manager does not touch what's in the team.
      */
     public function testRemovingManagerLeavesEmployeesUntouched(): void
     {
@@ -169,9 +167,8 @@ class TeamTest extends TestCase
         $this->assertCount(1, $team->getEmployees());
     }
 
-
     /**
-     * Ensures an employee cannot belong to multiple teams
+     * Ensures an employee cannot belong to multiple teams.
      */
     public function testEmployeeCantBelongToMultipleTeams(): void
     {
@@ -181,13 +178,13 @@ class TeamTest extends TestCase
 
         $team1->addEmployee($employee);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         $team2->addEmployee($employee);
     }
 
     /**
-     * This test verifies the name length constraints for a Team
+     * This test verifies the name length constraints for a Team.
      */
     public function testTeamNameLengthValidation(): void
     {
@@ -205,7 +202,7 @@ class TeamTest extends TestCase
             $this->assertSame($teamName, $team->getName());
         }
 
-       $invalidCases = [
+        $invalidCases = [
             '',
             str_repeat('a', $min - 1),
             str_repeat('a', $max + 1),
@@ -220,7 +217,7 @@ class TeamTest extends TestCase
 
     /**
      * This test verifies the description length constraints for a Team
-     * watch out for the fact description can be empty
+     * watch out for the fact description can be empty.
      */
     public function testTeamDescriptionLengthValidation(): void
     {
@@ -239,7 +236,7 @@ class TeamTest extends TestCase
             $this->assertSame($teamDescription, $team->getDescription());
         }
 
-       $invalidCases = [
+        $invalidCases = [
             str_repeat('a', $max + 1),
         ];
 
@@ -253,5 +250,4 @@ class TeamTest extends TestCase
             $team->setDescription($teamDescription);
         }
     }
-
 }

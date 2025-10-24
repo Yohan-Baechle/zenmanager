@@ -52,7 +52,7 @@ class Team
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        if ($this->createdAt === null) {
+        if (null === $this->createdAt) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->setUpdatedAtValue();
@@ -79,7 +79,7 @@ class Team
         $length = strlen($name);
 
         if ($length < Team::MIN_NAME_LENGTH || $length > Team::MAX_NAME_LENGTH) {
-            throw new \InvalidArgumentException("Name must be between " . Team::MIN_NAME_LENGTH . " and " . Team::MAX_NAME_LENGTH . " characters. Got {$length}.");
+            throw new \InvalidArgumentException('Name must be between '.Team::MIN_NAME_LENGTH.' and '.Team::MAX_NAME_LENGTH." characters. Got {$length}.");
         }
 
         $this->name = $name;
@@ -97,7 +97,7 @@ class Team
         $length = strlen($description);
 
         if ($length < Team::MIN_DESCRIPTION_LENGTH || $length > Team::MAX_DESCRIPTION_LENGTH) {
-            throw new \InvalidArgumentException("Description must be between " . Team::MIN_DESCRIPTION_LENGTH . " and " . Team::MAX_DESCRIPTION_LENGTH . " characters. Got {$length}.");
+            throw new \InvalidArgumentException('Description must be between '.Team::MIN_DESCRIPTION_LENGTH.' and '.Team::MAX_DESCRIPTION_LENGTH." characters. Got {$length}.");
         }
 
         $this->description = $description;
@@ -131,7 +131,7 @@ class Team
             throw new \LogicException('A manager cannot be an employee of their own team.');
         }
 
-        if ($employee->getTeam() !== null && $employee->getTeam() !== $this) {
+        if (null !== $employee->getTeam() && $employee->getTeam() !== $this) {
             throw new \InvalidArgumentException('This employee already belongs to another team.');
         }
 

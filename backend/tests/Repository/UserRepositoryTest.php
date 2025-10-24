@@ -11,7 +11,7 @@ class UserRepositoryTest extends KernelTestCase
     private \App\Repository\UserRepository $repo;
 
     /**
-     * Boot Symfony’s kernel and get access to Doctrine + repo
+     * Boot Symfony’s kernel and get access to Doctrine + repo.
      */
     protected function setUp(): void
     {
@@ -51,7 +51,7 @@ class UserRepositoryTest extends KernelTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if ($this->em !== null) {
+        if (null !== $this->em) {
             $this->em->close();
         }
     }

@@ -1,0 +1,21 @@
+parameters:
+    level: 6
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - '#Strict comparison using !== between null and Doctrine\\ORM\\EntityManagerInterface will always evaluate to true#'
+        - '#Call to method PHPUnit\\Framework\\Assert::assertNull\(\) with null will always evaluate to true#'
+        - '#Call to function method_exists\(\) with .* will always evaluate to true#'
+        - '#Comparison operation ">" between 0 and 0 is always false#'
+        - '#Property .* type mapping mismatch#'
+        - '#Comparison operation "<" between int<0, max> and 0 is always false#'
+        - '#Property .* with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types#'
+        - '#Class .* extends generic class .* but does not specify its types#'
+        - '#Method .* has parameter .* with generic class .* but does not specify its types#'
+        - '#Method .* return type has no value type specified in iterable type array#'
+        - '#Method .* has parameter .* with no type specified#'

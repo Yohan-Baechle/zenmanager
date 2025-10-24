@@ -9,8 +9,9 @@ class ClockRequestMapper
 {
     public function __construct(
         private readonly UserMapper $userMapper,
-        private readonly ClockMapper $clockMapper
-    ) {}
+        private readonly ClockMapper $clockMapper,
+    ) {
+    }
 
     public function toOutputDto(ClockRequest $clockRequest): ClockRequestOutputDto
     {
@@ -36,12 +37,13 @@ class ClockRequestMapper
 
     /**
      * @param ClockRequest[] $clockRequests
+     *
      * @return ClockRequestOutputDto[]
      */
     public function toOutputDtoCollection(array $clockRequests): array
     {
         return array_map(
-            fn(ClockRequest $clockRequest) => $this->toOutputDto($clockRequest),
+            fn (ClockRequest $clockRequest) => $this->toOutputDto($clockRequest),
             $clockRequests
         );
     }

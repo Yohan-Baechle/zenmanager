@@ -14,7 +14,8 @@ class RateLimiterListener
     public function __construct(
         private readonly RateLimiterFactory $loginLimiterLimiter,
         private readonly RateLimiterFactory $apiLimiterLimiter,
-    ) {}
+    ) {
+    }
 
     public function __invoke(RequestEvent $event): void
     {
@@ -23,7 +24,7 @@ class RateLimiterListener
         if (!str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
-        
+
         if (str_starts_with($request->getPathInfo(), '/api/doc')) {
             return;
         }
@@ -44,10 +45,12 @@ class RateLimiterListener
                     'X-RateLimit-Retry-After' => $limit->getRetryAfter()->getTimestamp(),
                     'X-RateLimit-Limit' => $limit->getLimit(),
                 ]));
+
                 return;
             }
 
             $request->attributes->set('rate_limit', $limit);
+
             return;
         }
 
@@ -64,6 +67,7 @@ class RateLimiterListener
                 'X-RateLimit-Retry-After' => $limit->getRetryAfter()->getTimestamp(),
                 'X-RateLimit-Limit' => $limit->getLimit(),
             ]));
+
             return;
         }
 
