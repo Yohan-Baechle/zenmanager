@@ -73,6 +73,10 @@ class ClockRequestTest extends TestCase
 
         $request->setStatus('PENDING');
         $this->assertSame('PENDING', $request->getStatus());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $request->setStatus('BLAFEU_BLAFEU_BLAFEU');
+
     }
 
     /**
