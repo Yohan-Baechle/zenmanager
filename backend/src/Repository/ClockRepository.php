@@ -6,7 +6,6 @@ use App\Entity\Clock;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-
 class ClockRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -41,31 +40,31 @@ class ClockRepository extends ServiceEntityRepository
         }
 
         $qb->orderBy('c.time', 'ASC');
-        
+
         $clocks = $qb->getQuery()->getResult();
-        
+
         $dailyFirstArrivals = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
             $ownerId = $clock->getOwner()->getId();
-            $key = $date . '_' . $ownerId;
-            
-            if (!isset($dailyFirstArrivals[$key]) || 
-                $clock->getTime() < $dailyFirstArrivals[$key]->getTime()) {
+            $key = $date.'_'.$ownerId;
+
+            if (!isset($dailyFirstArrivals[$key])
+                || $clock->getTime() < $dailyFirstArrivals[$key]->getTime()) {
                 $dailyFirstArrivals[$key] = $clock;
             }
         }
-        
+
         $lateCount = 0;
         foreach ($dailyFirstArrivals as $clock) {
-            $hour = (int)$clock->getTime()->format('H');
-            $minute = (int)$clock->getTime()->format('i');
-            
-            if ($hour > 8 || ($hour === 8 && $minute >= 30)) {
-                $lateCount++;
+            $hour = (int) $clock->getTime()->format('H');
+            $minute = (int) $clock->getTime()->format('i');
+
+            if ($hour > 8 || (8 === $hour && $minute >= 30)) {
+                ++$lateCount;
             }
         }
-        
+
         return $lateCount;
     }
 
@@ -96,34 +95,33 @@ class ClockRepository extends ServiceEntityRepository
         }
 
         $qb->orderBy('c.time', 'DESC');
-        
+
         $clocks = $qb->getQuery()->getResult();
-        
+
         $dailyLastDepartures = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
             $ownerId = $clock->getOwner()->getId();
-            $key = $date . '_' . $ownerId;
-            
-            if (!isset($dailyLastDepartures[$key]) || 
-                $clock->getTime() > $dailyLastDepartures[$key]->getTime()) {
+            $key = $date.'_'.$ownerId;
+
+            if (!isset($dailyLastDepartures[$key])
+                || $clock->getTime() > $dailyLastDepartures[$key]->getTime()) {
                 $dailyLastDepartures[$key] = $clock;
             }
         }
-        
+
         $earlyCount = 0;
         foreach ($dailyLastDepartures as $clock) {
-            $hour = (int)$clock->getTime()->format('H');
-            $minute = (int)$clock->getTime()->format('i');
-            
-            if ($hour < 16 || ($hour === 16 && $minute < 30)) {
-                $earlyCount++;
+            $hour = (int) $clock->getTime()->format('H');
+            $minute = (int) $clock->getTime()->format('i');
+
+            if ($hour < 16 || (16 === $hour && $minute < 30)) {
+                ++$earlyCount;
             }
         }
-        
+
         return $earlyCount;
     }
-
 
     public function countIncompleteDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
@@ -151,30 +149,29 @@ class ClockRepository extends ServiceEntityRepository
         }
 
         $clocks = $qb->getQuery()->getResult();
-        
+
         $dailyClockCounts = [];
         foreach ($clocks as $clock) {
             $date = $clock->getTime()->format('Y-m-d');
             $ownerId = $clock->getOwner()->getId();
-            $key = $date . '_' . $ownerId;
-            
+            $key = $date.'_'.$ownerId;
+
             if (!isset($dailyClockCounts[$key])) {
                 $dailyClockCounts[$key] = 0;
             }
-            $dailyClockCounts[$key]++;
+            ++$dailyClockCounts[$key];
         }
-        
+
         $incompleteCount = 0;
         foreach ($dailyClockCounts as $count) {
-            if ($count % 2 === 1) {
-                $incompleteCount++;
+            if (1 === $count % 2) {
+                ++$incompleteCount;
             }
         }
-        
+
         return $incompleteCount;
     }
 
-    
     public function countTotalExits(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('c')
@@ -202,6 +199,6 @@ class ClockRepository extends ServiceEntityRepository
                ->setParameter('teamId', $teamId);
         }
 
-        return (int)$qb->getQuery()->getSingleScalarResult();
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

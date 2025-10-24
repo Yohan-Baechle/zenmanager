@@ -6,10 +6,10 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -30,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public const LAST_NAME_MAX_LENGTH = 100;
 
     public const EMAIL_MAX_LENGTH = 180;
-    
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -55,7 +55,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private array $roles = [];
-
 
     /**
      * @var string The hashed password
@@ -82,7 +81,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    #[Groups(['user:read', 'user:write'])]
     private ?Team $team = null;
 
     #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'manager')]
@@ -102,7 +100,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        if ($this->createdAt === null) {
+        if (null === $this->createdAt) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->setUpdatedAtValue();
@@ -129,11 +127,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $length = strlen($username);
 
         if ($length < User::USERNAME_MIN_LENGTH || $length > User::USERNAME_MAX_LENGTH) {
-            throw new \InvalidArgumentException("Username must be between " . User::USERNAME_MIN_LENGTH . " and " . User::USERNAME_MAX_LENGTH . " characters. Got {$length}.");
+            throw new \InvalidArgumentException('Username must be between '.User::USERNAME_MIN_LENGTH.' and '.User::USERNAME_MAX_LENGTH." characters. Got {$length}.");
         }
 
         if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
-            throw new \InvalidArgumentException("Username can only contain letters, numbers, underscores and hyphens.");
+            throw new \InvalidArgumentException('Username can only contain letters, numbers, underscores and hyphens.');
         }
 
         $this->username = $username;
@@ -148,18 +146,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): static
     {
-        $length = mb_strlen($email); #jfyi : strlen doesn't work properly with multibyte chars that's why we use mb_strlen here
+        $length = mb_strlen($email); // jfyi : strlen doesn't work properly with multibyte chars that's why we use mb_strlen here
 
         if ($length > self::EMAIL_MAX_LENGTH) {
-            throw new \InvalidArgumentException(
-                sprintf('Email must not exceed %d characters. Got %d.', self::EMAIL_MAX_LENGTH, $length)
-            );
+            throw new \InvalidArgumentException(sprintf('Email must not exceed %d characters. Got %d.', self::EMAIL_MAX_LENGTH, $length));
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid email format: "%s".', $email)
-            );
+            throw new \InvalidArgumentException(sprintf('Invalid email format: "%s".', $email));
         }
 
         $this->email = $email;
@@ -245,7 +239,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $length = strlen($firstName);
 
         if ($length < User::FIRST_NAME_MIN_LENGTH || $length > User::FIRST_NAME_MAX_LENGTH) {
-            throw new \InvalidArgumentException("First name must be between " . User::FIRST_NAME_MIN_LENGTH . " and " . User::FIRST_NAME_MAX_LENGTH . " characters. Got {$length}.");
+            throw new \InvalidArgumentException('First name must be between '.User::FIRST_NAME_MIN_LENGTH.' and '.User::FIRST_NAME_MAX_LENGTH." characters. Got {$length}.");
         }
 
         $this->firstName = $firstName;
@@ -263,7 +257,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $length = strlen($lastName);
 
         if ($length < User::LAST_NAME_MIN_LENGTH || $length > User::LAST_NAME_MAX_LENGTH) {
-            throw new \InvalidArgumentException("Last name must be between " . User::LAST_NAME_MIN_LENGTH . " and " . User::LAST_NAME_MAX_LENGTH . " characters. Got {$length}.");
+            throw new \InvalidArgumentException('Last name must be between '.User::LAST_NAME_MIN_LENGTH.' and '.User::LAST_NAME_MAX_LENGTH." characters. Got {$length}.");
         }
 
         $this->lastName = $lastName;
@@ -299,7 +293,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Get the team this user is a member of (as an employee)
+     * Get the team this user is a member of (as an employee).
      */
     public function getTeam(): ?Team
     {
@@ -314,7 +308,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Get the teams this user manages
+     * Get the teams this user manages.
+     *
      * @return Collection<int, Team>
      */
     public function getManagedTeams(): Collection

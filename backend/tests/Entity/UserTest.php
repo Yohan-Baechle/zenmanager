@@ -2,17 +2,15 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\User;
 use App\Entity\Team;
+use App\Entity\User;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use DateTimeImmutable;
 
 class UserTest extends TestCase
 {
     /**
      * This test ensures the constructor initializes optional properties correctly
-     * Prevents “undefined state” issues later
+     * Prevents “undefined state” issues later.
      */
     public function testConstructorInitializesValues(): void
     {
@@ -27,12 +25,11 @@ class UserTest extends TestCase
         $this->assertCount(0, $user->getManagedTeams());
     }
 
-
     /**
      * This test verifies that all getters and setters work as expected
      * - Each setter should assign the correct value
      * - Each getter should return exactly what was set
-     * - Check for possible formatting issue
+     * - Check for possible formatting issue.
      */
     public function testSettersAndGetters(): void
     {
@@ -59,7 +56,7 @@ class UserTest extends TestCase
     /**
      * This test ensures the username field works correctly
      * - The `getUserIdentifier()` method is what Symfony Security uses
-     * - It must return the username, not email or anything else
+     * - It must return the username, not email or anything else.
      */
     public function testUserIdentifierReturnsUsername(): void
     {
@@ -108,8 +105,8 @@ class UserTest extends TestCase
         $this->assertNull($user->getUpdatedAt());
 
         $user->setCreatedAtValue();
-        $this->assertInstanceOf(DateTimeImmutable::class, $user->getCreatedAt());
-        $this->assertInstanceOf(DateTimeImmutable::class, $user->getUpdatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $user->getCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $user->getUpdatedAt());
 
         $initialUpdatedAt = $user->getUpdatedAt();
         sleep(1);
@@ -134,7 +131,7 @@ class UserTest extends TestCase
         $this->assertSame(hash('crc32c', 'super_secret'), $serialized["\0App\Entity\User\0password"]);
     }
 
-     /**
+    /**
      * This test verifies the relationship between a manager and their teams
      * The relationship between a manager and their teams should be consistent
      * Adding/removing a team should modify both sides of the relation correctly
@@ -158,7 +155,7 @@ class UserTest extends TestCase
 
     /**
      * This test verifies the team assignment for employees
-     * Ensures team assignment works as expected for employees (not managers)
+     * Ensures team assignment works as expected for employees (not managers).
      */
     public function testTeamSetterAndGetter(): void
     {
@@ -174,7 +171,7 @@ class UserTest extends TestCase
 
     /**
      * This test verifies that a user can only have one role
-     * (the app is not complex enough to need multiple roles per user)
+     * (the app is not complex enough to need multiple roles per user).
      */
     public function testUserCantHaveMultipleRoles(): void
     {
@@ -186,7 +183,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test verifies username length constraints
+     * This test verifies username length constraints.
      */
     public function testUsernameLengthValidation(): void
     {
@@ -204,7 +201,7 @@ class UserTest extends TestCase
             $this->assertSame($username, $user->getUsername());
         }
 
-       $invalidCases = [
+        $invalidCases = [
             '',
             str_repeat('a', $min - 1),
             str_repeat('a', $max + 1),
@@ -218,7 +215,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test verifies first name length constraints
+     * This test verifies first name length constraints.
      */
     public function testFirstNameLengthValidation(): void
     {
@@ -236,7 +233,7 @@ class UserTest extends TestCase
             $this->assertSame($firstName, $user->getFirstName());
         }
 
-       $invalidCases = [
+        $invalidCases = [
             '',
             str_repeat('a', $min - 1),
             str_repeat('a', $max + 1),
@@ -250,7 +247,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test verifies last name length constraints
+     * This test verifies last name length constraints.
      */
     public function testLastNameLengthValidation(): void
     {
@@ -268,7 +265,7 @@ class UserTest extends TestCase
             $this->assertSame($lastName, $user->getLastName());
         }
 
-       $invalidCases = [
+        $invalidCases = [
             '',
             str_repeat('a', $min - 1),
             str_repeat('a', $max + 1),
@@ -281,9 +278,8 @@ class UserTest extends TestCase
         }
     }
 
-
     /**
-     * This test verifies email length and formatting constraints
+     * This test verifies email length and formatting constraints.
      */
     public function testEmailValidation(): void
     {
@@ -292,7 +288,7 @@ class UserTest extends TestCase
         $validEmails = [
             'john.doe@example.com',
             'user+label@sub.domain.co',
-            str_repeat('a', 64) . '@x.com', // 64 specifically because bigger is not considered as proper formatting
+            str_repeat('a', 64).'@x.com', // 64 specifically because bigger is not considered as proper formatting
         ];
 
         foreach ($validEmails as $email) {
@@ -316,8 +312,8 @@ class UserTest extends TestCase
         }
 
         $tooLongEmail = [
-            str_repeat('a', 65) . '@x.com',
-            "jaaj@". str_repeat('a', $max) .".com"
+            str_repeat('a', 65).'@x.com',
+            'jaaj@'.str_repeat('a', $max).'.com',
         ];
         foreach ($tooLongEmail as $tooLongEmail) {
             $this->expectException(\InvalidArgumentException::class);
@@ -327,7 +323,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test ensures the email is used as user identifier
+     * This test ensures the email is used as user identifier.
      */
     public function testGetUserIdentifierReturnsEmail(): void
     {
@@ -337,7 +333,7 @@ class UserTest extends TestCase
     }
 
     /**
-     * This test ensures there is no space nowhere in the name
+     * This test ensures there is no space nowhere in the name.
      */
     public function testUsernameHasNoSpaces(): void
     {
@@ -363,7 +359,7 @@ class UserTest extends TestCase
         $user->setUsername('JohnDoe');
         $user->setEmail('john@example.com');
 
-        $this->assertNotSame($user->getEmail(), $user->getUserIdentifier(), "User identifier should not be email");
+        $this->assertNotSame($user->getEmail(), $user->getUserIdentifier(), 'User identifier should not be email');
         $this->assertSame('JohnDoe', $user->getUserIdentifier());
     }
 }

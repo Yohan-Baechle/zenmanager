@@ -4,9 +4,8 @@ namespace App\Tests\Integration;
 
 use App\Entity\Clock;
 use App\Entity\User;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ClockUserIntegrationTest extends KernelTestCase
 {
@@ -21,7 +20,7 @@ class ClockUserIntegrationTest extends KernelTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if ($this->em !== null) {
+        if (null !== $this->em) {
             $this->em->close();
         }
     }
@@ -42,7 +41,7 @@ class ClockUserIntegrationTest extends KernelTestCase
         $clock = (new Clock())
             ->setOwner($user)
             ->setStatus(true)
-            ->setTime(new DateTimeImmutable());
+            ->setTime(new \DateTimeImmutable());
 
         $this->em->persist($user);
         $this->em->persist($clock);

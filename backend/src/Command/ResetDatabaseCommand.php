@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -16,7 +15,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class ResetDatabaseCommand extends Command
 {
-    public function __construct(private Connection $connection)
+    public function __construct()
     {
         parent::__construct();
     }
@@ -48,11 +47,14 @@ class ResetDatabaseCommand extends Command
         ]);
 
         $io->success('✅ Database has been successfully reset, migrated, and seeded!');
+
         return Command::SUCCESS;
     }
 
     /**
      * Helper method to run another Symfony console command programmatically.
+     *
+     * @param array<string, mixed> $args
      */
     private function runSubCommand(SymfonyStyle $io, string $name, array $args = []): void
     {
@@ -63,7 +65,7 @@ class ResetDatabaseCommand extends Command
         $input->setInteractive(false);
 
         $exitCode = $command->run($input, $io);
-        if ($exitCode !== Command::SUCCESS) {
+        if (Command::SUCCESS !== $exitCode) {
             throw new \RuntimeException(sprintf('The sub-command "%s" failed (exit code %d).', $name, $exitCode));
         }
     }

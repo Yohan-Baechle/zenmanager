@@ -2,10 +2,10 @@
 
 namespace App\Tests\Integration;
 
-use App\Entity\User;
 use App\Entity\Team;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class UserTeamIntegrationTest extends KernelTestCase
 {
@@ -29,7 +29,7 @@ class UserTeamIntegrationTest extends KernelTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        if ($this->em !== null) {
+        if (null !== $this->em) {
             $this->em->close();
         }
     }

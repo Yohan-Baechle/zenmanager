@@ -9,6 +9,7 @@ use App\Entity\WorkingTime;
 use App\Mapper\WorkingTimeMapper;
 use App\Repository\WorkingTimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,15 +17,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Working Times')]
 class WorkingTimeController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly WorkingTimeMapper $workingTimeMapper
-    ) {}
+        private readonly WorkingTimeMapper $workingTimeMapper,
+    ) {
+    }
 
     #[Route('/workingtimes/{userId}', name: 'api_workingtimes_index', methods: ['GET'])]
     #[OA\Get(
@@ -70,13 +71,13 @@ class WorkingTimeController extends AbstractController
                             new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                             new OA\Property(property: 'email', type: 'string', example: 'jdoe@example.com'),
                             new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                         ],
                         type: 'object'
                     ),
                     new OA\Property(property: 'durationMinutes', type: 'integer', example: 480),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                 ]
             )
         )
@@ -105,7 +106,7 @@ class WorkingTimeController extends AbstractController
                 new \DateTimeImmutable($end)
             );
         } else {
-            $workingTimes = $workingTimeRepository->findBy(['user' => $user], ['startTime' => 'DESC']);
+            $workingTimes = $workingTimeRepository->findBy(['owner' => $user], ['startTime' => 'DESC']);
         }
 
         $dtos = $this->workingTimeMapper->toOutputDtoCollection($workingTimes);
@@ -149,13 +150,13 @@ class WorkingTimeController extends AbstractController
                         new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
                         new OA\Property(property: 'email', type: 'string', example: 'jdoe@example.com'),
                         new OA\Property(property: 'firstName', type: 'string', example: 'John'),
-                        new OA\Property(property: 'lastName', type: 'string', example: 'Doe')
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
                     ],
                     type: 'object'
                 ),
                 new OA\Property(property: 'durationMinutes', type: 'integer', example: 480),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -174,6 +175,7 @@ class WorkingTimeController extends AbstractController
         }
 
         $dto = $this->workingTimeMapper->toOutputDto($workingTime);
+
         return $this->json($dto);
     }
 
@@ -187,7 +189,7 @@ class WorkingTimeController extends AbstractController
                 required: ['startTime', 'endTime'],
                 properties: [
                     new OA\Property(property: 'startTime', type: 'string', format: 'date-time', example: '2025-01-15T09:00:00+00:00'),
-                    new OA\Property(property: 'endTime', type: 'string', format: 'date-time', example: '2025-01-15T17:00:00+00:00')
+                    new OA\Property(property: 'endTime', type: 'string', format: 'date-time', example: '2025-01-15T17:00:00+00:00'),
                 ]
             )
         ),
@@ -199,7 +201,7 @@ class WorkingTimeController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -213,7 +215,7 @@ class WorkingTimeController extends AbstractController
                         new OA\Property(property: 'user', type: 'object'),
                         new OA\Property(property: 'durationMinutes', type: 'integer'),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -222,19 +224,19 @@ class WorkingTimeController extends AbstractController
                 description: 'Invalid input',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'errors', type: 'object')
+                        new OA\Property(property: 'errors', type: 'object'),
                     ]
                 )
             ),
             new OA\Response(
                 response: 404,
                 description: 'User not found'
-            )
+            ),
         ]
     )]
     public function create(
         int $userId,
-        #[MapRequestPayload] WorkingTimeInputDto $dto
+        #[MapRequestPayload] WorkingTimeInputDto $dto,
     ): JsonResponse {
         $user = $this->em->getRepository(User::class)->find($userId);
 
@@ -250,6 +252,7 @@ class WorkingTimeController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->workingTimeMapper->toOutputDto($workingTime);
+
         return $this->json($outputDto, Response::HTTP_CREATED);
     }
 
@@ -263,7 +266,7 @@ class WorkingTimeController extends AbstractController
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'startTime', type: 'string', format: 'date-time', example: '2025-01-15T09:00:00+00:00'),
-                    new OA\Property(property: 'endTime', type: 'string', format: 'date-time', example: '2025-01-15T17:30:00+00:00')
+                    new OA\Property(property: 'endTime', type: 'string', format: 'date-time', example: '2025-01-15T17:30:00+00:00'),
                 ]
             )
         ),
@@ -275,7 +278,7 @@ class WorkingTimeController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -289,7 +292,7 @@ class WorkingTimeController extends AbstractController
                         new OA\Property(property: 'user', type: 'object'),
                         new OA\Property(property: 'durationMinutes', type: 'integer'),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -300,18 +303,19 @@ class WorkingTimeController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'Working time not found'
-            )
+            ),
         ]
     )]
     public function update(
         WorkingTime $workingTime,
-        #[MapRequestPayload] WorkingTimeUpdateDto $dto
+        #[MapRequestPayload] WorkingTimeUpdateDto $dto,
     ): JsonResponse {
         $this->workingTimeMapper->updateEntity($workingTime, $dto);
 
         $this->em->flush();
 
         $outputDto = $this->workingTimeMapper->toOutputDto($workingTime);
+
         return $this->json($outputDto);
     }
 
@@ -328,7 +332,7 @@ class WorkingTimeController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -338,7 +342,7 @@ class WorkingTimeController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'Working time not found'
-            )
+            ),
         ]
     )]
     public function delete(WorkingTime $workingTime): JsonResponse

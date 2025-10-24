@@ -9,22 +9,23 @@ use App\Entity\ClockRequest;
 use App\Entity\User;
 use App\Mapper\ClockMapper;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use OpenApi\Attributes as OA;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: 'Clocks')]
 class ClockController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly ClockMapper $clockMapper
-    ) {}
+        private readonly ClockMapper $clockMapper,
+    ) {
+    }
 
     private function getEffectiveLastStatus(User $user, \DateTimeImmutable $beforeTime): ?bool
     {
@@ -86,7 +87,7 @@ class ClockController extends AbstractController
                         type: 'boolean',
                         example: true,
                         nullable: true
-                    )
+                    ),
                 ]
             )
         ),
@@ -113,17 +114,17 @@ class ClockController extends AbstractController
                                     property: 'team',
                                     properties: [
                                         new OA\Property(property: 'id', type: 'integer', example: 1),
-                                        new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                        new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                                     ],
                                     type: 'object',
                                     nullable: true
                                 ),
                                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                             ],
                             type: 'object'
                         ),
-                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -132,7 +133,7 @@ class ClockController extends AbstractController
                 description: 'Invalid input or badging too quickly (less than 1 minute since last badge)',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'error', type: 'string', example: 'Cannot badge twice within 1 minute')
+                        new OA\Property(property: 'error', type: 'string', example: 'Cannot badge twice within 1 minute'),
                     ]
                 )
             ),
@@ -141,27 +142,25 @@ class ClockController extends AbstractController
                 description: 'Unauthorized - Invalid or missing JWT token',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'error', type: 'string', example: 'Authentication required')
+                        new OA\Property(property: 'error', type: 'string', example: 'Authentication required'),
                     ]
                 )
-            )
+            ),
         ]
     )]
     public function create(
         #[CurrentUser] ?User $user,
-        #[MapRequestPayload] ClockInputDto $dto = null
+        #[MapRequestPayload] ?ClockInputDto $dto = null,
     ): JsonResponse {
         if (!$user) {
             return $this->json(['error' => 'Authentication required'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Initialize DTO if null (empty body)
-        if ($dto === null) {
+        if (null === $dto) {
             $dto = new ClockInputDto();
         }
 
-        // Automatically generate timestamp if not provided
-        if ($dto->time === null) {
+        if (null === $dto->time) {
             $dto->time = new \DateTimeImmutable();
         }
 
@@ -170,22 +169,22 @@ class ClockController extends AbstractController
         $lastClock = $this->em->getRepository(Clock::class)
             ->findOneBy(['owner' => $user], ['time' => 'DESC']);
 
-        if ($dto->status === null) {
+        if (null === $dto->status) {
             if ($lastClock) {
                 $timeDiff = $dto->time->getTimestamp() - $lastClock->getTime()->getTimestamp();
                 if ($timeDiff < 60) {
                     return $this->json([
-                        'error' => 'Cannot badge twice within 1 minute'
+                        'error' => 'Cannot badge twice within 1 minute',
                     ], Response::HTTP_BAD_REQUEST);
                 }
             }
 
             $effectiveLastStatus = $this->getEffectiveLastStatus($user, $dto->time);
 
-            if ($effectiveLastStatus === null) {
+            if (null === $effectiveLastStatus) {
                 $dto->status = true;
             } else {
-                if ($effectiveLastStatus === true && $lastClock && $lastClock->isStatus() === true) {
+                if (true === $effectiveLastStatus && $lastClock && true === $lastClock->isStatus()) {
                     $lastClockDate = $lastClock->getTime()->format('Y-m-d');
                     $currentDate = $dto->time->format('Y-m-d');
 
@@ -197,7 +196,7 @@ class ClockController extends AbstractController
                         $clockRequest->setRequestedTime(
                             \DateTimeImmutable::createFromFormat(
                                 'Y-m-d H:i:s',
-                                $lastClockDate . ' 23:59:59'
+                                $lastClockDate.' 23:59:59'
                             )
                         );
                         $clockRequest->setRequestedStatus(false);
@@ -206,7 +205,7 @@ class ClockController extends AbstractController
 
                         $dto->status = true;
                     } else {
-                        $dto->status = !$effectiveLastStatus;
+                        $dto->status = false;
                     }
                 } else {
                     $dto->status = !$effectiveLastStatus;
@@ -220,6 +219,7 @@ class ClockController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->clockMapper->toOutputDto($clock);
+
         return $this->json($outputDto, Response::HTTP_CREATED);
     }
 
@@ -258,17 +258,17 @@ class ClockController extends AbstractController
                             property: 'team',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                             ],
                             type: 'object',
                             nullable: true
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ],
                     type: 'object'
                 ),
-                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -279,6 +279,7 @@ class ClockController extends AbstractController
     public function show(Clock $clock): JsonResponse
     {
         $dto = $this->clockMapper->toOutputDto($clock);
+
         return $this->json($dto);
     }
 
@@ -304,7 +305,7 @@ class ClockController extends AbstractController
                         description: 'true for clock-in, false for clock-out',
                         type: 'boolean',
                         example: true
-                    )
+                    ),
                 ]
             )
         ),
@@ -338,17 +339,17 @@ class ClockController extends AbstractController
                             property: 'team',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                             ],
                             type: 'object',
                             nullable: true
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ],
                     type: 'object'
                 ),
-                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -362,7 +363,7 @@ class ClockController extends AbstractController
     )]
     public function update(
         Clock $clock,
-        #[MapRequestPayload] ClockUpdateDto $dto
+        #[MapRequestPayload] ClockUpdateDto $dto,
     ): JsonResponse {
         $clock->setTime($dto->time);
         $clock->setStatus($dto->status);
@@ -370,6 +371,7 @@ class ClockController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->clockMapper->toOutputDto($clock);
+
         return $this->json($outputDto);
     }
 

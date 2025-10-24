@@ -17,7 +17,6 @@ class WorkingTimeRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkingTime::class);
     }
 
-
     public function findByUserAndPeriod(User $user, \DateTimeInterface $start, \DateTimeInterface $end): array
     {
         return $this->createQueryBuilder('wt')
@@ -31,7 +30,6 @@ class WorkingTimeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
 
     public function calculateTotalWorkingHours(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): float
     {
@@ -59,12 +57,12 @@ class WorkingTimeRepository extends ServiceEntityRepository
         }
 
         $workingTimes = $qb->getQuery()->getResult();
-        
+
         $totalHours = 0;
         foreach ($workingTimes as $workingTime) {
             $start = $workingTime->getStartTime();
             $end = $workingTime->getEndTime();
-            
+
             if ($start && $end) {
                 $interval = $start->diff($end);
                 $hours = $interval->h + ($interval->days * 24);
@@ -73,10 +71,9 @@ class WorkingTimeRepository extends ServiceEntityRepository
                 $totalHours += $hours;
             }
         }
-        
+
         return round($totalHours, 2);
     }
-
 
     public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
@@ -104,13 +101,13 @@ class WorkingTimeRepository extends ServiceEntityRepository
         }
 
         $workingTimes = $qb->getQuery()->getResult();
-        
+
         $distinctDates = [];
         foreach ($workingTimes as $workingTime) {
             $date = $workingTime->getStartTime()->format('Y-m-d');
             $distinctDates[$date] = true;
         }
-        
+
         return count($distinctDates);
     }
 }

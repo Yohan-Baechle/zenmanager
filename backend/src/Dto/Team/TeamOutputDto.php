@@ -17,5 +17,6 @@ class TeamOutputDto
         public readonly array $employees,
         public readonly \DateTimeImmutable $createdAt,
         public readonly \DateTimeImmutable $updatedAt,
-    ) {}
+    ) {
+    }
 }

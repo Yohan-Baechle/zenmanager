@@ -24,7 +24,7 @@ class ExceptionListener
 {
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly string $environment
+        private readonly string $environment,
     ) {
     }
 
@@ -60,11 +60,11 @@ class ExceptionListener
         ];
 
         if ($statusCode >= 500) {
-            $this->logger->error('API Exception: ' . $exception->getMessage(), $context);
+            $this->logger->error('API Exception: '.$exception->getMessage(), $context);
         } elseif ($statusCode >= 400) {
-            $this->logger->warning('API Client Error: ' . $exception->getMessage(), $context);
+            $this->logger->warning('API Client Error: '.$exception->getMessage(), $context);
         } else {
-            $this->logger->info('API Exception: ' . $exception->getMessage(), $context);
+            $this->logger->info('API Exception: '.$exception->getMessage(), $context);
         }
     }
 
@@ -116,13 +116,13 @@ class ExceptionListener
             $data['errors'] = $this->formatValidationErrors($exception->getPrevious());
         }
 
-        $isDev = $this->environment === 'dev';
+        $isDev = 'dev' === $this->environment;
         if ($isDev && $statusCode >= 500) {
             $data['debug'] = [
                 'exception' => get_class($exception),
                 'file' => $exception->getFile(),
                 'line' => $exception->getLine(),
-                'trace' => explode("\n", $exception->getTraceAsString())
+                'trace' => explode("\n", $exception->getTraceAsString()),
             ];
         }
 
@@ -132,16 +132,16 @@ class ExceptionListener
     private function getErrorType(int $statusCode): string
     {
         return match (true) {
-            $statusCode === 400 => 'Bad Request',
-            $statusCode === 401 => 'Unauthorized',
-            $statusCode === 403 => 'Forbidden',
-            $statusCode === 404 => 'Not Found',
-            $statusCode === 409 => 'Conflict',
-            $statusCode === 422 => 'Validation Error',
-            $statusCode === 429 => 'Too Many Requests',
-            $statusCode === 503 => 'Service Unavailable',
+            400 === $statusCode => 'Bad Request',
+            401 === $statusCode => 'Unauthorized',
+            403 === $statusCode => 'Forbidden',
+            404 === $statusCode => 'Not Found',
+            409 === $statusCode => 'Conflict',
+            422 === $statusCode => 'Validation Error',
+            429 === $statusCode => 'Too Many Requests',
+            503 === $statusCode => 'Service Unavailable',
             $statusCode >= 500 => 'Internal Server Error',
-            default => 'Error'
+            default => 'Error',
         };
     }
 
@@ -187,7 +187,7 @@ class ExceptionListener
             return $exception->getMessage() ?: 'An error occurred';
         }
 
-        $isDev = $this->environment === 'dev';
+        $isDev = 'dev' === $this->environment;
         if ($statusCode >= 500 && !$isDev) {
             return 'An internal server error occurred';
         }

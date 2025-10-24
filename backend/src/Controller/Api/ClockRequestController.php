@@ -2,32 +2,33 @@
 
 namespace App\Controller\Api;
 
-use App\Dto\ClockRequest\CreateClockRequestDto;
-use App\Dto\ClockRequest\UpdateClockRequestDto;
 use App\Dto\ClockRequest\ApproveClockRequestDto;
+use App\Dto\ClockRequest\CreateClockRequestDto;
 use App\Dto\ClockRequest\RejectClockRequestDto;
+use App\Dto\ClockRequest\UpdateClockRequestDto;
 use App\Entity\Clock;
 use App\Entity\ClockRequest;
 use App\Entity\User;
 use App\Mapper\ClockRequestMapper;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use OpenApi\Attributes as OA;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[OA\Tag(name: 'Clock Requests')]
 class ClockRequestController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly ClockRequestMapper $clockRequestMapper
-    ) {}
+        private readonly ClockRequestMapper $clockRequestMapper,
+    ) {
+    }
 
     #[Route('/clock-requests', name: 'api_clock_requests_create', methods: ['POST'])]
     #[OA\Post(
@@ -45,7 +46,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'requestedTime', description: 'Time to be clocked (ISO 8601)', type: 'string', format: 'date-time', example: '2025-10-15T08:00:00+00:00'),
                 new OA\Property(property: 'requestedStatus', description: 'Clock status (true=in, false=out). Required for CREATE type', type: 'boolean', example: true, nullable: true),
                 new OA\Property(property: 'targetClockId', description: 'ID of clock to modify/delete. Required for UPDATE/DELETE types', type: 'integer', example: 42, nullable: true),
-                new OA\Property(property: 'reason', description: 'Detailed justification (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'I forgot to clock in this morning when I arrived.')
+                new OA\Property(property: 'reason', description: 'Detailed justification (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'I forgot to clock in this morning when I arrived.'),
             ]
         )
     )]
@@ -65,7 +66,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'reviewedBy', type: 'object', nullable: true),
                 new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time', nullable: true),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -74,7 +75,7 @@ class ClockRequestController extends AbstractController
         description: 'Bad request - validation errors or missing required fields',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'requestedStatus is required for CREATE type')
+                new OA\Property(property: 'error', type: 'string', example: 'requestedStatus is required for CREATE type'),
             ]
         )
     )]
@@ -83,7 +84,7 @@ class ClockRequestController extends AbstractController
         description: 'Forbidden - trying to modify another user\'s clock',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'You can only request changes to your own clocks')
+                new OA\Property(property: 'error', type: 'string', example: 'You can only request changes to your own clocks'),
             ]
         )
     )]
@@ -92,23 +93,23 @@ class ClockRequestController extends AbstractController
         description: 'Target clock not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Target clock not found')
+                new OA\Property(property: 'error', type: 'string', example: 'Target clock not found'),
             ]
         )
     )]
     public function create(
         #[MapRequestPayload] CreateClockRequestDto $dto,
-        #[CurrentUser] User $currentUser
+        #[CurrentUser] User $currentUser,
     ): JsonResponse {
-        if ($dto->type === 'CREATE' && $dto->requestedStatus === null) {
+        if ('CREATE' === $dto->type && null === $dto->requestedStatus) {
             return $this->json([
-                'error' => 'requestedStatus is required for CREATE type'
+                'error' => 'requestedStatus is required for CREATE type',
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        if (in_array($dto->type, ['UPDATE', 'DELETE']) && $dto->targetClockId === null) {
+        if (in_array($dto->type, ['UPDATE', 'DELETE']) && null === $dto->targetClockId) {
             return $this->json([
-                'error' => 'targetClockId is required for UPDATE and DELETE types'
+                'error' => 'targetClockId is required for UPDATE and DELETE types',
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -136,6 +137,7 @@ class ClockRequestController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->clockRequestMapper->toOutputDto($clockRequest);
+
         return $this->json($outputDto, Response::HTTP_CREATED);
     }
 
@@ -178,14 +180,14 @@ class ClockRequestController extends AbstractController
                     new OA\Property(property: 'reviewedBy', type: 'object', nullable: true),
                     new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time', nullable: true),
                     new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                    new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                 ]
             )
         )
     )]
     public function list(
         Request $request,
-        #[CurrentUser] User $currentUser
+        #[CurrentUser] User $currentUser,
     ): JsonResponse {
         $qb = $this->em->getRepository(ClockRequest::class)->createQueryBuilder('cr');
 
@@ -201,7 +203,6 @@ class ClockRequestController extends AbstractController
             $qb->andWhere('cr.user = :user')
                ->setParameter('user', $currentUser);
         } elseif (in_array('ROLE_ADMIN', $currentUser->getRoles())) {
-            
         } elseif (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
             $managedTeams = $currentUser->getManagedTeams();
 
@@ -258,7 +259,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'reviewedBy', type: 'object', nullable: true),
                 new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time', nullable: true),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -267,7 +268,7 @@ class ClockRequestController extends AbstractController
         description: 'Access denied - user cannot view this clock request',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied'),
             ]
         )
     )]
@@ -276,13 +277,14 @@ class ClockRequestController extends AbstractController
         description: 'Clock request not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found'),
             ]
         )
     )]
     public function show(ClockRequest $clockRequest): JsonResponse
     {
         $dto = $this->clockRequestMapper->toOutputDto($clockRequest);
+
         return $this->json($dto);
     }
 
@@ -308,7 +310,7 @@ class ClockRequestController extends AbstractController
             properties: [
                 new OA\Property(property: 'requestedTime', description: 'New requested time (ISO 8601)', type: 'string', format: 'date-time', example: '2025-10-15T09:00:00+00:00', nullable: true),
                 new OA\Property(property: 'requestedStatus', description: 'New requested status (true=in, false=out)', type: 'boolean', example: true, nullable: true),
-                new OA\Property(property: 'reason', description: 'New reason (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, nullable: true)
+                new OA\Property(property: 'reason', description: 'New reason (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, nullable: true),
             ]
         )
     )]
@@ -328,7 +330,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'reviewedBy', type: 'object', nullable: true),
                 new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time', nullable: true),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -337,7 +339,7 @@ class ClockRequestController extends AbstractController
         description: 'Access denied - user cannot edit this clock request (not owner or not pending)',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied'),
             ]
         )
     )]
@@ -346,29 +348,30 @@ class ClockRequestController extends AbstractController
         description: 'Clock request not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found'),
             ]
         )
     )]
     public function update(
         ClockRequest $clockRequest,
-        #[MapRequestPayload] UpdateClockRequestDto $dto
+        #[MapRequestPayload] UpdateClockRequestDto $dto,
     ): JsonResponse {
-        if ($dto->requestedTime !== null) {
+        if (null !== $dto->requestedTime) {
             $clockRequest->setRequestedTime($dto->requestedTime);
         }
 
-        if ($dto->requestedStatus !== null) {
+        if (null !== $dto->requestedStatus) {
             $clockRequest->setRequestedStatus($dto->requestedStatus);
         }
 
-        if ($dto->reason !== null) {
+        if (null !== $dto->reason) {
             $clockRequest->setReason($dto->reason);
         }
 
         $this->em->flush();
 
         $outputDto = $this->clockRequestMapper->toOutputDto($clockRequest);
+
         return $this->json($outputDto);
     }
 
@@ -396,7 +399,7 @@ class ClockRequestController extends AbstractController
         description: 'Access denied - user cannot delete this clock request (not owner or not pending)',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied'),
             ]
         )
     )]
@@ -405,7 +408,7 @@ class ClockRequestController extends AbstractController
         description: 'Clock request not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found'),
             ]
         )
     )]
@@ -438,7 +441,7 @@ class ClockRequestController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'approvedTime', description: 'Override the requested time (optional)', type: 'string', format: 'date-time', example: '2025-10-15T08:30:00+00:00', nullable: true),
-                new OA\Property(property: 'approvedStatus', description: 'Override the requested status (optional)', type: 'boolean', example: true, nullable: true)
+                new OA\Property(property: 'approvedStatus', description: 'Override the requested status (optional)', type: 'boolean', example: true, nullable: true),
             ]
         )
     )]
@@ -458,7 +461,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'reviewedBy', type: 'object'),
                 new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -467,7 +470,7 @@ class ClockRequestController extends AbstractController
         description: 'Bad request - target clock not found for UPDATE/DELETE',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Target clock not found')
+                new OA\Property(property: 'error', type: 'string', example: 'Target clock not found'),
             ]
         )
     )]
@@ -476,7 +479,7 @@ class ClockRequestController extends AbstractController
         description: 'Access denied - user cannot review this clock request',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied'),
             ]
         )
     )]
@@ -485,14 +488,14 @@ class ClockRequestController extends AbstractController
         description: 'Clock request not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found'),
             ]
         )
     )]
     public function approve(
         ClockRequest $clockRequest,
         #[MapRequestPayload] ApproveClockRequestDto $dto,
-        #[CurrentUser] User $currentUser
+        #[CurrentUser] User $currentUser,
     ): JsonResponse {
         $finalTime = $dto->approvedTime ?? $clockRequest->getRequestedTime();
         $finalStatus = $dto->approvedStatus ?? $clockRequest->getRequestedStatus();
@@ -531,6 +534,7 @@ class ClockRequestController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->clockRequestMapper->toOutputDto($clockRequest);
+
         return $this->json($outputDto);
     }
 
@@ -554,7 +558,7 @@ class ClockRequestController extends AbstractController
         content: new OA\JsonContent(
             required: ['rejectionReason'],
             properties: [
-                new OA\Property(property: 'rejectionReason', description: 'Detailed reason for rejection (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'The requested time conflicts with another team member\'s schedule.')
+                new OA\Property(property: 'rejectionReason', description: 'Detailed reason for rejection (10-1000 chars)', type: 'string', maxLength: 1000, minLength: 10, example: 'The requested time conflicts with another team member\'s schedule.'),
             ]
         )
     )]
@@ -574,7 +578,7 @@ class ClockRequestController extends AbstractController
                 new OA\Property(property: 'reviewedBy', type: 'object'),
                 new OA\Property(property: 'reviewedAt', type: 'string', format: 'date-time'),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -583,7 +587,7 @@ class ClockRequestController extends AbstractController
         description: 'Bad request - validation errors on rejection reason',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Rejection reason must be at least 10 characters')
+                new OA\Property(property: 'error', type: 'string', example: 'Rejection reason must be at least 10 characters'),
             ]
         )
     )]
@@ -592,7 +596,7 @@ class ClockRequestController extends AbstractController
         description: 'Access denied - user cannot review this clock request',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Access Denied')
+                new OA\Property(property: 'error', type: 'string', example: 'Access Denied'),
             ]
         )
     )]
@@ -601,25 +605,26 @@ class ClockRequestController extends AbstractController
         description: 'Clock request not found',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'error', type: 'string', example: 'Not Found')
+                new OA\Property(property: 'error', type: 'string', example: 'Not Found'),
             ]
         )
     )]
     public function reject(
         ClockRequest $clockRequest,
         #[MapRequestPayload] RejectClockRequestDto $dto,
-        #[CurrentUser] User $currentUser
+        #[CurrentUser] User $currentUser,
     ): JsonResponse {
         $clockRequest->setStatus('REJECTED');
         $clockRequest->setReviewedBy($currentUser);
         $clockRequest->setReviewedAt(new \DateTimeImmutable());
         $clockRequest->setReason(
-            $clockRequest->getReason() . "\n\n[REJECTION REASON]: " . $dto->rejectionReason
+            $clockRequest->getReason()."\n\n[REJECTION REASON]: ".$dto->rejectionReason
         );
 
         $this->em->flush();
 
         $outputDto = $this->clockRequestMapper->toOutputDto($clockRequest);
+
         return $this->json($outputDto);
     }
 }

@@ -15,8 +15,9 @@ class ClockWorkingTimeSubscriber
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly LoggerInterface $logger
-    ) {}
+        private readonly LoggerInterface $logger,
+    ) {
+    }
 
     public function postPersist(LifecycleEventArgs $args): void
     {
@@ -26,7 +27,7 @@ class ClockWorkingTimeSubscriber
             return;
         }
 
-        if ($entity->isStatus() !== false) {
+        if (false !== $entity->isStatus()) {
             return;
         }
 
@@ -53,8 +54,9 @@ class ClockWorkingTimeSubscriber
         if (!$clockIn) {
             $this->logger->warning('No matching clock-in found for clock-out', [
                 'user_id' => $user->getId(),
-                'clock_out_time' => $clockOutTime->format('Y-m-d H:i:s')
+                'clock_out_time' => $clockOutTime->format('Y-m-d H:i:s'),
             ]);
+
             return;
         }
 
@@ -74,8 +76,9 @@ class ClockWorkingTimeSubscriber
             $this->logger->info('WorkingTime already exists for this period', [
                 'user_id' => $user->getId(),
                 'start_time' => $clockIn->getTime()->format('Y-m-d H:i:s'),
-                'end_time' => $clockOutTime->format('Y-m-d H:i:s')
+                'end_time' => $clockOutTime->format('Y-m-d H:i:s'),
             ]);
+
             return;
         }
 
@@ -91,7 +94,7 @@ class ClockWorkingTimeSubscriber
             'user_id' => $user->getId(),
             'start_time' => $clockIn->getTime()->format('Y-m-d H:i:s'),
             'end_time' => $clockOutTime->format('Y-m-d H:i:s'),
-            'working_time_id' => $workingTime->getId()
+            'working_time_id' => $workingTime->getId(),
         ]);
     }
 }
