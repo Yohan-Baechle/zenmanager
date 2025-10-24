@@ -140,6 +140,9 @@ class ClockRequest
 
     public function setStatus(string $status): static
     {
+        if (!in_array($status, ['PENDING', 'APPROVED', 'REJECTED'], true)) {
+            throw new \InvalidArgumentException('Invalid status value.');
+        }
         $this->status = $status;
         return $this;
     }
