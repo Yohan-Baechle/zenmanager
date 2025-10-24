@@ -1,10 +1,20 @@
 import { apiClient } from './client'
 import type { User, CreateUserDto, UpdateUserDto } from '../types/user.types'
 
+interface PaginatedResponse<T> {
+    data: T[]
+    meta: {
+        currentPage: number
+        itemsPerPage: number
+        totalItems: number
+        totalPages: number
+    }
+}
+
 export const usersApi = {
     getAll: async (): Promise<User[]> => {
-        const response = await apiClient.get<User[]>('/users')
-        return response.data
+        const response = await apiClient.get<PaginatedResponse<User>>('/users')
+        return response.data.data
     },
 
     getById: async (id: number): Promise<User> => {
@@ -26,12 +36,12 @@ export const usersApi = {
         await apiClient.delete(`/users/${id}`)
     },
 
-    getClocks: async (id: number, start?: string, end?: string): Promise<any> => {
+    getClocks: async (id: number, start?: string, end?: string): Promise<unknown> => {
         const params: Record<string, string> = {}
         if (start) params.start = start
         if (end) params.end = end
 
-        const response = await apiClient.get<any>(`/users/${id}/clocks`, { params })
+        const response = await apiClient.get<unknown>(`/users/${id}/clocks`, { params })
         return response.data
     },
 

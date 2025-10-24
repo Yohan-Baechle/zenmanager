@@ -10,7 +10,7 @@ export interface User {
     lastName: string
     phoneNumber?: string
     role: UserRole
-    teams?: Team
+    team?: Team | null
     createdAt?: string
     updatedAt?: string
 }
