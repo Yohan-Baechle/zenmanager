@@ -6,10 +6,14 @@ import UserList from '../../components/features/users/UserList'
 import UserForm from '../../components/features/users/UserForm'
 import { usersApi } from '../../api/users.api'
 import type { User, CreateUserDto, UpdateUserDto } from '../../types/user.types'
+import {ArrowBackIosNewIcon} from "../../assets/icons/arrow-back-ios-new.tsx";
 
 export default function AdminPage() {
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const [itemsPerPage] = useState(10)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -19,18 +23,28 @@ export default function AdminPage() {
         fetchUsers()
     }, [])
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page: number = currentPage) => {
         try {
             setLoading(true)
             setError(null)
-            const data = await usersApi.getAll()
-            setUsers(data)
+            const response = await usersApi.getAll(page, itemsPerPage)
+            setUsers(response.data)
+            setTotalPages(response.meta.totalPages)
+            setCurrentPage(page)
         } catch (err) {
             setError('Failed to load users')
             console.error('Error fetching users:', err)
         } finally {
             setLoading(false)
         }
+    }
+
+    const handlePrevious = () => {
+        if (currentPage > 1) fetchUsers(currentPage - 1)
+    }
+
+    const handleNext = () => {
+        if (currentPage < totalPages) fetchUsers(currentPage + 1)
     }
 
     const handleCreate = async (data: CreateUserDto | UpdateUserDto) => {
@@ -88,6 +102,22 @@ export default function AdminPage() {
             </div>
 
             <Card title="User Management">
+                <div className="flex items-center text-sm text-[var(--c5)]">
+                    <button
+                        onClick={handlePrevious}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-s-xl bg-[var(--c2)]/50 hover:bg-[var(--c2)]/75 cursor-pointer"
+                    ><ArrowBackIosNewIcon className="h-5 w-5"/></button>
+                    <div
+                        className="font-medium h-9 p-2 flex items-center bg-[var(--c2)]/50 border-l border-r border-[var(--c2)]">
+                        {currentPage}/{totalPages} Page{totalPages > 1 ? 's' : ''}
+                    </div>
+                    <button
+                        onClick={handleNext}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="p-2 rounded-e-xl bg-[var(--c2)]/50 hover:bg-[var(--c2)]/75 cursor-pointer"
+                    ><ArrowBackIosNewIcon className="h-5 w-5 rotate-180"/></button>
+                </div>
                 {loading ? (
                     <p className="text-gray-600">Loading users...</p>
                 ) : error ? (
@@ -108,7 +138,7 @@ export default function AdminPage() {
                 onClose={() => setIsCreateModalOpen(false)}
                 title="Create New User"
             >
-                <UserForm onSubmit={handleCreate} />
+                <UserForm onSubmit={handleCreate}/>
             </Modal>
 
             <Modal

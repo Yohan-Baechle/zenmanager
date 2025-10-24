@@ -12,9 +12,11 @@ interface PaginatedResponse<T> {
 }
 
 export const usersApi = {
-    getAll: async (): Promise<User[]> => {
-        const response = await apiClient.get<PaginatedResponse<User>>('/users')
-        return response.data.data
+    getAll: async (page: number = 1, limit: number = 20): Promise<PaginatedResponse<User>> => {
+        const response = await apiClient.get<PaginatedResponse<User>>('/users', {
+            params: { page, limit }
+        })
+        return response.data
     },
 
     getById: async (id: number): Promise<User> => {
