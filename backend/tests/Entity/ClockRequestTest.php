@@ -2,11 +2,10 @@
 
 namespace App\Tests\Entity;
 
+use App\Entity\Clock;
 use App\Entity\ClockRequest;
 use App\Entity\User;
-use App\Entity\Clock;
 use PHPUnit\Framework\TestCase;
-use DateTimeImmutable;
 
 class ClockRequestTest extends TestCase
 {
@@ -33,8 +32,8 @@ class ClockRequestTest extends TestCase
         $user = new User();
         $reviewer = new User();
         $clock = new Clock();
-        $time = new DateTimeImmutable('2025-01-01 10:00:00');
-        $reviewedAt = new DateTimeImmutable('2025-01-02 15:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 10:00:00');
+        $reviewedAt = new \DateTimeImmutable('2025-01-02 15:00:00');
 
         $request = (new ClockRequest())
             ->setUser($user)
@@ -76,7 +75,6 @@ class ClockRequestTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         $request->setStatus('BLAFEU_BLAFEU_BLAFEU');
-
     }
 
     /**
@@ -104,8 +102,8 @@ class ClockRequestTest extends TestCase
 
         $request->setCreatedAtValue();
 
-        $this->assertInstanceOf(DateTimeImmutable::class, $request->getCreatedAt());
-        $this->assertInstanceOf(DateTimeImmutable::class, $request->getUpdatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $request->getCreatedAt());
+        $this->assertInstanceOf(\DateTimeImmutable::class, $request->getUpdatedAt());
 
         $initialUpdatedAt = $request->getUpdatedAt();
         sleep(1);
@@ -121,7 +119,7 @@ class ClockRequestTest extends TestCase
     {
         $request = new ClockRequest();
         $reviewer = new User();
-        $time = new DateTimeImmutable();
+        $time = new \DateTimeImmutable();
 
         $request->setReviewedBy($reviewer);
         $request->setReviewedAt($time);

@@ -72,10 +72,12 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
         "post-install-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "bash scripts/install-captainhook.sh"
         ],
         "post-update-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "bash scripts/install-captainhook.sh"
         ]
     },
     "conflict": {
@@ -88,6 +90,7 @@
         }
     },
     "require-dev": {
+        "captainhook/captainhook": "^5.25",
         "doctrine/doctrine-fixtures-bundle": "^4.1",
         "fakerphp/faker": "^1.24.1",
         "friendsofphp/php-cs-fixer": "^3.89",
