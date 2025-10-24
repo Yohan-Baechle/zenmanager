@@ -24,7 +24,7 @@ export default function UserBadge({ firstName, lastName, role, className = '' }:
             </div>
 
             <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-semibold text-[var(--c5)] leading-tight">
+                <span className="text-sm font-semibold text-[var(--c5)] leading-tight truncate">
                     {firstName} {lastName}
                 </span>
                 {role && (

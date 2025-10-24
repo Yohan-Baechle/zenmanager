@@ -10,8 +10,9 @@ use App\Entity\User;
 class ClockMapper
 {
     public function __construct(
-        private readonly UserMapper $userMapper
-    ) {}
+        private readonly UserMapper $userMapper,
+    ) {
+    }
 
     public function toOutputDto(Clock $clock): ClockOutputDto
     {
@@ -26,11 +27,12 @@ class ClockMapper
 
     /**
      * @param Clock[] $clocks
+     *
      * @return ClockOutputDto[]
      */
     public function toOutputDtoCollection(array $clocks): array
     {
-        return array_map(fn(Clock $clock) => $this->toOutputDto($clock), $clocks);
+        return array_map(fn (Clock $clock) => $this->toOutputDto($clock), $clocks);
     }
 
     public function toEntity(ClockInputDto $dto, User $user): Clock

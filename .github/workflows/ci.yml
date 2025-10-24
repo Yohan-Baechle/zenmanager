@@ -97,4 +97,5 @@ jobs:
 
       - name: Run PHPUnit tests
         run: |
+          DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" \
           php bin/phpunit --testdox

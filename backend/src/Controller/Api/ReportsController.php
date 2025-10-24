@@ -5,12 +5,12 @@ namespace App\Controller\Api;
 use App\Repository\ClockRepository;
 use App\Repository\WorkingTimeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Reports')]
 class ReportsController extends AbstractController
@@ -20,7 +20,6 @@ class ReportsController extends AbstractController
         private readonly WorkingTimeRepository $workingTimeRepository,
         private readonly EntityManagerInterface $entityManager
     ) {}
-
 
     #[Route('/reports', name: 'api_reports', methods: ['GET'])]
     #[OA\Get(
@@ -82,7 +81,7 @@ class ReportsController extends AbstractController
                             properties: [
                                 new OA\Property(property: 'total_days', type: 'integer', example: 365),
                                 new OA\Property(property: 'working_days', type: 'integer', example: 261),
-                                new OA\Property(property: 'weekend_days', type: 'integer', example: 104)
+                                new OA\Property(property: 'weekend_days', type: 'integer', example: 104),
                             ],
                             type: 'object'
                         ),
@@ -93,7 +92,7 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'end_time', type: 'string', example: '17:00'),
                                 new OA\Property(property: 'tolerance_late', type: 'integer', example: 30),
                                 new OA\Property(property: 'tolerance_early_departure', type: 'integer', example: 30),
-                                new OA\Property(property: 'standard_hours_per_day', type: 'integer', example: 8)
+                                new OA\Property(property: 'standard_hours_per_day', type: 'integer', example: 8),
                             ],
                             type: 'object'
                         ),
@@ -107,13 +106,13 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'present_days_count', type: 'integer', example: 235),
                                 new OA\Property(property: 'absent_days_count', type: 'integer', example: 26),
                                 new OA\Property(property: 'incomplete_days_count', type: 'integer', example: 3),
-                                new OA\Property(property: 'total_exits_count', type: 'integer', example: 470)
+                                new OA\Property(property: 'total_exits_count', type: 'integer', example: 470),
                             ],
                             type: 'object'
-                        )
+                        ),
                     ],
                     type: 'object'
-                )
+                ),
             ]
         )
     )]
@@ -137,16 +136,15 @@ class ReportsController extends AbstractController
     {
         $startDateStr = $request->query->get('start_date');
         $endDateStr = $request->query->get('end_date');
-        $teamId = $request->query->get('team_id') ? (int)$request->query->get('team_id') : null;
-        $userId = $request->query->get('user_id') ? (int)$request->query->get('user_id') : null;
+        $teamId = $request->query->get('team_id') ? (int) $request->query->get('team_id') : null;
+        $userId = $request->query->get('user_id') ? (int) $request->query->get('user_id') : null;
 
-        /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
 
-        if (!$currentUser) {
+        if (!$currentUser instanceof \App\Entity\User) {
             return $this->json([
                 'success' => false,
-                'error' => 'User not authenticated'
+                'error' => 'User not authenticated',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -156,13 +154,13 @@ class ReportsController extends AbstractController
 
         if ($isManager && !$isAdmin) {
             $managedTeams = $currentUser->getManagedTeams();
-            $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
+            $managedTeamIds = array_map(fn ($team) => $team->getId(), $managedTeams->toArray());
 
-            if ($teamId === null) {
+            if (null === $teamId) {
                 return $this->json([
                     'success' => false,
                     'error' => 'Managers must specify a team_id parameter',
-                    'managed_team_ids' => $managedTeamIds
+                    'managed_team_ids' => $managedTeamIds,
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -170,7 +168,7 @@ class ReportsController extends AbstractController
                 return $this->json([
                     'success' => false,
                     'error' => 'Access denied. You can only view reports for teams you manage.',
-                    'managed_team_ids' => $managedTeamIds
+                    'managed_team_ids' => $managedTeamIds,
                 ], Response::HTTP_FORBIDDEN);
             }
         }
@@ -189,7 +187,7 @@ class ReportsController extends AbstractController
             }
 
             if ($endDateStr) {
-                $endDate = new \DateTimeImmutable($endDateStr . ' 23:59:59');
+                $endDate = new \DateTimeImmutable($endDateStr.' 23:59:59');
             }
 
             $totalWorkingHours = $this->workingTimeRepository->calculateTotalWorkingHours(
@@ -220,56 +218,7 @@ class ReportsController extends AbstractController
                 $teamId
             );
 
-            // Calculer les jours d'absence
-            $absentDays = 0;
-            if ($userId) {
-                // Pour un utilisateur spécifique
-                $absentDays = $this->calculateAbsentDays(
-                    $startDateStr,
-                    $endDateStr,
-                    $userId,
-                    $presentDays
-                );
-            } elseif ($teamId && $startDateStr && $endDateStr) {
-                // Pour une équipe entière, calculer le total des absences de tous les employés
-                $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
-                $team = $teamRepository->find($teamId);
-                
-                if ($team) {
-                    $start = new \DateTime($startDateStr);
-                    $end = new \DateTime($endDateStr);
-                    
-                    // Calculer le nombre de jours ouvrables dans la période
-                    $workingDays = 0;
-                    $current = clone $start;
-                    while ($current <= $end) {
-                        $dayOfWeek = (int)$current->format('N');
-                        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                            $workingDays++;
-                        }
-                        $current->modify('+1 day');
-                    }
-                    
-                    // Pour chaque employé de l'équipe, calculer ses jours d'absence
-                    foreach ($team->getEmployees() as $employee) {
-                        $employeeId = $employee->getId();
-                        
-                        // Récupérer les jours de présence de cet employé
-                        $employeePresentDays = $this->workingTimeRepository->countPresentDays(
-                            $startDate,
-                            $endDate,
-                            $employeeId,
-                            null
-                        );
-                        
-                        // Calculer les jours d'absence de cet employé
-                        $employeeAbsentDays = max(0, $workingDays - $employeePresentDays);
-                        $absentDays += $employeeAbsentDays;
-                    }
-                }
-            }
-
-            $incompleteDays = $this->clockRepository->countIncompleteDays(
+            $incompleteDays = $this->workingTimeRepository->countIncompleteDays(
                 $startDate,
                 $endDate,
                 $userId,
@@ -283,23 +232,38 @@ class ReportsController extends AbstractController
                 $teamId
             );
 
+            $totalExitsExpected = $presentDays * 2;
+            $lateArrivalsRate = $presentDays > 0
+                ? round(($lateArrivals / $presentDays) * 100, 1)
+                : 0;
+
+            $absentDays = $this->calculateAbsentDays(
+                $startDateStr,
+                $endDateStr,
+                $userId,
+                $presentDays
+            );
+
             $periodInfo = $this->getPeriodInfo($startDateStr, $endDateStr);
 
-            // Calculer le nombre d'employés dans l'équipe
-            $employeeCount = null;
-            if ($teamId) {
-                $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
-                $team = $teamRepository->find($teamId);
-                if ($team) {
-                    $employeeCount = $team->getEmployees()->count();
-                }
-            }
+            $workSchedule = [
+                'start_time' => '08:00',
+                'end_time' => '17:00',
+                'tolerance_late' => 30,
+                'tolerance_early_departure' => 30,
+                'standard_hours_per_day' => 8,
+            ];
 
-            // Calculer le taux de retards (pourcentage)
-            $lateArrivalsRate = 0;
-            if ($presentDays > 0) {
-                $lateArrivalsRate = round(($lateArrivals / $presentDays) * 100, 2);
-            }
+            $kpis = [
+                'total_working_hours' => round($totalWorkingHours, 2),
+                'late_arrivals_count' => $lateArrivals,
+                'late_arrivals_rate' => $lateArrivalsRate,
+                'early_departures_count' => $earlyDepartures,
+                'present_days_count' => $presentDays,
+                'absent_days_count' => $absentDays,
+                'incomplete_days_count' => $incompleteDays,
+                'total_exits_count' => $totalExits,
+            ];
 
             return $this->json([
                 'success' => true,
@@ -308,43 +272,26 @@ class ReportsController extends AbstractController
                     'filters' => [
                         'start_date' => $startDateStr,
                         'end_date' => $endDateStr,
-                        'team_id' => $teamId ? (int)$teamId : null,
+                        'team_id' => $teamId,
                         'user_id' => $userId,
-                        'employee_count' => $employeeCount
                     ],
                     'period' => $periodInfo,
-                    'work_schedule' => [
-                        'start_time' => '08:00',
-                        'end_time' => '17:00',
-                        'tolerance_late' => 30,
-                        'tolerance_early_departure' => 30,
-                        'standard_hours_per_day' => 8
-                    ],
-                    'kpis' => [
-                        'total_working_hours' => $totalWorkingHours,
-                        'late_arrivals_count' => $lateArrivals,
-                        'late_arrivals_rate' => $lateArrivalsRate,
-                        'early_departures_count' => $earlyDepartures,
-                        'present_days_count' => $presentDays,
-                        'absent_days_count' => $absentDays,
-                        'incomplete_days_count' => $incompleteDays,
-                        'total_exits_count' => $totalExits
-                    ]
-                ]
+                    'work_schedule' => $workSchedule,
+                    'kpis' => $kpis,
+                ],
             ]);
-
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
-                'error' => 'Error calculating KPIs: ' . $e->getMessage()
+                'error' => 'An error occurred while calculating KPIs: '.$e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    #[Route('/reports/my-teams', name: 'api_reports_my_teams', methods: ['GET'])]
+    #[Route('/reports/teams', name: 'api_reports_teams', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/reports/my-teams',
-        summary: 'Get teams managed by current user',
+        path: '/api/reports/teams',
+        summary: 'Get list of teams available for the authenticated user',
         tags: ['Reports']
     )]
     #[OA\Response(
@@ -366,7 +313,11 @@ class ReportsController extends AbstractController
             ]
         )
     )]
-    public function getMyTeams(): JsonResponse
+    #[OA\Response(
+        response: 401,
+        description: 'User not authenticated'
+    )]
+    public function getTeams(): JsonResponse
     {
         /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
@@ -385,7 +336,6 @@ class ReportsController extends AbstractController
         $teams = [];
 
         if ($isAdmin) {
-            // Admin voit toutes les équipes
             $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
             $allTeams = $teamRepository->findAll();
             
@@ -396,7 +346,6 @@ class ReportsController extends AbstractController
                 ];
             }
         } elseif ($isManager) {
-            // Manager voit ses équipes
             $managedTeams = $currentUser->getManagedTeams();
             
             foreach ($managedTeams as $team) {
@@ -406,7 +355,6 @@ class ReportsController extends AbstractController
                 ];
             }
         } else {
-            // Employé voit son équipe
             $userTeam = $currentUser->getTeam();
             if ($userTeam) {
                 $teams[] = [
@@ -484,7 +432,6 @@ class ReportsController extends AbstractController
         $isAdmin = in_array('ROLE_ADMIN', $userRoles);
         $isManager = in_array('ROLE_MANAGER', $userRoles);
 
-        // Vérifier les permissions
         if ($isManager && !$isAdmin) {
             $managedTeams = $currentUser->getManagedTeams();
             $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
@@ -497,7 +444,6 @@ class ReportsController extends AbstractController
             }
         }
 
-        // Récupérer l'équipe
         $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
         $team = $teamRepository->find($teamId);
 
@@ -508,7 +454,6 @@ class ReportsController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Récupérer les employés de l'équipe
         $employees = [];
         foreach ($team->getEmployees() as $employee) {
             $employees[] = [
@@ -529,7 +474,7 @@ class ReportsController extends AbstractController
         ?string $startDate,
         ?string $endDate,
         ?int $userId,
-        int $presentDays
+        int $presentDays,
     ): int {
         if (!$startDate || !$endDate) {
             return 0;
@@ -542,10 +487,10 @@ class ReportsController extends AbstractController
         $current = clone $start;
 
         while ($current <= $end) {
-            $dayOfWeek = (int)$current->format('N');
+            $dayOfWeek = (int) $current->format('N');
 
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                $workingDays++;
+                ++$workingDays;
             }
 
             $current->modify('+1 day');
@@ -558,13 +503,16 @@ class ReportsController extends AbstractController
         return 0;
     }
 
+    /**
+     * @return array{total_days: int|null, working_days: int|null, weekend_days: int|null}
+     */
     private function getPeriodInfo(?string $startDate, ?string $endDate): array
     {
         if (!$startDate || !$endDate) {
             return [
                 'total_days' => null,
                 'working_days' => null,
-                'weekend_days' => null
+                'weekend_days' => null,
             ];
         }
 
@@ -578,11 +526,11 @@ class ReportsController extends AbstractController
         $current = clone $start;
 
         while ($current <= $end) {
-            $dayOfWeek = (int)$current->format('N');
+            $dayOfWeek = (int) $current->format('N');
             if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
-                $workingDays++;
+                ++$workingDays;
             } else {
-                $weekendDays++;
+                ++$weekendDays;
             }
             $current->modify('+1 day');
         }
@@ -590,7 +538,7 @@ class ReportsController extends AbstractController
         return [
             'total_days' => $totalDays,
             'working_days' => $workingDays,
-            'weekend_days' => $weekendDays
+            'weekend_days' => $weekendDays,
         ];
     }
 }

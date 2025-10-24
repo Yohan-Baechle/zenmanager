@@ -1,49 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Button from '../../common/Button'
 import Card from '../../common/Card'
 import { clocksApi } from '../../../api/clocks.api'
+import { useAuth } from "../../../hooks/useAuth.ts";
+import { AlarmAddIcon } from '../../../assets/icons/alarm-add.tsx'
 
-export default function ClockInOut() {
+interface ClockInOutProps {
+    onClockSuccess?: () => void
+}
+
+export default function ClockInOut({ onClockSuccess }: ClockInOutProps) {
     const [loading, setLoading] = useState(false)
-    const [lastClock, setLastClock] = useState<'in' | 'out' | null>(null)
+    const [currentTime, setCurrentTime] = useState(new Date())
+    const { user } = useAuth()
 
-    const handleClock = async (type: 'in' | 'out') => {
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date())
+        }, 1000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleClock = async () => {
+        if (!user) return
+
         setLoading(true)
         try {
-            await clocksApi.create({ type })
-            setLastClock(type)
-            alert(`Successfully clocked ${type}!`)
+            await clocksApi.create({
+                time: new Date().toISOString(),
+                userId: user.id
+            })
+            alert('Clock enregistré !')
+            onClockSuccess?.()
         } catch (error) {
-            alert(`Failed to clock ${type}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <Card title="Clock In/Out">
-            <div className="flex gap-4">
-                <Button
-                    onClick={() => handleClock('in')}
-                    disabled={loading || lastClock === 'in'}
-                    className="flex-1"
-                >
-                    Clock In
-                </Button>
-                <Button
-                    onClick={() => handleClock('out')}
-                    disabled={loading || lastClock === 'out'}
-                    variant="secondary"
-                    className="flex-1"
-                >
-                    Clock Out
-                </Button>
-            </div>
-            {lastClock && (
-                <p className="mt-4 text-sm text-gray-600">
-                    Last action: Clocked {lastClock} at {new Date().toLocaleTimeString()}
-                </p>
-            )}
+        <Card
+            title={`Pointer ${currentTime.toLocaleTimeString()}`}
+            icon={AlarmAddIcon}
+        >
+            <Button
+                onClick={handleClock}
+                disabled={loading}
+                className="w-full"
+            >
+                Cliquer ici pour pointer
+            </Button>
         </Card>
     )
 }

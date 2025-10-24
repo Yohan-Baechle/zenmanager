@@ -1,9 +1,11 @@
+import type { User } from './user.types'
+
 export interface Team {
     id: number
     name: string
     description: string
-    managerId: number
-    memberIds: number[]
+    manager?: User
+    employees?: User[]
     createdAt: string
     updatedAt: string
 }

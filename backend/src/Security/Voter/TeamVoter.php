@@ -31,7 +31,7 @@ class TeamVoter extends Voter
         /** @var Team $team */
         $team = $subject;
 
-        return match($attribute) {
+        return match ($attribute) {
             self::VIEW => $this->canView($team, $user),
             self::EDIT => $this->canEdit($team, $user),
             self::DELETE => $this->canDelete($team, $user),

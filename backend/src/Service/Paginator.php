@@ -12,11 +12,11 @@ class Paginator
     public const MAX_LIMIT = 100;
 
     /**
-     * Paginate a QueryBuilder
+     * Paginate a QueryBuilder.
      *
-     * @param QueryBuilder $queryBuilder
-     * @param int $page Current page number (starting from 1)
+     * @param int $page  Current page number (starting from 1)
      * @param int $limit Number of items per page
+     *
      * @return array{items: array, meta: array{currentPage: int, itemsPerPage: int, totalItems: int, totalPages: int}}
      */
     public function paginate(QueryBuilder $queryBuilder, int $page = self::DEFAULT_PAGE, int $limit = self::DEFAULT_LIMIT): array

@@ -61,7 +61,7 @@ class ClockRequest
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        if ($this->createdAt === null) {
+        if (null === $this->createdAt) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->setUpdatedAtValue();
@@ -86,6 +86,7 @@ class ClockRequest
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -97,6 +98,7 @@ class ClockRequest
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -108,6 +110,7 @@ class ClockRequest
     public function setRequestedTime(\DateTimeImmutable $requestedTime): static
     {
         $this->requestedTime = $requestedTime;
+
         return $this;
     }
 
@@ -119,6 +122,7 @@ class ClockRequest
     public function setRequestedStatus(?bool $requestedStatus): static
     {
         $this->requestedStatus = $requestedStatus;
+
         return $this;
     }
 
@@ -130,6 +134,7 @@ class ClockRequest
     public function setTargetClock(?Clock $targetClock): static
     {
         $this->targetClock = $targetClock;
+
         return $this;
     }
 
@@ -141,6 +146,7 @@ class ClockRequest
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -152,6 +158,7 @@ class ClockRequest
     public function setReason(string $reason): static
     {
         $this->reason = $reason;
+
         return $this;
     }
 
@@ -163,6 +170,7 @@ class ClockRequest
     public function setReviewedBy(?User $reviewedBy): static
     {
         $this->reviewedBy = $reviewedBy;
+
         return $this;
     }
 
@@ -174,6 +182,7 @@ class ClockRequest
     public function setReviewedAt(?\DateTimeImmutable $reviewedAt): static
     {
         $this->reviewedAt = $reviewedAt;
+
         return $this;
     }
 

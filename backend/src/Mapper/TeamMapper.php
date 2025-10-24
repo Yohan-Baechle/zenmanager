@@ -11,8 +11,9 @@ use App\Entity\User;
 class TeamMapper
 {
     public function __construct(
-        private readonly UserMapper $userMapper
-    ) {}
+        private readonly UserMapper $userMapper,
+    ) {
+    }
 
     public function toOutputDto(Team $team): TeamOutputDto
     {
@@ -36,11 +37,12 @@ class TeamMapper
 
     /**
      * @param Team[] $teams
+     *
      * @return TeamOutputDto[]
      */
     public function toOutputDtoCollection(array $teams): array
     {
-        return array_map(fn(Team $team) => $this->toOutputDto($team), $teams);
+        return array_map(fn (Team $team) => $this->toOutputDto($team), $teams);
     }
 
     public function toEntity(TeamInputDto $dto, ?User $manager = null): Team
@@ -55,15 +57,15 @@ class TeamMapper
 
     public function updateEntity(Team $team, TeamUpdateDto $dto, ?User $manager = null): void
     {
-        if ($dto->name !== null) {
+        if (null !== $dto->name) {
             $team->setName($dto->name);
         }
 
-        if ($dto->description !== null) {
+        if (null !== $dto->description) {
             $team->setDescription($dto->description);
         }
 
-        if (isset($dto->managerId) || $manager !== null) {
+        if (isset($dto->managerId) || null !== $manager) {
             $team->setManager($manager);
         }
     }

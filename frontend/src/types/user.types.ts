@@ -1,14 +1,18 @@
-export type UserRole = 'employee' | 'manager'
+import type { Team } from './team.types'
+
+export type UserRole = 'employee' | 'manager' | 'admin'
 
 export interface User {
     id: number
+    username: string
+    email: string
     firstName: string
     lastName: string
-    email: string
-    phoneNumber: string
+    phoneNumber?: string
     role: UserRole
-    createdAt: string
-    updatedAt: string
+    teams?: Team
+    createdAt?: string
+    updatedAt?: string
 }
 
 export interface CreateUserDto {
