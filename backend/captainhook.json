@@ -1,0 +1,51 @@
+{
+  "config": {
+    "includes": []
+  },
+  "commit-msg": {
+    "enabled": false,
+    "actions": []
+  },
+  "pre-push": {
+    "enabled": true,
+    "actions": [
+      {
+        "action": "sh -c 'while read local_ref local_sha remote_ref remote_sha; do branch=$(echo \"$remote_ref\" | sed \"s/refs\\/heads\\///\"); if [ \"$branch\" = \"main\" ] || [ \"$branch\" = \"master\" ]; then echo \"\\n========================================\\n  PUSH BLOCKED\\n========================================\\n\\n[ERROR] Direct push to \\\"$branch\\\" is forbidden.\\n\\nPlease create a pull request instead:\\n  1. Push to a feature branch\\n  2. Create a PR on GitHub\\n\"; exit 1; fi; done'",
+        "conditions": []
+      }
+    ]
+  },
+  "pre-commit": {
+    "enabled": true,
+    "actions": [
+      {
+        "action": "sh -c 'PHP_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep \"^backend/.*\\.php$\" || true); if [ -z \"$PHP_FILES\" ]; then echo \"\\n========================================\\n  NO BACKEND PHP FILES MODIFIED\\n========================================\\n\\nSkipping PHP CS Fixer and PHPStan checks.\\n\"; exit 0; fi; echo \"\\n========================================\\n  PRE-COMMIT CHECKS (Backend)\\n========================================\\n\\nModified PHP files:\"; echo \"$PHP_FILES\" | sed \"s/^/  - /\"; echo \"\\n[1/2] Running PHP CS Fixer...\\n----------------------------------------\"; docker compose exec -T backend vendor/bin/php-cs-fixer fix --dry-run --diff || { echo \"\\n[ERROR] PHP CS Fixer found issues.\\n\\nTo fix automatically, run:\\n  docker compose exec backend vendor/bin/php-cs-fixer fix\\n\"; exit 1; }; echo \"[SUCCESS] PHP CS Fixer passed\\n\\n[2/2] Running PHPStan...\\n----------------------------------------\"; docker compose exec -T backend vendor/bin/phpstan analyse --memory-limit=512M --no-progress || { echo \"\\n[ERROR] PHPStan found errors.\\nPlease fix the errors above before committing.\\n\"; exit 1; }; echo \"[SUCCESS] PHPStan passed\\n\\n========================================\\n  ALL CHECKS PASSED\\n========================================\\n\"'",
+        "conditions": []
+      }
+    ]
+  },
+  "prepare-commit-msg": {
+    "enabled": false,
+    "actions": []
+  },
+  "post-commit": {
+    "enabled": false,
+    "actions": []
+  },
+  "post-merge": {
+    "enabled": false,
+    "actions": []
+  },
+  "post-checkout": {
+    "enabled": false,
+    "actions": []
+  },
+  "post-rewrite": {
+    "enabled": false,
+    "actions": []
+  },
+  "post-change": {
+    "enabled": false,
+    "actions": []
+  }
+}
