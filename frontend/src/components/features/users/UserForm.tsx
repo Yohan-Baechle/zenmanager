@@ -18,15 +18,15 @@ export default function UserForm({ initialData, onSubmit, isEdit = false }: User
     const roleOptions = [
         { value: 'employee', label: 'Employee' },
         { value: 'manager', label: 'Manager' },
-        { value: 'admin', label: 'Admin' },
     ]
 
-    const handleFormSubmit = (data: CreateUserDto | UpdateUserDto) => {
-        onSubmit(data)
-    }
-
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
+                label="Username"
+                {...register('username', { required: !isEdit && 'Username is required' })}
+                error={errors.username?.message}
+            />
             <Input
                 label="First Name"
                 {...register('firstName', { required: 'First name is required' })}
@@ -48,15 +48,6 @@ export default function UserForm({ initialData, onSubmit, isEdit = false }: User
                 {...register('phoneNumber', { required: 'Phone number is required' })}
                 error={errors.phoneNumber?.message}
             />
-            {!isEdit && (
-                <Input
-                    label="Password"
-                    type="password"
-                    visible
-                    {...register('password', { required: 'Password is required' })}
-                    error={errors.password?.message}
-                />
-            )}
             <Select
                 label="Role"
                 options={roleOptions}

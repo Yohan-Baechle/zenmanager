@@ -122,6 +122,7 @@ export default function AdminPage() {
                 {selectedUser && (
                     <UserForm
                         initialData={{
+                            username: selectedUser.username,
                             firstName: selectedUser.firstName,
                             lastName: selectedUser.lastName,
                             email: selectedUser.email,
