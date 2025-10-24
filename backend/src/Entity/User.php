@@ -74,7 +74,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 20, nullable: true)]
     #[Assert\Regex(
-        pattern: '/^\+?[1-9]\d{1,14}$/',
+        pattern: '/^\+?[0-9]\d{1,14}$/',
         message: 'Invalid phone number format'
     )]
     private ?string $phoneNumber = null;

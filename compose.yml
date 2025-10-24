@@ -41,11 +41,8 @@ services:
     volumes:
       - ./backend:/var/www/symfony
       - timemanager_backend_logs:/var/www/symfony/var/log
-      - ./scripts:/scripts
-      - ./.git:/git
     command: >
       sh -c "composer install --no-scripts &&
-             bash /scripts/install-hooks.sh &&
              echo '⏳ Waiting for database...' &&
              sleep 5 &&
              php bin/console app:reset-db -n &&

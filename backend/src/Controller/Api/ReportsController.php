@@ -18,8 +18,9 @@ class ReportsController extends AbstractController
     public function __construct(
         private readonly ClockRepository $clockRepository,
         private readonly WorkingTimeRepository $workingTimeRepository,
-        private readonly EntityManagerInterface $entityManager
-    ) {}
+        private readonly EntityManagerInterface $entityManager,
+    ) {
+    }
 
     #[Route('/reports', name: 'api_reports', methods: ['GET'])]
     #[OA\Get(
@@ -72,7 +73,7 @@ class ReportsController extends AbstractController
                                 new OA\Property(property: 'end_date', type: 'string', nullable: true),
                                 new OA\Property(property: 'team_id', type: 'integer', nullable: true),
                                 new OA\Property(property: 'user_id', type: 'integer', nullable: true),
-                                new OA\Property(property: 'employee_count', type: 'integer', nullable: true, example: 5)
+                                new OA\Property(property: 'employee_count', type: 'integer', nullable: true, example: 5),
                             ],
                             type: 'object'
                         ),
@@ -139,9 +140,10 @@ class ReportsController extends AbstractController
         $teamId = $request->query->get('team_id') ? (int) $request->query->get('team_id') : null;
         $userId = $request->query->get('user_id') ? (int) $request->query->get('user_id') : null;
 
+        /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
 
-        if (!$currentUser instanceof \App\Entity\User) {
+        if (!$currentUser) {
             return $this->json([
                 'success' => false,
                 'error' => 'User not authenticated',
@@ -218,7 +220,49 @@ class ReportsController extends AbstractController
                 $teamId
             );
 
-            $incompleteDays = $this->workingTimeRepository->countIncompleteDays(
+            $absentDays = 0;
+            if ($userId) {
+                $absentDays = $this->calculateAbsentDays(
+                    $startDateStr,
+                    $endDateStr,
+                    $userId,
+                    $presentDays
+                );
+            } elseif ($teamId && $startDateStr && $endDateStr) {
+                $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
+                $team = $teamRepository->find($teamId);
+
+                if ($team) {
+                    $start = new \DateTime($startDateStr);
+                    $end = new \DateTime($endDateStr);
+
+                    $workingDays = 0;
+                    $current = clone $start;
+                    while ($current <= $end) {
+                        $dayOfWeek = (int) $current->format('N');
+                        if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
+                            ++$workingDays;
+                        }
+                        $current->modify('+1 day');
+                    }
+
+                    foreach ($team->getEmployees() as $employee) {
+                        $employeeId = $employee->getId();
+
+                        $employeePresentDays = $this->workingTimeRepository->countPresentDays(
+                            $startDate,
+                            $endDate,
+                            $employeeId,
+                            null
+                        );
+
+                        $employeeAbsentDays = max(0, $workingDays - $employeePresentDays);
+                        $absentDays += $employeeAbsentDays;
+                    }
+                }
+            }
+
+            $incompleteDays = $this->clockRepository->countIncompleteDays(
                 $startDate,
                 $endDate,
                 $userId,
@@ -232,38 +276,21 @@ class ReportsController extends AbstractController
                 $teamId
             );
 
-            $totalExitsExpected = $presentDays * 2;
-            $lateArrivalsRate = $presentDays > 0
-                ? round(($lateArrivals / $presentDays) * 100, 1)
-                : 0;
-
-            $absentDays = $this->calculateAbsentDays(
-                $startDateStr,
-                $endDateStr,
-                $userId,
-                $presentDays
-            );
-
             $periodInfo = $this->getPeriodInfo($startDateStr, $endDateStr);
 
-            $workSchedule = [
-                'start_time' => '08:00',
-                'end_time' => '17:00',
-                'tolerance_late' => 30,
-                'tolerance_early_departure' => 30,
-                'standard_hours_per_day' => 8,
-            ];
+            $employeeCount = null;
+            if ($teamId) {
+                $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
+                $team = $teamRepository->find($teamId);
+                if ($team) {
+                    $employeeCount = $team->getEmployees()->count();
+                }
+            }
 
-            $kpis = [
-                'total_working_hours' => round($totalWorkingHours, 2),
-                'late_arrivals_count' => $lateArrivals,
-                'late_arrivals_rate' => $lateArrivalsRate,
-                'early_departures_count' => $earlyDepartures,
-                'present_days_count' => $presentDays,
-                'absent_days_count' => $absentDays,
-                'incomplete_days_count' => $incompleteDays,
-                'total_exits_count' => $totalExits,
-            ];
+            $lateArrivalsRate = 0;
+            if ($presentDays > 0) {
+                $lateArrivalsRate = round(($lateArrivals / $presentDays) * 100, 2);
+            }
 
             return $this->json([
                 'success' => true,
@@ -272,26 +299,42 @@ class ReportsController extends AbstractController
                     'filters' => [
                         'start_date' => $startDateStr,
                         'end_date' => $endDateStr,
-                        'team_id' => $teamId,
+                        'team_id' => $teamId ? (int) $teamId : null,
                         'user_id' => $userId,
+                        'employee_count' => $employeeCount,
                     ],
                     'period' => $periodInfo,
-                    'work_schedule' => $workSchedule,
-                    'kpis' => $kpis,
+                    'work_schedule' => [
+                        'start_time' => '08:00',
+                        'end_time' => '17:00',
+                        'tolerance_late' => 30,
+                        'tolerance_early_departure' => 30,
+                        'standard_hours_per_day' => 8,
+                    ],
+                    'kpis' => [
+                        'total_working_hours' => $totalWorkingHours,
+                        'late_arrivals_count' => $lateArrivals,
+                        'late_arrivals_rate' => $lateArrivalsRate,
+                        'early_departures_count' => $earlyDepartures,
+                        'present_days_count' => $presentDays,
+                        'absent_days_count' => $absentDays,
+                        'incomplete_days_count' => $incompleteDays,
+                        'total_exits_count' => $totalExits,
+                    ],
                 ],
             ]);
         } catch (\Exception $e) {
             return $this->json([
                 'success' => false,
-                'error' => 'An error occurred while calculating KPIs: '.$e->getMessage(),
+                'error' => 'Error calculating KPIs: '.$e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    #[Route('/reports/teams', name: 'api_reports_teams', methods: ['GET'])]
+    #[Route('/reports/my-teams', name: 'api_reports_my_teams', methods: ['GET'])]
     #[OA\Get(
-        path: '/api/reports/teams',
-        summary: 'Get list of teams available for the authenticated user',
+        path: '/api/reports/my-teams',
+        summary: 'Get teams managed by current user',
         tags: ['Reports']
     )]
     #[OA\Response(
@@ -306,18 +349,14 @@ class ReportsController extends AbstractController
                     items: new OA\Items(
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
-                            new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                            new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                         ]
                     )
-                )
+                ),
             ]
         )
     )]
-    #[OA\Response(
-        response: 401,
-        description: 'User not authenticated'
-    )]
-    public function getTeams(): JsonResponse
+    public function getMyTeams(): JsonResponse
     {
         /** @var \App\Entity\User $currentUser */
         $currentUser = $this->getUser();
@@ -325,7 +364,7 @@ class ReportsController extends AbstractController
         if (!$currentUser) {
             return $this->json([
                 'success' => false,
-                'error' => 'User not authenticated'
+                'error' => 'User not authenticated',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -338,20 +377,20 @@ class ReportsController extends AbstractController
         if ($isAdmin) {
             $teamRepository = $this->entityManager->getRepository(\App\Entity\Team::class);
             $allTeams = $teamRepository->findAll();
-            
+
             foreach ($allTeams as $team) {
                 $teams[] = [
                     'id' => $team->getId(),
-                    'name' => $team->getName()
+                    'name' => $team->getName(),
                 ];
             }
         } elseif ($isManager) {
             $managedTeams = $currentUser->getManagedTeams();
-            
+
             foreach ($managedTeams as $team) {
                 $teams[] = [
                     'id' => $team->getId(),
-                    'name' => $team->getName()
+                    'name' => $team->getName(),
                 ];
             }
         } else {
@@ -359,14 +398,14 @@ class ReportsController extends AbstractController
             if ($userTeam) {
                 $teams[] = [
                     'id' => $userTeam->getId(),
-                    'name' => $userTeam->getName()
+                    'name' => $userTeam->getName(),
                 ];
             }
         }
 
         return $this->json([
             'success' => true,
-            'teams' => $teams
+            'teams' => $teams,
         ]);
     }
 
@@ -397,10 +436,10 @@ class ReportsController extends AbstractController
                             new OA\Property(property: 'id', type: 'integer', example: 1),
                             new OA\Property(property: 'firstName', type: 'string', example: 'John'),
                             new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
-                            new OA\Property(property: 'fullName', type: 'string', example: 'John Doe')
+                            new OA\Property(property: 'fullName', type: 'string', example: 'John Doe'),
                         ]
                     )
-                )
+                ),
             ]
         )
     )]
@@ -424,7 +463,7 @@ class ReportsController extends AbstractController
         if (!$currentUser) {
             return $this->json([
                 'success' => false,
-                'error' => 'User not authenticated'
+                'error' => 'User not authenticated',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -434,12 +473,12 @@ class ReportsController extends AbstractController
 
         if ($isManager && !$isAdmin) {
             $managedTeams = $currentUser->getManagedTeams();
-            $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
+            $managedTeamIds = array_map(fn ($team) => $team->getId(), $managedTeams->toArray());
 
             if (!in_array($teamId, $managedTeamIds)) {
                 return $this->json([
                     'success' => false,
-                    'error' => 'Access denied. You can only view employees for teams you manage.'
+                    'error' => 'Access denied. You can only view employees for teams you manage.',
                 ], Response::HTTP_FORBIDDEN);
             }
         }
@@ -450,7 +489,7 @@ class ReportsController extends AbstractController
         if (!$team) {
             return $this->json([
                 'success' => false,
-                'error' => 'Team not found'
+                'error' => 'Team not found',
             ], Response::HTTP_NOT_FOUND);
         }
 
@@ -460,13 +499,13 @@ class ReportsController extends AbstractController
                 'id' => $employee->getId(),
                 'firstName' => $employee->getFirstName(),
                 'lastName' => $employee->getLastName(),
-                'fullName' => $employee->getFirstName() . ' ' . $employee->getLastName()
+                'fullName' => $employee->getFirstName().' '.$employee->getLastName(),
             ];
         }
 
         return $this->json([
             'success' => true,
-            'employees' => $employees
+            'employees' => $employees,
         ]);
     }
 
@@ -503,9 +542,6 @@ class ReportsController extends AbstractController
         return 0;
     }
 
-    /**
-     * @return array{total_days: int|null, working_days: int|null, weekend_days: int|null}
-     */
     private function getPeriodInfo(?string $startDate, ?string $endDate): array
     {
         if (!$startDate || !$endDate) {
