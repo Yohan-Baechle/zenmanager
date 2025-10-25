@@ -82,9 +82,8 @@ export default function ClockHistory({ clocks }: ClockHistoryProps) {
         <Card
             title="Historique des pointages"
             icon={HistoryIcon}
-            className="min-w-[570px] overflow-hidden"
         >
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
                 <div className="flex items-center text-sm text-[var(--c5)]">
                     <button
                         onClick={handlePrevious}
@@ -101,7 +100,7 @@ export default function ClockHistory({ clocks }: ClockHistoryProps) {
                     ><ArrowBackIosNewIcon className="h-5 w-5 rotate-180" /></button>
                 </div>
 
-                <div className="flex items-center text-sm text-[var(--c5)] bg-[var(--c2)]/50 p-1 rounded-xl">
+                <div className="flex flex-col gap-1 sm:flex-row sm:gap-0 items-center text-sm text-[var(--c5)] bg-[var(--c2)]/50 p-1 rounded-xl">
                     <label className="flex items-center gap-2 ml-2">
                         <span>Du</span>
                         <input
