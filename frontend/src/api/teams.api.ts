@@ -1,9 +1,21 @@
 import { apiClient } from './client'
 import type { Team, CreateTeamDto, UpdateTeamDto } from '../types/team.types'
 
+interface PaginatedResponse<T> {
+    data: T[]
+    meta: {
+        currentPage: number
+        itemsPerPage: number
+        totalItems: number
+        totalPages: number
+    }
+}
+
 export const teamsApi = {
-    getAll: async (): Promise<Team[]> => {
-        const response = await apiClient.get<Team[]>('/teams')
+    getAll: async (page: number = 1, limit: number = 20): Promise<PaginatedResponse<Team>> => {
+        const response = await apiClient.get<PaginatedResponse<Team>>('/teams', {
+            params: { page, limit }
+        })
         return response.data
     },
 
