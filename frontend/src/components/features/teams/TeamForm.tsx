@@ -1,44 +1,76 @@
 import { useForm } from 'react-hook-form'
+import { useState, useEffect } from 'react'
 import Input from '../../common/Input'
+import Select from '../../common/Select'
+import Textarea from '../../common/Textarea'
 import Button from '../../common/Button'
+import { usersApi } from '../../../api/users.api'
 import type { CreateTeamDto, UpdateTeamDto } from '../../../types/team.types'
+import type { User } from '../../../types/user.types'
 
 interface TeamFormProps {
-    initialData?: UpdateTeamDto
+    initialData?: UpdateTeamDto & { id?: number }
     onSubmit: (data: CreateTeamDto | UpdateTeamDto) => void | Promise<void>
     isEdit?: boolean
 }
 
 export default function TeamForm({ initialData, onSubmit, isEdit = false }: TeamFormProps) {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         defaultValues: initialData,
     })
+
+    const [managers, setManagers] = useState<User[]>([])
+
+    useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const response = await usersApi.getAll(1, 100)
+                setManagers(response.data.filter(user => user.role === 'manager'))
+            } catch (err) {
+                console.error('Error fetching managers:', err)
+            }
+        }
+        fetchManagers()
+    }, [])
+
+    useEffect(() => {
+        if (initialData?.managerId && managers.length > 0) {
+            setValue('managerId', initialData.managerId)
+        }
+    }, [initialData?.managerId, managers, setValue])
+
+    const managerOptions = [
+        { value: '', label: 'Sélectionner un manager' },
+        ...managers.map(manager => ({
+            value: String(manager.id),
+            label: `${manager.firstName} ${manager.lastName}`
+        }))
+    ]
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-                label="Team Name"
-                {...register('name', { required: 'Team name is required' })}
+                label="Nom de l'équipe"
+                {...register('name', { required: 'Le nom de l\'équipe est requis' })}
                 error={errors.name?.message}
             />
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                    {...register('description', { required: 'Description is required' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                />
-                {errors.description && (
-                    <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-                )}
-            </div>
-            <Input
-                label="Manager ID"
-                type="number"
-                {...register('managerId', { required: 'Manager ID is required', valueAsNumber: true })}
+            <Textarea
+                label="Description"
+                rows={3}
+                {...register('description', { required: 'La description est requise' })}
+                error={errors.description?.message}
+            />
+            <Select
+                label="Manager"
+                floatingLabel={true}
+                options={managerOptions}
+                {...register('managerId', {
+                    required: 'Le manager est requis',
+                    setValueAs: (value) => value === '' ? undefined : Number(value)
+                })}
                 error={errors.managerId?.message}
             />
-            <Button type="submit">{isEdit ? 'Update' : 'Create'} Team</Button>
+            <Button type="submit">{isEdit ? 'Modifier' : 'Créer'} l'équipe</Button>
         </form>
     )
 }

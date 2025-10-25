@@ -53,7 +53,7 @@ export default function LoginPage() {
                     title="Connexion"
                     icon={LogoIcon}
                     description="Accéder à votre tableau de bord."
-                    info="Vous n'avez pas de compte ? <span class='underline'>Contactez l'administrateur</span>."
+                    info="Vous avez perdu votre mot de passe ?<br/><span class='underline'>Contactez l'administrateur</span>."
                 >
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <Input
