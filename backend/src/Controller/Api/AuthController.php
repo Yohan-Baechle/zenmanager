@@ -93,4 +93,45 @@ class AuthController extends AbstractController
 
         return $this->json($userDto);
     }
+
+    #[Route('/logout', name: 'api_logout', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/logout',
+        summary: 'Logout current user',
+        description: 'Logs out the current user. Note: With JWT stateless authentication, the actual token invalidation happens client-side. This endpoint is provided for API consistency and logging purposes.',
+        security: [['Bearer' => []]],
+        tags: ['Authentication']
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Logout successful',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'message', type: 'string', example: 'Logout successful'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Unauthorized - Invalid or missing JWT token',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'code', type: 'integer', example: 401),
+                new OA\Property(property: 'message', type: 'string', example: 'JWT Token not found'),
+            ]
+        )
+    )]
+    public function logout(#[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json([
+                'error' => 'Unauthorized',
+                'message' => 'Authentication required',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json([
+            'message' => 'Logout successful',
+        ]);
+    }
 }
