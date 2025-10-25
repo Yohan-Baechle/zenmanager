@@ -41,49 +41,49 @@ export default function UserProfile({ data }: UserProfileProps) {
                     <AccountCircleIcon className="w-5 h-5"/>
                     <label>Prénom</label>
                 </div>
-                <p className="">{data.firstName}</p>
+                <p className="ml-5 sm:m-0">{data.firstName}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <AccountCircleIcon className="w-5 h-5"/>
                     <label>Nom</label>
                 </div>
-                <p className="">{data.lastName}</p>
+                <p className="ml-5 sm:m-0">{data.lastName}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <IdCardIcon className="w-5 h-5"/>
                     <label>Identifiant</label>
                 </div>
-                <p className="">{data.username}</p>
+                <p className="ml-5 sm:m-0">{data.username}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <AlternateEmailIcon className="w-5 h-5"/>
                     <label>Adresse e-mail</label>
                 </div>
-                <p className="">{data.email}</p>
+                <p className="ml-5 sm:m-0">{data.email}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <PhoneInTalkIcon className="w-5 h-5"/>
                     <label>Numéro de téléphone</label>
                 </div>
-                <p className="">{data.phoneNumber}</p>
+                <p className="ml-5 sm:m-0">{data.phoneNumber}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <AdminPanelSettingsIcon className="w-5 h-5"/>
                     <label>Rôle</label>
                 </div>
-                <p className="">{data.role}</p>
+                <p className="ml-5 sm:m-0">{data.role}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <SupervisorAccountIcon className="w-5 h-5"/>
                     <label>Membre de l'équipe</label>
                 </div>
-                <p className="">{data.teams ? data.teams.name : 'Aucune'}</p>
+                <p className="ml-5 sm:m-0">{data.team ? data.team.name : 'Aucune'}</p>
                 <div className="sm:col-span-2"><SectionDivider/></div>
                 <div className="pl-5 pr-10 font-semibold flex items-center gap-2">
                     <CalendarTodayIcon className="w-5 h-5"/>
                     <label>Compte créé le</label>
                 </div>
-                <p className="">{data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="ml-5 sm:m-0">{data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</p>
             </div>
             <SectionDivider/>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">

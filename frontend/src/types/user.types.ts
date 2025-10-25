@@ -10,25 +10,28 @@ export interface User {
     lastName: string
     phoneNumber?: string
     role: UserRole
-    teams?: Team
+    team?: Team | null
     createdAt?: string
     updatedAt?: string
 }
 
 export interface CreateUserDto {
+    username: string
     firstName: string
     lastName: string
     email: string
     phoneNumber: string
-    password: string
     role: UserRole
+    teamId?: number
 }
 
 export interface UpdateUserDto {
+    username?: string
     firstName?: string
     lastName?: string
     email?: string
     phoneNumber?: string
     password?: string
     role?: UserRole
+    teamId?: number
 }

@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form'
 import Input from '../../common/Input'
+import Select from '../../common/Select'
 import Button from '../../common/Button'
 import type { CreateUserDto, UpdateUserDto } from '../../../types/user.types'
 
@@ -10,52 +11,50 @@ interface UserFormProps {
 }
 
 export default function UserForm({ initialData, onSubmit, isEdit = false }: UserFormProps) {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm<CreateUserDto | UpdateUserDto>({
         defaultValues: initialData,
     })
+
+    const roleOptions = [
+        { value: 'employee', label: 'Employé' },
+        { value: 'manager', label: 'Manager' },
+    ]
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-                label="First Name"
+                label="Identifiant"
+                {...register('username', { required: !isEdit && 'Username is required' })}
+                error={errors.username?.message}
+            />
+            <Input
+                label="Prénom"
                 {...register('firstName', { required: 'First name is required' })}
                 error={errors.firstName?.message}
             />
             <Input
-                label="Last Name"
+                label="Nom"
                 {...register('lastName', { required: 'Last name is required' })}
                 error={errors.lastName?.message}
             />
             <Input
-                label="Email"
+                label="Adresse e-mail"
                 type="email"
                 {...register('email', { required: 'Email is required' })}
                 error={errors.email?.message}
             />
             <Input
-                label="Phone Number"
+                label="Numéro de téléphone"
                 {...register('phoneNumber', { required: 'Phone number is required' })}
                 error={errors.phoneNumber?.message}
             />
-            {!isEdit && (
-                <Input
-                    label="Password"
-                    type="password"
-                    {...register('password', { required: 'Password is required' })}
-                    error={errors.password?.message}
-                />
-            )}
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <select
-                    {...register('role', { required: 'Role is required' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="employee">Employee</option>
-                    <option value="manager">Manager</option>
-                </select>
-            </div>
-            <Button type="submit">{isEdit ? 'Update' : 'Create'} User</Button>
+            <Select
+                label="Rôle"
+                options={roleOptions}
+                {...register('role', { required: 'Role is required' })}
+                error={errors.role?.message}
+            />
+            <Button type="submit">{isEdit ? 'Modifier l\'utilisateur' : 'Créer l\'utilisateur'}</Button>
         </form>
     )
 }

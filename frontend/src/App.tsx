@@ -34,13 +34,13 @@ function App() {
                         } />
 
                         <Route path="/manager/dashboard" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <ManagerDashboard />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/manager/employee/:id" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <EmployeeDetailDashboard />
                             </ProtectedRoute>
                         } />
@@ -52,19 +52,19 @@ function App() {
                         } />
 
                         <Route path="/users" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <UsersPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/users/create" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <CreateUserPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/users/edit/:id" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <EditUserPage />
                             </ProtectedRoute>
                         } />
@@ -76,31 +76,31 @@ function App() {
                         } />
 
                         <Route path="/teams" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <TeamsPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/teams/create" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <CreateTeamPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/teams/edit/:id" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['manager']}>
                                 <EditTeamPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/reports" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['admin', 'manager']}>
                                 <ReportsPage />
                             </ProtectedRoute>
                         } />
 
                         <Route path="/admin" element={
-                            <ProtectedRoute requiredRole="manager">
+                            <ProtectedRoute requiredRole={['admin']}>
                                 <AdminPage />
                             </ProtectedRoute>
                         } />

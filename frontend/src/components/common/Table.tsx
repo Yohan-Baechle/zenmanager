@@ -1,22 +1,27 @@
 import type { ReactNode } from 'react'
 
-interface Column<T> {
+interface Column<T extends object> {
     header: string
     icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
     accessor: keyof T | ((row: T) => ReactNode)
     className?: string
 }
 
-interface TableProps<T> {
+interface TableProps<T extends object> {
     data: T[]
     columns: Column<T>[]
+    emptyMessage?: ReactNode
 }
 
-export default function Table<T>({ data, columns }: TableProps<T>) {
+export default function Table<T extends object>({
+                                                    data,
+                                                    columns,
+                                                    emptyMessage = 'Aucune donnée à afficher.'
+                                                }: TableProps<T>) {
     return (
-        <div className="">
-            <table className="min-w-full divide-y divide-[var(--c2)]">
-                <thead className="">
+        <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-max divide-y divide-[var(--c2)]">
+                <thead>
                 <tr>
                     {columns.map((column, index) => {
                         const Icon = column.icon
@@ -33,17 +38,28 @@ export default function Table<T>({ data, columns }: TableProps<T>) {
                 </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--c2)]">
-                {data.map((row, rowIndex) => (
-                    <tr key={rowIndex} className="hover:bg-[var(--c2)]/25">
-                        {columns.map((column, colIndex) => (
-                            <td key={colIndex} className={`px-6 py-4 whitespace-nowrap ${column.className || ''}`}>
-                                {typeof column.accessor === 'function'
-                                    ? column.accessor(row)
-                                    : String(row[column.accessor])}
-                            </td>
-                        ))}
+                {data.length === 0 ? (
+                    <tr>
+                        <td
+                            colSpan={columns.length}
+                            className="px-6 py-4 text-center text-[var(--c5)] italic"
+                        >
+                            {emptyMessage}
+                        </td>
                     </tr>
-                ))}
+                ) : (
+                    data.map((row, rowIndex) => (
+                        <tr key={rowIndex} className="hover:bg-[var(--c2)]/25">
+                            {columns.map((column, colIndex) => (
+                                <td key={colIndex} className={`px-6 py-4 whitespace-nowrap ${column.className || ''}`}>
+                                    {typeof column.accessor === 'function'
+                                        ? column.accessor(row)
+                                        : String((row as Record<keyof T, unknown>)[column.accessor] ?? '')}
+                                </td>
+                            ))}
+                        </tr>
+                    ))
+                )}
                 </tbody>
             </table>
         </div>
