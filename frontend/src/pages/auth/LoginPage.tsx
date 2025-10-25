@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '../../hooks/useAuth'
 import Input from '../../components/common/Input'
 import Button from '../../components/common/Button'
@@ -32,9 +33,12 @@ export default function LoginPage() {
 
         try {
             await login({ username, password })
+            toast.success('Connexion réussie!')
             navigate('/dashboard')
         } catch (error) {
-            setError(`Invalid username or password: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            const errorMessage = `Nom d'utilisateur ou mot de passe invalide: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+            setError(errorMessage)
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -53,7 +57,7 @@ export default function LoginPage() {
                     title="Connexion"
                     icon={LogoIcon}
                     description="Accéder à votre tableau de bord."
-                    info="Vous avez perdu votre mot de passe ?<br/><span class='underline'>Contactez l'administrateur</span>."
+                    info="Vous n'avez pas de compte ? <span class='underline'>Contactez l'administrateur</span>."
                 >
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <Input

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { usersApi } from '../../api/users.api'
 import type { User } from '../../types/user.types'
 import UserList from '../../components/features/users/UserList'
@@ -21,6 +22,7 @@ export default function UsersPage() {
             setUsers(data)
         } catch (error) {
             console.error('Failed to load users', error)
+            toast.error('Échec du chargement des utilisateurs')
         } finally {
             setLoading(false)
         }
@@ -31,12 +33,13 @@ export default function UsersPage() {
     }
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur?')) {
             try {
                 await usersApi.delete(id)
+                toast.success('Utilisateur supprimé avec succès!')
                 loadUsers()
             } catch (error) {
-                alert(`Failed to delete user: ${error instanceof Error ? error.message : 'Unknown error'}`)
+                toast.error(`Échec de la suppression de l'utilisateur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
             }
         }
     }

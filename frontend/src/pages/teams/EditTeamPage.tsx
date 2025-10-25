@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { teamsApi } from '../../api/teams.api'
 import type { Team, UpdateTeamDto, CreateTeamDto } from '../../types/team.types'
 import TeamForm from '../../components/features/teams/TeamForm'
@@ -21,7 +22,7 @@ export default function EditTeamPage() {
             const data = await teamsApi.getById(Number(id))
             setTeam(data)
         } catch (error) {
-            alert(`Failed to load team: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec du chargement de l'équipe: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         } finally {
             setLoading(false)
         }
@@ -30,9 +31,10 @@ export default function EditTeamPage() {
     const handleSubmit = async (data: CreateTeamDto | UpdateTeamDto) => {
         try {
             await teamsApi.update(Number(id), data as UpdateTeamDto)
+            toast.success('Équipe modifiée avec succès!')
             navigate('/teams')
         } catch (error) {
-            alert(`Failed to update team: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec de la modification de l'équipe: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         }
     }
 
