@@ -50,10 +50,15 @@ class UserVoter extends Voter
         }
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
-            $targetTeam = $targetUser->getTeam();
-            if (null !== $targetTeam) {
-                return $currentUser->getManagedTeams()->contains($targetTeam);
+            if ($currentUser->getManagedTeams()->isEmpty()) {
+                return false;
             }
+
+            $targetTeam = $targetUser->getTeam();
+            if (null === $targetTeam) {
+                return true;
+            }
+            return $currentUser->getManagedTeams()->contains($targetTeam);
         }
 
         return true;
@@ -70,10 +75,15 @@ class UserVoter extends Voter
         }
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
-            $targetTeam = $targetUser->getTeam();
-            if (null !== $targetTeam) {
-                return $currentUser->getManagedTeams()->contains($targetTeam);
+            if ($currentUser->getManagedTeams()->isEmpty()) {
+                return false;
             }
+
+            $targetTeam = $targetUser->getTeam();
+            if (null === $targetTeam) {
+                return true;
+            }
+            return $currentUser->getManagedTeams()->contains($targetTeam);
         }
 
         return false;
@@ -83,17 +93,6 @@ class UserVoter extends Voter
     {
         if (in_array('ROLE_ADMIN', $currentUser->getRoles()) && $targetUser !== $currentUser) {
             return true;
-        }
-
-        if ($targetUser === $currentUser) {
-            return false;
-        }
-
-        if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
-            $targetTeam = $targetUser->getTeam();
-            if (null !== $targetTeam) {
-                return $currentUser->getManagedTeams()->contains($targetTeam);
-            }
         }
 
         return false;
@@ -110,10 +109,15 @@ class UserVoter extends Voter
         }
 
         if (in_array('ROLE_MANAGER', $currentUser->getRoles())) {
-            $targetTeam = $targetUser->getTeam();
-            if (null !== $targetTeam) {
-                return $currentUser->getManagedTeams()->contains($targetTeam);
+            if ($currentUser->getManagedTeams()->isEmpty()) {
+                return false;
             }
+
+            $targetTeam = $targetUser->getTeam();
+            if (null === $targetTeam) {
+                return true;
+            }
+            return $currentUser->getManagedTeams()->contains($targetTeam);
         }
 
         return false;
