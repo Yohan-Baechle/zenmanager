@@ -9,7 +9,7 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-2xl">
-            <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+            <h1 className="text-2xl font-bold mb-6">Mon Profil</h1>
             <Card>
                 <UserProfile data={user} />
             </Card>

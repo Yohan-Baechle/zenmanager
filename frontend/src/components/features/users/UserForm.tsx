@@ -16,45 +16,45 @@ export default function UserForm({ initialData, onSubmit, isEdit = false }: User
     })
 
     const roleOptions = [
-        { value: 'employee', label: 'Employee' },
+        { value: 'employee', label: 'Employé' },
         { value: 'manager', label: 'Manager' },
     ]
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-                label="Username"
+                label="Identifiant"
                 {...register('username', { required: !isEdit && 'Username is required' })}
                 error={errors.username?.message}
             />
             <Input
-                label="First Name"
+                label="Prénom"
                 {...register('firstName', { required: 'First name is required' })}
                 error={errors.firstName?.message}
             />
             <Input
-                label="Last Name"
+                label="Nom"
                 {...register('lastName', { required: 'Last name is required' })}
                 error={errors.lastName?.message}
             />
             <Input
-                label="Email"
+                label="Adresse e-mail"
                 type="email"
                 {...register('email', { required: 'Email is required' })}
                 error={errors.email?.message}
             />
             <Input
-                label="Phone Number"
+                label="Numéro de téléphone"
                 {...register('phoneNumber', { required: 'Phone number is required' })}
                 error={errors.phoneNumber?.message}
             />
             <Select
-                label="Role"
+                label="Rôle"
                 options={roleOptions}
                 {...register('role', { required: 'Role is required' })}
                 error={errors.role?.message}
             />
-            <Button type="submit">{isEdit ? 'Update User' : 'Create User'}</Button>
+            <Button type="submit">{isEdit ? 'Modifier l\'utilisateur' : 'Créer l\'utilisateur'}</Button>
         </form>
     )
 }

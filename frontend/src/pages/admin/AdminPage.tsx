@@ -96,12 +96,9 @@ export default function AdminPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Administration</h1>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                    Create User
-                </Button>
             </div>
 
-            <Card title="User Management">
+            <Card title="Gestion des utilisateurs">
                 <div className="flex items-center text-sm text-[var(--c5)]">
                     <button
                         onClick={handlePrevious}
@@ -131,12 +128,17 @@ export default function AdminPage() {
                         onDelete={handleDelete}
                     />
                 )}
+                <div className="mt-4 flex justify-end">
+                    <Button onClick={() => setIsCreateModalOpen(true)}>
+                        Créer un nouvel utilisateur
+                    </Button>
+                </div>
             </Card>
 
             <Modal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                title="Create New User"
+                title="Créer un nouvel utilisateur"
             >
                 <UserForm onSubmit={handleCreate}/>
             </Modal>
@@ -147,7 +149,7 @@ export default function AdminPage() {
                     setIsEditModalOpen(false)
                     setSelectedUser(null)
                 }}
-                title="Edit User"
+                title="Modifier un utilisateur"
             >
                 {selectedUser && (
                     <UserForm

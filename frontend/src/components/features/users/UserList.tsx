@@ -11,10 +11,10 @@ interface UserListProps {
 
 export default function UserList({ users, onEdit, onDelete }: UserListProps) {
     const columns = [
-        { header: 'Name', accessor: (user: User) => `${user.firstName} ${user.lastName}` },
+        { header: 'Nom', accessor: (user: User) => `${user.firstName} ${user.lastName}` },
         { header: 'Email', accessor: 'email' as keyof User },
-        { header: 'Phone', accessor: 'phoneNumber' as keyof User },
-        { header: 'Role', accessor: 'role' as keyof User },
+        { header: 'Téléphone', accessor: 'phoneNumber' as keyof User },
+        { header: 'Rôle', accessor: 'role' as keyof User },
         {
             header: 'Actions',
             accessor: (user: User) => (
