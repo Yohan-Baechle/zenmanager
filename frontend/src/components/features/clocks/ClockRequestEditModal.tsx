@@ -1,8 +1,9 @@
+import { useState, useEffect } from "react";
+import { toast } from 'sonner'
 import Modal from "../../common/Modal.tsx";
 import Button from "../../common/Button.tsx";
 import Input from "../../common/Input.tsx";
 import { clocksApi } from "../../../api/clocks.api.ts";
-import { useState, useEffect } from "react";
 import Checkbox from "../../common/Checkbox.tsx";
 import Textarea from "../../common/Textarea.tsx";
 import type { ClockRequest } from "../../../types/clock.types.ts";
@@ -46,9 +47,10 @@ export default function ClockRequestEditModal({ isOpen, onClose, clockRequest, o
 
             onClose()
             onSuccess()
-            alert('Demande modifiée avec succès !')
-        } catch (error) {
-            alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.success('Demande de pointage modifiée avec succès!')
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.error || error.message || 'Erreur inconnue'
+            toast.error(errorMessage)
         }
     }
 

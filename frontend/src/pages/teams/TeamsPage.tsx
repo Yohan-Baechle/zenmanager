@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { teamsApi } from '../../api/teams.api'
 import type { Team } from '../../types/team.types'
 import TeamList from '../../components/features/teams/TeamList'
@@ -21,6 +22,7 @@ export default function TeamsPage() {
             setTeams(data)
         } catch (error) {
             console.error('Failed to load teams', error)
+            toast.error('Échec du chargement des équipes')
         } finally {
             setLoading(false)
         }
@@ -31,12 +33,13 @@ export default function TeamsPage() {
     }
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this team?')) {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette équipe?')) {
             try {
                 await teamsApi.delete(id)
+                toast.success('Équipe supprimée avec succès!')
                 loadTeams()
             } catch (error) {
-                alert(`Failed to delete team: ${error instanceof Error ? error.message : 'Unknown error'}`)
+                toast.error(`Échec de la suppression de l'équipe: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
             }
         }
     }

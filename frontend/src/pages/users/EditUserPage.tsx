@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { usersApi } from '../../api/users.api'
 import type { User, UpdateUserDto, CreateUserDto } from '../../types/user.types'
 import UserForm from '../../components/features/users/UserForm'
@@ -21,7 +22,7 @@ export default function EditUserPage() {
             const data = await usersApi.getById(Number(id))
             setUser(data)
         } catch (error) {
-            alert(`Failed to load user: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec du chargement de l'utilisateur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         } finally {
             setLoading(false)
         }
@@ -30,9 +31,10 @@ export default function EditUserPage() {
     const handleSubmit = async (data: CreateUserDto | UpdateUserDto) => {
         try {
             await usersApi.update(Number(id), data as UpdateUserDto)
+            toast.success('Utilisateur modifié avec succès!')
             navigate('/users')
         } catch (error) {
-            alert(`Failed to update user: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec de la modification de l'utilisateur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         }
     }
 

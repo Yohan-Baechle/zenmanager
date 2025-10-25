@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import Button from '../../common/Button'
 import Card from '../../common/Card'
 import { clocksApi } from '../../../api/clocks.api'
@@ -31,10 +32,11 @@ export default function ClockInOut({ onClockSuccess }: ClockInOutProps) {
                 time: new Date().toISOString(),
                 userId: user.id
             })
-            alert('Clock enregistré !')
+            toast.success('Pointage enregistré avec succès!')
             onClockSuccess?.()
-        } catch (error) {
-            alert(`Erreur : ${error instanceof Error ? error.message : 'Unknown error'}`)
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.error || error.message || 'Erreur inconnue'
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { usersApi } from '../../api/users.api'
 import type { CreateUserDto, UpdateUserDto } from '../../types/user.types'
 import UserForm from '../../components/features/users/UserForm'
@@ -10,9 +11,10 @@ export default function CreateUserPage() {
     const handleSubmit = async (data: CreateUserDto | UpdateUserDto) => {
         try {
             await usersApi.create(data as CreateUserDto)
+            toast.success('Utilisateur créé avec succès!')
             navigate('/users')
         } catch (error) {
-            alert(`Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec de la création de l'utilisateur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         }
     }
 

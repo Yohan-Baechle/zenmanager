@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { teamsApi } from '../../api/teams.api'
 import type { CreateTeamDto, UpdateTeamDto } from '../../types/team.types'
 import TeamForm from '../../components/features/teams/TeamForm'
@@ -10,9 +11,10 @@ export default function CreateTeamPage() {
     const handleSubmit = async (data: CreateTeamDto | UpdateTeamDto) => {
         try {
             await teamsApi.create(data as CreateTeamDto)
+            toast.success('Équipe créée avec succès!')
             navigate('/teams')
         } catch (error) {
-            alert(`Failed to create team: ${error instanceof Error ? error.message : 'Unknown error'}`)
+            toast.error(`Échec de la création de l'équipe: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
         }
     }
 
