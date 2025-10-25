@@ -18,14 +18,18 @@ export default function UserList({ users, onEdit, onDelete }: UserListProps) {
         {
             header: 'Actions',
             accessor: (user: User) => (
-                <div className="flex gap-2">
-                    <EditSquareIcon
-                        className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
-                        onClick={() => onEdit(user.id)} />
-                    <DeleteForeverIcon
-                        className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
-                        onClick={() => onDelete(user.id)} />
-                </div>
+                user.role === 'admin' ? (
+                    <span className="text-gray-500 text-sm">Impossible</span>
+                ) : (
+                    <div className="flex gap-2">
+                        <EditSquareIcon
+                            className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
+                            onClick={() => onEdit(user.id)} />
+                        <DeleteForeverIcon
+                            className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
+                            onClick={() => onDelete(user.id)} />
+                    </div>
+                )
             ),
         },
     ]
