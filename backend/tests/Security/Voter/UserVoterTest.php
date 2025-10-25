@@ -150,7 +150,7 @@ class UserVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    public function testManagerCanDeleteTeamMember(): void
+    public function testManagerCannotDeleteTeamMember(): void
     {
         $team = $this->createTeam();
         $manager = $this->createUser('manager', $team, isManager: true);
@@ -159,7 +159,7 @@ class UserVoterTest extends TestCase
 
         $result = $this->voter->vote($token, $employee, [UserVoter::DELETE]);
 
-        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+        $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
     public function testManagerCannotDeleteOtherTeamMember(): void
@@ -232,6 +232,105 @@ class UserVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
+    public function testManagerCanViewUserWithoutTeam(): void
+    {
+        $team = $this->createTeam();
+        $manager = $this->createUser('manager', $team, isManager: true);
+        $userWithoutTeam = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $userWithoutTeam, [UserVoter::VIEW]);
+
+        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+    }
+
+    public function testManagerCanEditUserWithoutTeam(): void
+    {
+        $team = $this->createTeam();
+        $manager = $this->createUser('manager', $team, isManager: true);
+        $userWithoutTeam = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $userWithoutTeam, [UserVoter::EDIT]);
+
+        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+    }
+
+    public function testManagerCannotDeleteUserWithoutTeam(): void
+    {
+        $team = $this->createTeam();
+        $manager = $this->createUser('manager', $team, isManager: true);
+        $userWithoutTeam = $this->createUser('employee');
+        $token = $this->createToken($manager);
+        $result = $this->voter->vote($token, $userWithoutTeam, [UserVoter::DELETE]);
+        $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
+    }
+
+    public function testManagerCanViewClocksOfUserWithoutTeam(): void
+    {
+        $team = $this->createTeam();
+        $manager = $this->createUser('manager', $team, isManager: true);
+        $userWithoutTeam = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $userWithoutTeam, [UserVoter::VIEW_CLOCKS]);
+
+        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+    }
+
+    public function testManagerWithoutTeamCannotViewOtherUsers(): void
+    {
+        $manager = $this->createUser('manager');
+        $otherUser = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $otherUser, [UserVoter::VIEW]);
+
+        $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
+    }
+
+    public function testManagerWithoutTeamCannotEditOtherUsers(): void
+    {
+        $manager = $this->createUser('manager');
+        $otherUser = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $otherUser, [UserVoter::EDIT]);
+
+        $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
+    }
+
+    public function testManagerWithoutTeamCannotViewOtherUserClocks(): void
+    {
+        $manager = $this->createUser('manager');
+        $otherUser = $this->createUser('employee');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $otherUser, [UserVoter::VIEW_CLOCKS]);
+
+        $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
+    }
+
+    public function testManagerWithoutTeamCanViewSelf(): void
+    {
+        $manager = $this->createUser('manager');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $manager, [UserVoter::VIEW]);
+
+        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+    }
+
+    public function testManagerWithoutTeamCanEditSelf(): void
+    {
+        $manager = $this->createUser('manager');
+        $token = $this->createToken($manager);
+
+        $result = $this->voter->vote($token, $manager, [UserVoter::EDIT]);
+
+        $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
+    }
+
     private function createUser(string $role, ?Team $team = null, bool $isManager = false): User
     {
         $user = $this->createMock(User::class);
@@ -252,6 +351,14 @@ class UserVoterTest extends TestCase
                 $managedTeams->method('contains')->willReturnCallback(
                     fn ($checkTeam) => $checkTeam === $team
                 );
+                $managedTeams->method('isEmpty')->willReturn(false);
+                $user->method('getManagedTeams')->willReturn($managedTeams);
+            }
+        } else {
+            if ($role === 'manager') {
+                $managedTeams = $this->createMock(\Doctrine\Common\Collections\Collection::class);
+                $managedTeams->method('isEmpty')->willReturn(true);
+                $managedTeams->method('contains')->willReturn(false);
                 $user->method('getManagedTeams')->willReturn($managedTeams);
             }
         }
