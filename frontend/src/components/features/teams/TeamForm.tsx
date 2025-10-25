@@ -15,7 +15,7 @@ interface TeamFormProps {
 }
 
 export default function TeamForm({ initialData, onSubmit, isEdit = false }: TeamFormProps) {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
         defaultValues: initialData,
     })
 
@@ -32,6 +32,12 @@ export default function TeamForm({ initialData, onSubmit, isEdit = false }: Team
         }
         fetchManagers()
     }, [])
+
+    useEffect(() => {
+        if (initialData?.managerId && managers.length > 0) {
+            setValue('managerId', initialData.managerId)
+        }
+    }, [initialData?.managerId, managers, setValue])
 
     const managerOptions = [
         { value: '', label: 'Sélectionner un manager' },
@@ -58,7 +64,6 @@ export default function TeamForm({ initialData, onSubmit, isEdit = false }: Team
                 label="Manager"
                 floatingLabel={true}
                 options={managerOptions}
-                defaultValue={initialData?.managerId ? String(initialData.managerId) : ''}
                 {...register('managerId', {
                     required: 'Le manager est requis',
                     setValueAs: (value) => value === '' ? undefined : Number(value)
