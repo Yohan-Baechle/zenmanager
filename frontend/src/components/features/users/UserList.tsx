@@ -1,6 +1,7 @@
 import type { User } from '../../../types/user.types'
 import Table from '../../common/Table'
-import Button from '../../common/Button'
+import {EditSquareIcon} from "../../../assets/icons/edit-square.tsx";
+import {DeleteForeverIcon} from "../../../assets/icons/delete-forever.tsx";
 
 interface UserListProps {
     users: User[]
@@ -18,12 +19,12 @@ export default function UserList({ users, onEdit, onDelete }: UserListProps) {
             header: 'Actions',
             accessor: (user: User) => (
                 <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => onEdit(user.id)}>
-                        Edit
-                    </Button>
-                    <Button variant="danger" onClick={() => onDelete(user.id)}>
-                        Delete
-                    </Button>
+                    <EditSquareIcon
+                        className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
+                        onClick={() => onEdit(user.id)} />
+                    <DeleteForeverIcon
+                        className="h-7 w-7 p-1 cursor-pointer hover:bg-[var(--c1)] rounded"
+                        onClick={() => onDelete(user.id)} />
                 </div>
             ),
         },
