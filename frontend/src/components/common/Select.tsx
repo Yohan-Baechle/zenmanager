@@ -25,13 +25,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         const [isFocused, setIsFocused] = useState(false)
         const [hasValue, setHasValue] = useState(!!props.value || !!props.defaultValue)
 
-        // Au montage : lire la valeur réelle (utile avec RHF + defaultValues)
         useEffect(() => {
             const v = innerRef.current?.value ?? ''
             if (v.length > 0) setHasValue(true)
         }, [])
 
-        // Suivre les changements quand le Select est contrôlé
         useEffect(() => {
             if (props.value !== undefined) {
                 const v = String(props.value ?? '')
