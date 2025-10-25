@@ -221,10 +221,10 @@ class UserController extends AbstractController
             ),
             new OA\Response(
                 response: 400,
-                description: 'Invalid input',
+                description: 'Invalid input or managers must be assigned to a team',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'errors', type: 'object'),
+                        new OA\Property(property: 'error', type: 'string', example: 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.'),
                     ]
                 )
             ),
@@ -247,6 +247,12 @@ class UserController extends AbstractController
             if (!$team) {
                 return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
             }
+        }
+
+        if ('manager' === $dto->role && null === $dto->teamId) {
+            return $this->json([
+                'error' => 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.',
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         ['user' => $user, 'temporaryPassword' => $temporaryPassword] = $this->userCreationService->createUser($dto, $team);
@@ -343,6 +349,14 @@ class UserController extends AbstractController
             }
         }
 
+        $finalRole = $dto->role ?? ($user->getRoles()[0] === 'ROLE_MANAGER' ? 'manager' : 'employee');
+
+        if ('manager' === $finalRole && null === $team && null === $dto->teamId) {
+            return $this->json([
+                'error' => 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $this->userMapper->updateEntity($user, $dto, $team);
 
         $this->em->flush();
@@ -416,11 +430,84 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/users/{id}/remove-from-team', name: 'api_users_remove_from_team', methods: ['PUT'])]
+    #[IsGranted('USER_EDIT', 'user')]
+    #[OA\Put(
+        path: '/api/users/{id}/remove-from-team',
+        summary: 'Remove user from their team',
+        description: 'Removes the user from their current team without deleting the user account. Managers can only remove users from their own teams.',
+        security: [['Bearer' => []]],
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User removed from team successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                        new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                        new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                        new OA\Property(property: 'team', type: 'object', nullable: true, example: null),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Cannot remove a manager from their team',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Cannot remove a manager from their team. Managers must always be assigned to a team. Please change their role to employee first, or assign them to another team.'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - You can only remove users from your own teams'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found'
+            ),
+        ]
+    )]
+    public function removeFromTeam(User $user): JsonResponse
+    {
+        if (in_array('ROLE_MANAGER', $user->getRoles())) {
+            return $this->json([
+                'error' => 'Cannot remove a manager from their team. Managers must always be assigned to a team. Please change their role to employee first, or assign them to another team.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user->setTeam(null);
+        $this->em->flush();
+
+        $outputDto = $this->userMapper->toOutputDto($user);
+
+        return $this->json($outputDto);
+    }
+
     #[Route('/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
-    #[IsGranted('USER_DELETE', 'user')]
+    #[IsGranted('ROLE_ADMIN')]
     #[OA\Delete(
         path: '/api/users/{id}',
-        summary: 'Delete a user',
+        summary: 'Delete a user (Admin only)',
+        description: 'Permanently deletes a user from the database. This action is irreversible and only available to administrators.',
+        security: [['Bearer' => []]],
         tags: ['Users'],
         parameters: [
             new OA\Parameter(
@@ -435,6 +522,10 @@ class UserController extends AbstractController
             new OA\Response(
                 response: 204,
                 description: 'User deleted successfully'
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - Admin role required'
             ),
             new OA\Response(
                 response: 404,
