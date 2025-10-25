@@ -60,7 +60,7 @@ export default function Header() {
                         </svg>
                     </button>
                     <LogoIcon className="w-10 h-10"/>
-                    <h1 className="text-2xl font-bold text-[var(--c5)]">Time Manager</h1>
+                    <h1 className="text-2xl font-bold text-[var(--c5)]">Zen Manager</h1>
                 </div>
 
                 {deviceType !== 'mobile' && (
