@@ -1,4 +1,17 @@
 services:
+  logs-init:
+    image: alpine:latest
+    container_name: timemanager_logs_init
+    volumes:
+      - ./logs:/logs
+    command: >
+      sh -c "
+        mkdir -p /logs/backend /logs/frontend /logs/database &&
+        chmod -R 777 /logs &&
+        echo 'Logs directories initialized with proper permissions'
+      "
+    restart: "no"
+
   database:
     image: postgres:18-alpine
     container_name: timemanager_database
@@ -31,6 +44,9 @@ services:
       - ./logs/database:/var/log/postgresql
     networks:
       - timemanager_network
+    depends_on:
+      logs-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} || exit 1"]
       interval: 5s
@@ -59,6 +75,8 @@ services:
     networks:
       - timemanager_network
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       database:
         condition: service_healthy
 
@@ -100,7 +118,10 @@ services:
     networks:
       - timemanager_network
     depends_on:
-      - backend
+      logs-init:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
 
 volumes:
   timemanager_db_data:
