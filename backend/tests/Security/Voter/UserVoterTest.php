@@ -18,8 +18,6 @@ class UserVoterTest extends TestCase
         $this->voter = new UserVoter();
     }
 
-    // ========== VIEW TESTS ==========
-
     public function testAdminCanViewAnyUser(): void
     {
         $admin = $this->createUser('admin');
@@ -63,8 +61,6 @@ class UserVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
-
-    // ========== EDIT TESTS ==========
 
     public function testAdminCanEditAnyUser(): void
     {
@@ -123,8 +119,6 @@ class UserVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    // ========== DELETE TESTS ==========
-
     public function testAdminCanDeleteUser(): void
     {
         $admin = $this->createUser('admin');
@@ -180,8 +174,6 @@ class UserVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
-
-    // ========== VIEW_CLOCKS TESTS ==========
 
     public function testAdminCanViewAnyClock(): void
     {
@@ -240,27 +232,25 @@ class UserVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_DENIED, $result);
     }
 
-    // ========== HELPER METHODS ==========
-
     private function createUser(string $role, ?Team $team = null, bool $isManager = false): User
     {
         $user = $this->createMock(User::class);
 
-        $roles = match($role) {
+        $roles = match ($role) {
             'admin' => ['ROLE_ADMIN'],
             'manager' => ['ROLE_MANAGER'],
-            default => ['ROLE_USER']
+            default => ['ROLE_USER'],
         };
 
         $user->method('getRoles')->willReturn($roles);
 
-        if ($team !== null) {
+        if (null !== $team) {
             $user->method('getTeam')->willReturn($team);
 
             if ($isManager) {
                 $managedTeams = $this->createMock(\Doctrine\Common\Collections\Collection::class);
                 $managedTeams->method('contains')->willReturnCallback(
-                    fn($checkTeam) => $checkTeam === $team
+                    fn ($checkTeam) => $checkTeam === $team
                 );
                 $user->method('getManagedTeams')->willReturn($managedTeams);
             }

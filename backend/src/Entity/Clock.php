@@ -33,7 +33,7 @@ class Clock
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        if ($this->createdAt === null) {
+        if (null === $this->createdAt) {
             $this->createdAt = new \DateTimeImmutable();
         }
     }
@@ -73,12 +73,13 @@ class Clock
     }
 
     public function setOwner(?User $owner): static
-        {
-            if ($owner === null) {
+    {
+        if (null === $owner) {
             throw new \InvalidArgumentException('Owner cannot be null for a Clock.');
         }
 
         $this->owner = $owner;
+
         return $this;
     }
 

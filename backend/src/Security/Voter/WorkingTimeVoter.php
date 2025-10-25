@@ -2,8 +2,8 @@
 
 namespace App\Security\Voter;
 
-use App\Entity\WorkingTime;
 use App\Entity\User;
+use App\Entity\WorkingTime;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
@@ -30,7 +30,7 @@ class WorkingTimeVoter extends Voter
         /** @var WorkingTime $workingTime */
         $workingTime = $subject;
 
-        return match($attribute) {
+        return match ($attribute) {
             self::VIEW => $this->canView($workingTime, $user),
             self::EDIT => $this->canEdit($workingTime, $user),
             self::DELETE => $this->canDelete($workingTime, $user),
@@ -52,7 +52,7 @@ class WorkingTimeVoter extends Voter
             $owner = $workingTime->getOwner();
             $ownerTeam = $owner?->getTeam();
 
-            if ($ownerTeam !== null) {
+            if (null !== $ownerTeam) {
                 return $user->getManagedTeams()->contains($ownerTeam);
             }
         }
@@ -74,7 +74,7 @@ class WorkingTimeVoter extends Voter
             $owner = $workingTime->getOwner();
             $ownerTeam = $owner?->getTeam();
 
-            if ($ownerTeam !== null) {
+            if (null !== $ownerTeam) {
                 return $user->getManagedTeams()->contains($ownerTeam);
             }
         }
@@ -96,7 +96,7 @@ class WorkingTimeVoter extends Voter
             $owner = $workingTime->getOwner();
             $ownerTeam = $owner?->getTeam();
 
-            if ($ownerTeam !== null) {
+            if (null !== $ownerTeam) {
                 return $user->getManagedTeams()->contains($ownerTeam);
             }
         }

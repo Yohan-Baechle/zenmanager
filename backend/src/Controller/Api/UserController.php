@@ -14,15 +14,15 @@ use App\Service\Paginator;
 use App\Service\PasswordGeneratorService;
 use App\Service\UserCreationService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Users')]
 class UserController extends AbstractController
@@ -34,8 +34,9 @@ class UserController extends AbstractController
         private readonly Paginator $paginator,
         private readonly UserCreationService $userCreationService,
         private readonly PasswordGeneratorService $passwordGenerator,
-        private readonly UserPasswordHasherInterface $passwordHasher
-    ) {}
+        private readonly UserPasswordHasherInterface $passwordHasher,
+    ) {
+    }
 
     #[Route('/users', name: 'api_users_index', methods: ['GET'])]
     #[OA\Get(
@@ -78,13 +79,13 @@ class UserController extends AbstractController
                                 property: 'team',
                                 properties: [
                                     new OA\Property(property: 'id', type: 'integer', example: 1),
-                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                                 ],
                                 type: 'object',
                                 nullable: true
                             ),
                             new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                         ]
                     )
                 ),
@@ -94,10 +95,10 @@ class UserController extends AbstractController
                         new OA\Property(property: 'currentPage', type: 'integer', example: 1),
                         new OA\Property(property: 'itemsPerPage', type: 'integer', example: 20),
                         new OA\Property(property: 'totalItems', type: 'integer', example: 50),
-                        new OA\Property(property: 'totalPages', type: 'integer', example: 3)
+                        new OA\Property(property: 'totalPages', type: 'integer', example: 3),
                     ],
                     type: 'object'
-                )
+                ),
             ]
         )
     )]
@@ -113,7 +114,7 @@ class UserController extends AbstractController
 
         return $this->json([
             'data' => $dtos,
-            'meta' => $paginatedResult['meta']
+            'meta' => $paginatedResult['meta'],
         ]);
     }
 
@@ -147,13 +148,13 @@ class UserController extends AbstractController
                     property: 'team',
                     properties: [
                         new OA\Property(property: 'id', type: 'integer', example: 1),
-                        new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                        new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                     ],
                     type: 'object',
                     nullable: true
                 ),
                 new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
             ]
         )
     )]
@@ -164,6 +165,7 @@ class UserController extends AbstractController
     public function show(User $user): JsonResponse
     {
         $dto = $this->userMapper->toOutputDto($user);
+
         return $this->json($dto);
     }
 
@@ -185,7 +187,7 @@ class UserController extends AbstractController
                     new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
                     new OA\Property(property: 'role', description: 'Must be either "employee" or "manager"', type: 'string', example: 'employee'),
-                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true)
+                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true),
                 ]
             )
         ),
@@ -207,13 +209,13 @@ class UserController extends AbstractController
                             property: 'team',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                             ],
                             type: 'object',
                             nullable: true
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -222,7 +224,7 @@ class UserController extends AbstractController
                 description: 'Invalid input',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'errors', type: 'object')
+                        new OA\Property(property: 'errors', type: 'object'),
                     ]
                 )
             ),
@@ -233,14 +235,14 @@ class UserController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'Team not found'
-            )
+            ),
         ]
     )]
     public function create(
-        #[MapRequestPayload] UserAdminCreateDto $dto
+        #[MapRequestPayload] UserAdminCreateDto $dto,
     ): JsonResponse {
         $team = null;
-        if ($dto->teamId !== null) {
+        if (null !== $dto->teamId) {
             $team = $this->em->getRepository(Team::class)->find($dto->teamId);
             if (!$team) {
                 return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
@@ -258,6 +260,7 @@ class UserController extends AbstractController
         }
 
         $outputDto = $this->userMapper->toOutputDto($user);
+
         return $this->json($outputDto, Response::HTTP_CREATED);
     }
 
@@ -277,7 +280,7 @@ class UserController extends AbstractController
                     new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
                     new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
                     new OA\Property(property: 'role', description: 'Must be either "employee" or "manager"', type: 'string', example: 'manager'),
-                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true)
+                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true),
                 ]
             )
         ),
@@ -289,7 +292,7 @@ class UserController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -308,13 +311,13 @@ class UserController extends AbstractController
                             property: 'team',
                             properties: [
                                 new OA\Property(property: 'id', type: 'integer', example: 1),
-                                new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                             ],
                             type: 'object',
                             nullable: true
                         ),
                         new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                     ]
                 )
             ),
@@ -325,15 +328,15 @@ class UserController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'User or Team not found'
-            )
+            ),
         ]
     )]
     public function update(
         User $user,
-        #[MapRequestPayload] UserUpdateDto $dto
+        #[MapRequestPayload] UserUpdateDto $dto,
     ): JsonResponse {
         $team = $user->getTeam();
-        if ($dto->teamId !== null) {
+        if (null !== $dto->teamId) {
             $team = $this->em->getRepository(Team::class)->find($dto->teamId);
             if (!$team) {
                 return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
@@ -345,15 +348,15 @@ class UserController extends AbstractController
         $this->em->flush();
 
         $outputDto = $this->userMapper->toOutputDto($user);
+
         return $this->json($outputDto);
     }
 
     #[Route('/users/{id}/regenerate-password', name: 'api_users_regenerate_password', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     #[OA\Post(
         path: '/api/users/{id}/regenerate-password',
-        summary: 'Regenerate user password (Admin only)',
-        description: 'Generates a new secure password for a user and sends it via email',
+        description: 'Generates a new secure password for a user and sends it via email. Admins can reset any user password. Regular users can only reset their own password.',
+        summary: 'Regenerate user password',
         security: [['Bearer' => []]],
         tags: ['Users'],
         parameters: [
@@ -363,7 +366,7 @@ class UserController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -371,22 +374,31 @@ class UserController extends AbstractController
                 description: 'Password regenerated and sent to user email',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'message', type: 'string', example: 'Password regenerated and sent to user email')
+                        new OA\Property(property: 'message', type: 'string', example: 'Password regenerated and sent to user email'),
                     ]
                 )
             ),
             new OA\Response(
                 response: 403,
-                description: 'Access denied - Admin role required'
+                description: 'Access denied - You can only reset your own password'
             ),
             new OA\Response(
                 response: 404,
                 description: 'User not found'
-            )
+            ),
         ]
     )]
     public function regeneratePassword(User $user): JsonResponse
     {
+        $currentUser = $this->getUser();
+
+        if (!$this->isGranted('ROLE_ADMIN') && $currentUser !== $user) {
+            return $this->json(
+                ['error' => 'You can only reset your own password'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
         $temporaryPassword = $this->passwordGenerator->generate();
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $temporaryPassword);
@@ -400,7 +412,7 @@ class UserController extends AbstractController
         }
 
         return $this->json([
-            'message' => 'Password regenerated and sent to user email'
+            'message' => 'Password regenerated and sent to user email',
         ]);
     }
 
@@ -417,7 +429,7 @@ class UserController extends AbstractController
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -427,7 +439,7 @@ class UserController extends AbstractController
             new OA\Response(
                 response: 404,
                 description: 'User not found'
-            )
+            ),
         ]
     )]
     public function delete(User $user): JsonResponse
@@ -495,17 +507,17 @@ class UserController extends AbstractController
                                 property: 'team',
                                 properties: [
                                     new OA\Property(property: 'id', type: 'integer', example: 1),
-                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team')
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
                                 ],
                                 type: 'object',
                                 nullable: true
                             ),
                             new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
-                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time')
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
                         ],
                         type: 'object'
                     ),
-                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time')
+                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
                 ]
             )
         )

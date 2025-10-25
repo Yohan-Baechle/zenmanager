@@ -1,21 +1,37 @@
-export type ClockType = 'in' | 'out'
+import type { User } from './user.types'
 
 export interface Clock {
     id: number
-    userId: number
-    type: ClockType
-    timestamp: string
+    time: string
+    status: boolean
+    owner: User
     createdAt: string
 }
 
 export interface CreateClockDto {
-    type: ClockType
+    time: string
+    userId: number
 }
 
-export interface WorkingHoursSummary {
-    userId: number
-    totalHours: number
-    dailyAverage: number
-    weeklyAverage: number
-    clocks: Clock[]
+export interface ClockRequest {
+    id: number
+    requestedTime: string
+    requestedStatus: boolean
+    status: 'PENDING' | 'APPROVED' | 'REJECTED'
+    reason: string
+    user: User
+    targetClock?: Clock
+    reviewedBy?: User
+    reviewedAt?: string
+    createdAt: string
+    updatedAt: string
+}
+
+export interface ClockRequestDto {
+    status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+    type?: 'CREATE'
+    requestedTime?: string
+    requestedStatus?: boolean
+    targetClockId?: number
+    reason?: string
 }

@@ -8,7 +8,7 @@ interface AuthContextType {
     login: (credentials: LoginDto) => Promise<void>
     logout: () => Promise<void>
     isAuthenticated: boolean
-    isManager: boolean
+    role?: string
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)

@@ -1,27 +1,26 @@
 import { apiClient } from './client'
-
-export interface KPIReport {
-    type: string
-    value: number
-    label: string
-    period: string
-}
+import type { ReportsResponse, ReportsFilters, MyTeamsResponse, TeamEmployeesResponse } from '../types/reports.types'
 
 export const reportsApi = {
-    getGlobalReport: async (params?: {
-        startDate?: string
-        endDate?: string
-        teamId?: number
-    }): Promise<KPIReport[]> => {
-        const response = await apiClient.get<KPIReport[]>('/reports', { params })
+    getReports: async (filters?: ReportsFilters): Promise<ReportsResponse> => {
+        const params: Record<string, string> = {}
+        
+        if (filters?.start_date) params.start_date = filters.start_date
+        if (filters?.end_date) params.end_date = filters.end_date
+        if (filters?.team_id) params.team_id = filters.team_id.toString()
+        if (filters?.user_id) params.user_id = filters.user_id.toString()
+
+        const response = await apiClient.get<ReportsResponse>('/reports', { params })
         return response.data
     },
 
-    getTeamReport: async (teamId: number, params?: {
-        startDate?: string
-        endDate?: string
-    }): Promise<any> => {
-        const response = await apiClient.get(`/reports/teams/${teamId}`, { params })
+    getMyTeams: async (): Promise<MyTeamsResponse> => {
+        const response = await apiClient.get<MyTeamsResponse>('/reports/my-teams')
         return response.data
     },
+
+    getTeamEmployees: async (teamId: number): Promise<TeamEmployeesResponse> => {
+        const response = await apiClient.get<TeamEmployeesResponse>(`/reports/team/${teamId}/employees`)
+        return response.data
+    }
 }

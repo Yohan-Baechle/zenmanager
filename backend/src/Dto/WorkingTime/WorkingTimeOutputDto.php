@@ -14,5 +14,6 @@ class WorkingTimeOutputDto
         public readonly int $durationMinutes,
         public readonly \DateTimeImmutable $createdAt,
         public readonly \DateTimeImmutable $updatedAt,
-    ) {}
+    ) {
+    }
 }

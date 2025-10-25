@@ -12,5 +12,6 @@ class ClockOutputDto
         public readonly bool $status,
         public readonly UserOutputDto $owner,
         public readonly \DateTimeImmutable $createdAt,
-    ) {}
+    ) {
+    }
 }

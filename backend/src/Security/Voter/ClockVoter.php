@@ -29,7 +29,7 @@ class ClockVoter extends Voter
         /** @var Clock $clock */
         $clock = $subject;
 
-        return match($attribute) {
+        return match ($attribute) {
             self::VIEW => $this->canView($clock, $user),
             self::EDIT => $this->canEdit($clock, $user),
             self::DELETE => $this->canDelete($clock, $user),
@@ -51,7 +51,7 @@ class ClockVoter extends Voter
             $clockOwner = $clock->getOwner();
             $clockOwnerTeam = $clockOwner?->getTeam();
 
-            if ($clockOwnerTeam !== null) {
+            if (null !== $clockOwnerTeam) {
                 return $user->getManagedTeams()->contains($clockOwnerTeam);
             }
         }
@@ -69,7 +69,7 @@ class ClockVoter extends Voter
             $clockOwner = $clock->getOwner();
             $clockOwnerTeam = $clockOwner?->getTeam();
 
-            if ($clockOwnerTeam !== null) {
+            if (null !== $clockOwnerTeam) {
                 return $user->getManagedTeams()->contains($clockOwnerTeam);
             }
         }
@@ -87,7 +87,7 @@ class ClockVoter extends Voter
             $clockOwner = $clock->getOwner();
             $clockOwnerTeam = $clockOwner?->getTeam();
 
-            if ($clockOwnerTeam !== null) {
+            if (null !== $clockOwnerTeam) {
                 return $user->getManagedTeams()->contains($clockOwnerTeam);
             }
         }

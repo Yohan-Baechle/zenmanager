@@ -5,14 +5,15 @@ namespace App\Mapper;
 use App\Dto\WorkingTime\WorkingTimeInputDto;
 use App\Dto\WorkingTime\WorkingTimeOutputDto;
 use App\Dto\WorkingTime\WorkingTimeUpdateDto;
-use App\Entity\WorkingTime;
 use App\Entity\User;
+use App\Entity\WorkingTime;
 
 class WorkingTimeMapper
 {
     public function __construct(
-        private readonly UserMapper $userMapper
-    ) {}
+        private readonly UserMapper $userMapper,
+    ) {
+    }
 
     public function toOutputDto(WorkingTime $workingTime): WorkingTimeOutputDto
     {
@@ -23,7 +24,7 @@ class WorkingTimeMapper
             id: $workingTime->getId(),
             startTime: $workingTime->getStartTime(),
             endTime: $workingTime->getEndTime(),
-            user: $this->userMapper->toOutputDto($workingTime->getUser()),
+            user: $this->userMapper->toOutputDto($workingTime->getOwner()),
             durationMinutes: $durationMinutes,
             createdAt: $workingTime->getCreatedAt(),
             updatedAt: $workingTime->getUpdatedAt(),
@@ -32,11 +33,12 @@ class WorkingTimeMapper
 
     /**
      * @param WorkingTime[] $workingTimes
+     *
      * @return WorkingTimeOutputDto[]
      */
     public function toOutputDtoCollection(array $workingTimes): array
     {
-        return array_map(fn(WorkingTime $wt) => $this->toOutputDto($wt), $workingTimes);
+        return array_map(fn (WorkingTime $wt) => $this->toOutputDto($wt), $workingTimes);
     }
 
     public function toEntity(WorkingTimeInputDto $dto, User $user): WorkingTime
@@ -44,18 +46,18 @@ class WorkingTimeMapper
         $workingTime = new WorkingTime();
         $workingTime->setStartTime(\DateTimeImmutable::createFromInterface($dto->startTime));
         $workingTime->setEndTime(\DateTimeImmutable::createFromInterface($dto->endTime));
-        $workingTime->setUser($user);
+        $workingTime->setOwner($user);
 
         return $workingTime;
     }
 
     public function updateEntity(WorkingTime $workingTime, WorkingTimeUpdateDto $dto): void
     {
-        if ($dto->startTime !== null) {
+        if (null !== $dto->startTime) {
             $workingTime->setStartTime(\DateTimeImmutable::createFromInterface($dto->startTime));
         }
 
-        if ($dto->endTime !== null) {
+        if (null !== $dto->endTime) {
             $workingTime->setEndTime(\DateTimeImmutable::createFromInterface($dto->endTime));
         }
     }

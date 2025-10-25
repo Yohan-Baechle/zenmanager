@@ -19,8 +19,6 @@ class WorkingTimeVoterTest extends TestCase
         $this->voter = new WorkingTimeVoter();
     }
 
-    // ========== VIEW TESTS ==========
-
     public function testOwnerCanViewOwnWorkingTime(): void
     {
         $user = $this->createUser('employee');
@@ -83,8 +81,6 @@ class WorkingTimeVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
 
-    // ========== EDIT TESTS ==========
-
     public function testOwnerCanEditOwnWorkingTime(): void
     {
         $user = $this->createUser('employee');
@@ -132,8 +128,6 @@ class WorkingTimeVoterTest extends TestCase
 
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
-
-    // ========== DELETE TESTS ==========
 
     public function testOwnerCanDeleteOwnWorkingTime(): void
     {
@@ -183,27 +177,25 @@ class WorkingTimeVoterTest extends TestCase
         $this->assertEquals(VoterInterface::ACCESS_GRANTED, $result);
     }
 
-    // ========== HELPER METHODS ==========
-
     private function createUser(string $role, ?Team $team = null, bool $isManager = false): User
     {
         $user = $this->createMock(User::class);
 
-        $roles = match($role) {
+        $roles = match ($role) {
             'admin' => ['ROLE_ADMIN'],
             'manager' => ['ROLE_MANAGER'],
-            default => ['ROLE_USER']
+            default => ['ROLE_USER'],
         };
 
         $user->method('getRoles')->willReturn($roles);
 
-        if ($team !== null) {
+        if (null !== $team) {
             $user->method('getTeam')->willReturn($team);
 
             if ($isManager) {
                 $managedTeams = $this->createMock(\Doctrine\Common\Collections\Collection::class);
                 $managedTeams->method('contains')->willReturnCallback(
-                    fn($checkTeam) => $checkTeam === $team
+                    fn ($checkTeam) => $checkTeam === $team
                 );
                 $user->method('getManagedTeams')->willReturn($managedTeams);
             }

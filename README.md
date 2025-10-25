@@ -26,12 +26,34 @@ Time management application built with Symfony (backend) and React (frontend).
 
    Create a `backend/.env` file:
    ```env
-   DATABASE_URL="postgresql://db_user:db_password@database:5432/db_name?serverVersion=18&charset=utf8"
+   ###> symfony/framework-bundle ###
    APP_ENV=dev
-   APP_SECRET=your_app_secret_key_here
+   APP_SECRET=change-this-secret-key-in-production
+   ###< symfony/framework-bundle ###
+
+   ###> doctrine/doctrine-bundle ###
+   # Database URL
+   DATABASE_URL="postgresql://timemanager_user:timemanager_ncy1@database:5432/timemanager?serverVersion=18&charset=utf8"
+   ###< doctrine/doctrine-bundle ###
+
+   ###> symfony/routing ###
+   DEFAULT_URI=http://localhost
+   ###< symfony/routing ###
+
+   CORS_ALLOW_ORIGIN=true
+
+   ###> lexik/jwt-authentication-bundle ###
    JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem
    JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem
-   JWT_PASSPHRASE=your_jwt_passphrase_here
+   JWT_PASSPHRASE=121f3ea41bf365fe519107c9a6b8ea8cb0941a88102b90b09a962bbdfa9bd264
+   ###< lexik/jwt-authentication-bundle ###
+
+   ###> symfony/mailer ###
+   # For development: mailpit catches all emails (Web UI: http://localhost:8025)
+   # For production: use a real SMTP service like smtp://user:pass@smtp.example.com:587
+   MAILER_DSN=smtp://mailpit:1025
+   MAILER_FROM=noreply@timemanager.local
+   ###< symfony/mailer ###
    ```
 
 3. **Generate JWT keys**

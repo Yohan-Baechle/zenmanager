@@ -5,7 +5,7 @@ namespace App\Service;
 /**
  * Service for generating passwords compliant with ANSSI recommendations
  * Length: 16 characters
- * Mix of uppercase, lowercase, digits, and special characters
+ * Mix of uppercase, lowercase, digits, and special characters.
  */
 class PasswordGeneratorService
 {
@@ -24,10 +24,10 @@ class PasswordGeneratorService
             $this->getRandomChar(self::SPECIAL_CHARS),
         ];
 
-        $allChars = self::LOWERCASE . self::UPPERCASE . self::DIGITS . self::SPECIAL_CHARS;
+        $allChars = self::LOWERCASE.self::UPPERCASE.self::DIGITS.self::SPECIAL_CHARS;
         $remainingLength = self::PASSWORD_LENGTH - count($password);
 
-        for ($i = 0; $i < $remainingLength; $i++) {
+        for ($i = 0; $i < $remainingLength; ++$i) {
             $password[] = $this->getRandomChar($allChars);
         }
 

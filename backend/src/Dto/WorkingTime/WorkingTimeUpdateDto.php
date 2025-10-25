@@ -18,6 +18,7 @@ class WorkingTimeUpdateDto
         if ($this->startTime && $this->endTime) {
             return $this->endTime > $this->startTime;
         }
+
         return true;
     }
 }
