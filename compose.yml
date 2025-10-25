@@ -16,10 +16,19 @@ services:
       - log_min_duration_statement=1000
       - -c
       - "log_line_prefix=%t [%p]: user=%u,db=%d "
+      - -c
+      - log_destination=stderr
+      - -c
+      - logging_collector=on
+      - -c
+      - log_directory=/var/log/postgresql
+      - -c
+      - log_filename=postgresql-%Y-%m-%d.log
     ports:
       - "5432:5432"
     volumes:
       - timemanager_db_data:/var/lib/postgresql/data
+      - ./logs/database:/var/log/postgresql
     networks:
       - timemanager_network
     healthcheck:
@@ -40,7 +49,7 @@ services:
       - "8080:8000"
     volumes:
       - ./backend:/var/www/symfony
-      - timemanager_backend_logs:/var/www/symfony/var/log
+      - ./logs/backend:/var/www/symfony/var/log
     command: >
       sh -c "composer install --no-scripts &&
              echo '⏳ Waiting for database...' &&
@@ -86,7 +95,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - timemanager_frontend_logs:/app/logs
+      - ./logs/frontend:/app/logs
     command: sh -c "npm install && npm run dev -- --host"
     networks:
       - timemanager_network
@@ -95,8 +104,6 @@ services:
 
 volumes:
   timemanager_db_data:
-  timemanager_backend_logs:
-  timemanager_frontend_logs:
 
 networks:
   timemanager_network:
