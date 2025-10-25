@@ -56,6 +56,7 @@ export default function TeamForm({ initialData, onSubmit, isEdit = false }: Team
             />
             <Select
                 label="Manager"
+                floatingLabel={true}
                 options={managerOptions}
                 defaultValue={initialData?.managerId ? String(initialData.managerId) : ''}
                 {...register('managerId', {
