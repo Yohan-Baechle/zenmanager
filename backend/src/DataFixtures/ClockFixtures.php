@@ -30,7 +30,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
     {
         $theKing = $this->getReference('user-manager', User::class);
 
-        for ($day = 0; $day < 7; ++$day) {
+        for ($day = 1; $day <= 7; ++$day) {
             $date = new \DateTimeImmutable("-{$day} days");
 
             $clockIn = new Clock();
@@ -48,7 +48,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
 
         $theJoker = $this->getReference('user-employee', User::class);
 
-        for ($day = 0; $day < 7; ++$day) {
+        for ($day = 1; $day <= 7; ++$day) {
             $date = new \DateTimeImmutable("-{$day} days");
 
             $clockIn = new Clock();
@@ -67,7 +67,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
         for ($userIndex = 1; $userIndex <= 6; ++$userIndex) {
             $user = $this->getReference('user-'.$userIndex, User::class);
 
-            for ($day = 0; $day < 5; ++$day) {
+            for ($day = 1; $day <= 5; ++$day) {
                 $date = new \DateTimeImmutable("-{$day} days");
 
                 $clockIn = new Clock();
@@ -102,7 +102,7 @@ class ClockFixtures extends Fixture implements DependentFixtureInterface
             for ($day = 0; $day < $workDays; ++$day) {
                 $user = $this->getReference('user-'.$userIndex, User::class);
 
-                $daysAgo = $faker->numberBetween(0, 29);
+                $daysAgo = $faker->numberBetween(1, 29);
                 $date = new \DateTimeImmutable("-{$daysAgo} days");
 
                 $clockIn = new Clock();
