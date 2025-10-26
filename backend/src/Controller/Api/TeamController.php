@@ -198,6 +198,7 @@ class TeamController extends AbstractController
     }
 
     #[Route('/teams', name: 'api_teams_create', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     #[OA\Post(
         path: '/api/teams',
         summary: 'Create a new team',
