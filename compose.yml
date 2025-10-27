@@ -1,4 +1,17 @@
 services:
+  logs-init:
+    image: alpine:latest
+    container_name: timemanager_logs_init
+    volumes:
+      - ./logs:/logs
+    command: >
+      sh -c "
+        mkdir -p /logs/backend /logs/frontend /logs/database &&
+        chmod -R 777 /logs &&
+        echo 'Logs directories initialized with proper permissions'
+      "
+    restart: "no"
+
   database:
     image: postgres:18-alpine
     container_name: timemanager_database
@@ -11,19 +24,31 @@ services:
     command:
       - postgres
       - -c
-      - log_statement=all
+      - log_statement=none
       - -c
-      - log_min_duration_statement=0
+      - log_min_duration_statement=1000
       - -c
-      - "log_line_prefix=%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h "
+      - "log_line_prefix=%t [%p]: user=%u,db=%d "
+      - -c
+      - log_destination=stderr
+      - -c
+      - logging_collector=on
+      - -c
+      - log_directory=/var/log/postgresql
+      - -c
+      - log_filename=postgresql-%Y-%m-%d.log
     ports:
       - "5432:5432"
     volumes:
       - timemanager_db_data:/var/lib/postgresql/data
+      - ./logs/database:/var/log/postgresql
     networks:
       - timemanager_network
+    depends_on:
+      logs-init:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -40,7 +65,7 @@ services:
       - "8080:8000"
     volumes:
       - ./backend:/var/www/symfony
-      - timemanager_backend_logs:/var/www/symfony/var/log
+      - ./logs/backend:/var/www/symfony/var/log
     command: >
       sh -c "composer install --no-scripts &&
              echo '⏳ Waiting for database...' &&
@@ -50,6 +75,8 @@ services:
     networks:
       - timemanager_network
     depends_on:
+      logs-init:
+        condition: service_completed_successfully
       database:
         condition: service_healthy
 
@@ -86,17 +113,18 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - timemanager_frontend_logs:/app/logs
+      - ./logs/frontend:/app/logs
     command: sh -c "npm install && npm run dev -- --host"
     networks:
       - timemanager_network
     depends_on:
-      - backend
+      logs-init:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
 
 volumes:
   timemanager_db_data:
-  timemanager_backend_logs:
-  timemanager_frontend_logs:
 
 networks:
   timemanager_network:
