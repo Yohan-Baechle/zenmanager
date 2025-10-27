@@ -7,9 +7,7 @@ use App\Entity\WorkingTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<WorkingTime>
- */
+
 class WorkingTimeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -75,6 +73,7 @@ class WorkingTimeRepository extends ServiceEntityRepository
         return round($totalHours, 2);
     }
 
+
     public function countPresentDays(?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate, ?int $userId, ?int $teamId = null): int
     {
         $qb = $this->createQueryBuilder('wt');
@@ -102,12 +101,16 @@ class WorkingTimeRepository extends ServiceEntityRepository
 
         $workingTimes = $qb->getQuery()->getResult();
 
-        $distinctDates = [];
+        
+        $distinctDaysPerUser = [];
         foreach ($workingTimes as $workingTime) {
+            $userId = $workingTime->getOwner()->getId();
             $date = $workingTime->getStartTime()->format('Y-m-d');
-            $distinctDates[$date] = true;
+            
+            $key = $userId . '_' . $date;
+            $distinctDaysPerUser[$key] = true;
         }
 
-        return count($distinctDates);
+        return count($distinctDaysPerUser);
     }
 }
