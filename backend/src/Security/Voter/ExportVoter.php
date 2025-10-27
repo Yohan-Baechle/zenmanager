@@ -12,10 +12,6 @@ class ExportVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        // This voter supports EXPORT_CLOCKING attribute
-        // Subject can be null (when checking general export permission)
-        // or a User (when checking export permission for a specific user)
-        // or an integer (teamId)
         return $attribute === self::EXPORT_CLOCKING;
     }
 
@@ -49,40 +45,32 @@ class ExportVoter extends Voter
     {
         $roles = $currentUser->getRoles();
 
-        // Admins can export everything
         if (in_array('ROLE_ADMIN', $roles)) {
             return true;
         }
 
-        // Only managers and admins can export
         if (!in_array('ROLE_MANAGER', $roles)) {
             return false;
         }
 
-        // Managers must manage at least one team
         $managedTeams = $currentUser->getManagedTeams();
         if ($managedTeams->isEmpty()) {
             return false;
         }
 
-        // If no subject specified, manager has general export permission
-        // (the controller will ensure they provide a valid team_id)
         if ($subject === null) {
             return true;
         }
 
-        // If subject is a team ID (integer), check if manager manages that team
         if (is_int($subject)) {
             $teamId = $subject;
             $managedTeamIds = array_map(fn($team) => $team->getId(), $managedTeams->toArray());
             return in_array($teamId, $managedTeamIds);
         }
 
-        // If subject is a User, check if user belongs to a team the manager manages
         if ($subject instanceof User) {
             $targetTeam = $subject->getTeam();
 
-            // If user has no team, manager cannot export their data
             if (null === $targetTeam) {
                 return false;
             }
@@ -90,7 +78,6 @@ class ExportVoter extends Voter
             return $managedTeams->contains($targetTeam);
         }
 
-        // Unknown subject type
         return false;
     }
 }

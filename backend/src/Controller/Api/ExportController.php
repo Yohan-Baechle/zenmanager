@@ -3,13 +3,15 @@
 namespace App\Controller\Api;
 
 use App\Dto\Export\ExportFilterInputDto;
+use App\Entity\User;
 use App\Security\Voter\ExportVoter;
 use App\Service\ExportService;
+use DateTime;
+use DateTimeInterface as DateTimeInterfaceAlias;
+use Exception as ExceptionAlias;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -107,7 +109,7 @@ final class ExportController extends AbstractController
 
         $this->denyAccessUnlessGranted(ExportVoter::EXPORT_CLOCKING);
 
-        /** @var \App\Entity\User $currentUser */
+        /** @var User $currentUser */
         $currentUser = $this->getUser();
 
         [$teamId, $userId, $error] = $this->validateAndAdjustParameters(
@@ -135,7 +137,7 @@ final class ExportController extends AbstractController
                 $teamId
             );
 
-            $filename = $this->generateFilename('clocking_report', 'pdf', $startDate, $endDate);
+            $filename = $this->generateFilename('pdf', $startDate, $endDate);
 
             $response = new Response($pdfContent);
             $response->headers->set('Content-Type', 'application/pdf');
@@ -143,7 +145,7 @@ final class ExportController extends AbstractController
 
             return $response;
 
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return $this->json([
                 'success' => false,
                 'error' => 'Error generating PDF: ' . $e->getMessage(),
@@ -154,8 +156,8 @@ final class ExportController extends AbstractController
     #[Route('/clocking/xlsx', name: 'api_export_clocking_xlsx', methods: ['GET'])]
     #[OA\Get(
         path: '/api/exports/clocking/xlsx',
-        summary: 'Export clocking data to XLSX',
         description: 'Generates a comprehensive Excel report with multiple sheets (KPIs, Working Times, Clocks). Managers can only export their team data, admins can export all data.',
+        summary: 'Export clocking data to XLSX',
         tags: ['Exports']
     )]
     #[OA\Parameter(
@@ -228,7 +230,7 @@ final class ExportController extends AbstractController
 
         $this->denyAccessUnlessGranted(ExportVoter::EXPORT_CLOCKING);
 
-        /** @var \App\Entity\User $currentUser */
+        /** @var User $currentUser */
         $currentUser = $this->getUser();
 
         [$teamId, $userId, $error] = $this->validateAndAdjustParameters(
@@ -256,7 +258,7 @@ final class ExportController extends AbstractController
                 $teamId
             );
 
-            $filename = $this->generateFilename('clocking_report', 'xlsx', $startDate, $endDate);
+            $filename = $this->generateFilename('xlsx', $startDate, $endDate);
 
             $response = new Response($xlsxContent);
             $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -264,7 +266,7 @@ final class ExportController extends AbstractController
 
             return $response;
 
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return $this->json([
                 'success' => false,
                 'error' => 'Error generating XLSX: ' . $e->getMessage(),
@@ -278,7 +280,7 @@ final class ExportController extends AbstractController
      *
      * @return array [teamId, userId, error|null]
      */
-    private function validateAndAdjustParameters(\App\Entity\User $currentUser, ?int $teamId, ?int $userId): array
+    private function validateAndAdjustParameters(User $currentUser, ?int $teamId, ?int $userId): array
     {
         $userRoles = $currentUser->getRoles();
         $isAdmin = in_array('ROLE_ADMIN', $userRoles);
@@ -326,19 +328,21 @@ final class ExportController extends AbstractController
     /**
      * Generate standardized filename for exports
      */
-    private function generateFilename(string $prefix, string $extension, ?\DateTimeInterface $startDate, ?\DateTimeInterface $endDate): string
+    private function generateFilename(string $extension, DateTimeInterfaceAlias $startDate, DateTimeInterfaceAlias $endDate): string
     {
-        $timestamp = (new \DateTime())->format('Ymd_His');
+        $timestamp = (new DateTime())->format('Ymd_His');
         $dateRange = '';
+        $startDate = $startDate->format('Ymd');
+        $endDate = $endDate->format('Ymd');
 
         if ($startDate && $endDate) {
-            $dateRange = '_' . $startDate->format('Ymd') . '-' . $endDate->format('Ymd');
+            $dateRange = '_' . $startDate . '-' . $endDate;
         } elseif ($startDate) {
-            $dateRange = '_from_' . $startDate->format('Ymd');
+            $dateRange = '_from_' . $startDate;
         } elseif ($endDate) {
-            $dateRange = '_until_' . $endDate->format('Ymd');
+            $dateRange = '_until_' . $endDate;
         }
 
-        return "{$prefix}{$dateRange}_{$timestamp}.{$extension}";
+        return "clocking_report.$dateRange._$timestamp.$extension";
     }
 }

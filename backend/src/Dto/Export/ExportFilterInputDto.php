@@ -2,6 +2,9 @@
 
 namespace App\Dto\Export;
 
+use DateTimeImmutable as DateTimeImmutableAlias;
+use DateTimeInterface as DateTimeInterfaceAlias;
+use Exception as ExceptionAlias;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ExportFilterInputDto
@@ -27,12 +30,12 @@ class ExportFilterInputDto
     /**
      * Get start date as DateTimeInterface
      */
-    public function getStartDateAsDateTime(): ?\DateTimeInterface
+    public function getStartDateAsDateTime(): ?DateTimeInterfaceAlias
     {
         if ($this->start_date) {
             try {
-                return new \DateTimeImmutable($this->start_date);
-            } catch (\Exception $e) {
+                return new DateTimeImmutableAlias($this->start_date);
+            } catch (ExceptionAlias) {
                 return null;
             }
         }
@@ -42,12 +45,12 @@ class ExportFilterInputDto
     /**
      * Get end date as DateTimeInterface
      */
-    public function getEndDateAsDateTime(): ?\DateTimeInterface
+    public function getEndDateAsDateTime(): ?DateTimeInterfaceAlias
     {
         if ($this->end_date) {
             try {
-                return new \DateTimeImmutable($this->end_date);
-            } catch (\Exception $e) {
+                return new DateTimeImmutableAlias($this->end_date);
+            } catch (ExceptionAlias) {
                 return null;
             }
         }
@@ -96,7 +99,7 @@ class ExportFilterInputDto
     #[Assert\IsTrue(message: 'Dates cannot be in the future')]
     public function isDatesNotInFuture(): bool
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutableAlias();
 
         $start = $this->getStartDateAsDateTime();
         if ($start && $start > $now) {

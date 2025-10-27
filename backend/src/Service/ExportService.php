@@ -3,11 +3,10 @@
 namespace App\Service;
 
 use App\Entity\User;
-use App\Entity\WorkingTime;
-use App\Entity\Clock;
 use App\Repository\ClockRepository;
 use App\Repository\WorkingTimeRepository;
-use App\Repository\UserRepository;
+use DateTime as DateTimeAlias;
+use DateTimeInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -17,12 +16,12 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ExportService
+readonly class ExportService
 {
     public function __construct(
-        private readonly ClockRepository $clockRepository,
-        private readonly WorkingTimeRepository $workingTimeRepository,
-        private readonly EntityManagerInterface $entityManager,
+        private ClockRepository        $clockRepository,
+        private WorkingTimeRepository  $workingTimeRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -30,18 +29,15 @@ class ExportService
      * Generate PDF report organized by employee with weekly breakdown
      */
     public function generatePdfReport(
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate,
-        ?int $userId = null,
-        ?int $teamId = null
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate,
+        ?int               $userId = null,
+        ?int               $teamId = null
     ): string {
-        // Collect employees data grouped by employee and week
         $employeesData = $this->collectEmployeesWeeklyData($startDate, $endDate, $userId, $teamId);
 
-        // Generate HTML content
         $html = $this->generateHtmlForPdf($employeesData, $startDate, $endDate);
 
-        // Configure Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
@@ -59,17 +55,15 @@ class ExportService
      * Generate XLSX report organized by employee with weekly breakdown
      */
     public function generateXlsxReport(
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate,
-        ?int $userId = null,
-        ?int $teamId = null
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate,
+        ?int               $userId = null,
+        ?int               $teamId = null
     ): string {
         $spreadsheet = new Spreadsheet();
 
-        // Collect employees data grouped by employee and week
         $employeesData = $this->collectEmployeesWeeklyData($startDate, $endDate, $userId, $teamId);
 
-        // Create sheets for each employee
         $isFirstSheet = true;
         foreach ($employeesData as $employeeData) {
             if ($isFirstSheet) {
@@ -82,7 +76,6 @@ class ExportService
             $this->createEmployeeWeeklySheet($sheet, $employeeData);
         }
 
-        // Write to string
         $writer = new Xlsx($spreadsheet);
         ob_start();
         $writer->save('php://output');
@@ -93,12 +86,11 @@ class ExportService
      * Collect data grouped by employee and organized by week
      */
     private function collectEmployeesWeeklyData(
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate,
-        ?int $userId,
-        ?int $teamId
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate,
+        ?int               $userId,
+        ?int               $teamId
     ): array {
-        // Get users
         $usersQuery = $this->entityManager->createQueryBuilder()
             ->select('u')
             ->from(User::class, 'u');
@@ -119,25 +111,19 @@ class ExportService
         $employeesData = [];
 
         foreach ($users as $user) {
-            // Get working times for this user
             $workingTimes = $this->collectWorkingTimesData($startDate, $endDate, $user->getId(), null);
 
-            // Get clocks for this user
             $clocks = $this->collectClocksData($startDate, $endDate, $user->getId(), null);
 
-            // Group by weeks
             $weeklyData = $this->groupByWeeks($workingTimes, $clocks, $startDate, $endDate);
 
-            // Calculate employee totals
             $totalHours = 0;
             foreach ($workingTimes as $wt) {
                 $totalHours += ($wt->getEndTime()->getTimestamp() - $wt->getStartTime()->getTimestamp()) / 3600;
             }
 
-            // Detect anomalies
             $anomalies = $this->detectAnomalies($workingTimes, $clocks, $user);
 
-            // Calculate KPIs excluding anomalous days
             $validWorkingTimes = array_filter($workingTimes, function($wt) use ($anomalies) {
                 $dateKey = $wt->getStartTime()->format('Y-m-d');
                 foreach ($anomalies as $anomaly) {
@@ -153,7 +139,6 @@ class ExportService
                 $validTotalHours += ($wt->getEndTime()->getTimestamp() - $wt->getStartTime()->getTimestamp()) / 3600;
             }
 
-            // Calculate individual KPIs (excluding anomalies)
             $kpis = [
                 'total_working_hours' => $validTotalHours,
                 'late_arrivals' => $this->clockRepository->countLateArrivals($startDate, $endDate, $user->getId(), null),
@@ -182,18 +167,17 @@ class ExportService
      * Group working times and clocks by ISO weeks
      */
     private function groupByWeeks(
-        array $workingTimes,
-        array $clocks,
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate
+        array              $workingTimes,
+        array              $clocks,
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate
     ): array {
         $weeks = [];
 
-        // Group working times by week
         foreach ($workingTimes as $wt) {
             $date = $wt->getStartTime();
-            $weekKey = $date->format('o-W'); // ISO year-week
-            $dayKey = $date->format('N'); // 1=Monday, 7=Sunday
+            $weekKey = $date->format('o-W');
+            $dayKey = $date->format('N');
 
             if (!isset($weeks[$weekKey])) {
                 $weeks[$weekKey] = $this->initializeWeek($date);
@@ -201,18 +185,15 @@ class ExportService
 
             $weeks[$weekKey]['days'][$dayKey]['working_times'][] = $wt;
 
-            // Calculate duration
             $duration = ($wt->getEndTime()->getTimestamp() - $wt->getStartTime()->getTimestamp()) / 3600;
             $weeks[$weekKey]['days'][$dayKey]['total_hours'] += $duration;
 
-            // Store first/last times
             if (!$weeks[$weekKey]['days'][$dayKey]['first_in']) {
                 $weeks[$weekKey]['days'][$dayKey]['first_in'] = $wt->getStartTime();
             }
             $weeks[$weekKey]['days'][$dayKey]['last_out'] = $wt->getEndTime();
         }
 
-        // Group clocks by week
         foreach ($clocks as $clock) {
             $date = $clock->getTime();
             $weekKey = $date->format('o-W');
@@ -225,7 +206,6 @@ class ExportService
             $weeks[$weekKey]['days'][$dayKey]['clocks'][] = $clock;
         }
 
-        // Sort weeks chronologically
         ksort($weeks);
 
         return $weeks;
@@ -234,8 +214,7 @@ class ExportService
     /**
      * Initialize a week structure
      */
-    private function initializeWeek(\DateTimeInterface $date): array {
-        // Get Monday of this week
+    private function initializeWeek(DateTimeInterface $date): array {
         $monday = (clone $date)->modify('monday this week');
 
         $week = [
@@ -245,7 +224,6 @@ class ExportService
             'days' => [],
         ];
 
-        // Initialize 7 days (Monday=1 to Sunday=7)
         for ($i = 1; $i <= 7; $i++) {
             $dayDate = (clone $monday)->modify('+' . ($i - 1) . ' days');
             $week['days'][$i] = [
@@ -282,10 +260,10 @@ class ExportService
      * Collect working times data
      */
     private function collectWorkingTimesData(
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate,
-        ?int $userId,
-        ?int $teamId
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate,
+        ?int               $userId,
+        ?int               $teamId
     ): array {
         $qb = $this->workingTimeRepository->createQueryBuilder('wt');
 
@@ -319,10 +297,10 @@ class ExportService
      * Collect clocks data
      */
     private function collectClocksData(
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate,
-        ?int $userId,
-        ?int $teamId
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate,
+        ?int               $userId,
+        ?int               $teamId
     ): array {
         $qb = $this->clockRepository->createQueryBuilder('c');
 
@@ -356,17 +334,17 @@ class ExportService
      * Generate HTML for PDF with employee weekly breakdown
      */
     private function generateHtmlForPdf(
-        array $employeesData,
-        ?\DateTimeInterface $startDate,
-        ?\DateTimeInterface $endDate
+        array              $employeesData,
+        ?DateTimeInterface $startDate,
+        ?DateTimeInterface $endDate
     ): string {
         $periodStart = $startDate ? $startDate->format('d/m/Y') : 'N/A';
         $periodEnd = $endDate ? $endDate->format('d/m/Y') : 'N/A';
-        $generatedAt = (new \DateTime())->format('d/m/Y H:i:s');
+        $generatedAt = (new DateTimeAlias())->format('d/m/Y H:i:s');
 
         $html = "
         <!DOCTYPE html>
-        <html>
+        <html lang=fr-FR>
         <head>
             <meta charset='UTF-8'>
             <style>
@@ -401,8 +379,8 @@ class ExportService
         <body>
             <div class='header'>
                 <h1>📊 Rapport de Pointages par Salarié</h1>
-                <p><strong>Période :</strong> {$periodStart} - {$periodEnd}</p>
-                <p><strong>Généré le :</strong> {$generatedAt}</p>
+                <p><strong>Période :</strong> $periodStart - $periodEnd</p>
+                <p><strong>Généré le :</strong> $generatedAt</p>
             </div>";
 
         $employeeCount = 0;
@@ -414,7 +392,6 @@ class ExportService
             $kpis = $employeeData['kpis'];
             $anomalies = $employeeData['anomalies'];
 
-            // Create anomaly lookup by date
             $anomaliesByDate = [];
             foreach ($anomalies as $anomaly) {
                 $anomaliesByDate[$anomaly['date']][] = $anomaly;
@@ -427,7 +404,7 @@ class ExportService
 
             $fullName = $this->getUserFullName($user);
             $html .= "
-            <h2>👤 {$fullName}</h2>
+            <h2>👤 $fullName</h2>
             <div class='employee-summary'>
                 <strong>Email:</strong> {$user->getEmail()} |
                 <strong>Heures totales:</strong> <span class='hours'>" . number_format($totalHours, 2) . "h</span> |
@@ -446,7 +423,7 @@ class ExportService
                 }
 
                 $html .= "
-                <h3>📅 Semaine {$weekNumber} ({$year}) : {$mondayDate} - {$sundayDate} | Total: <span class='hours'>" . number_format($weekTotalHours, 2) . "h</span></h3>
+                <h3>📅 Semaine $weekNumber ($year) : $mondayDate - $sundayDate | Total: <span class='hours'>" . number_format($weekTotalHours, 2) . "h</span></h3>
                 <table>
                     <thead>
                         <tr>
@@ -465,7 +442,6 @@ class ExportService
                     $dayFullDate = $day['date']->format('Y-m-d');
                     $hasAnomaly = isset($anomaliesByDate[$dayFullDate]);
 
-                    // Determine row class (anomaly takes priority)
                     $rowClass = $hasAnomaly ? 'anomaly' : ($isWeekend ? 'weekend' : '');
 
                     $dayName = $day['day_name'];
@@ -474,7 +450,6 @@ class ExportService
                     $lastOut = $day['last_out'] ? $day['last_out']->format('H:i') : '-';
                     $hours = $day['total_hours'] > 0 ? number_format($day['total_hours'], 2) . 'h' : '-';
 
-                    // Build details
                     $details = '';
                     if (count($day['working_times']) > 0) {
                         $wtDetails = [];
@@ -483,7 +458,6 @@ class ExportService
                         }
                         $details = implode(', ', $wtDetails);
 
-                        // Add anomaly warning
                         if ($hasAnomaly) {
                             $anomalyLabels = array_map(fn($a) => $a['type_label'], $anomaliesByDate[$dayFullDate]);
                             $details .= ' <span class="anomaly-warning">⚠ ' . implode(', ', $anomalyLabels) . '</span>';
@@ -493,13 +467,13 @@ class ExportService
                     }
 
                     $html .= "
-                        <tr class='{$rowClass}'>
-                            <td class='day-header'>{$dayName}</td>
-                            <td>{$date}</td>
-                            <td class='time'>{$firstIn}</td>
-                            <td class='time'>{$lastOut}</td>
-                            <td class='hours'>{$hours}</td>
-                            <td style='text-align: left; font-size: 7pt;'>{$details}</td>
+                        <tr class='$rowClass'>
+                            <td class='day-header'>$dayName</td>
+                            <td>$date</td>
+                            <td class='time'>$firstIn</td>
+                            <td class='time'>$lastOut</td>
+                            <td class='hours'>$hours</td>
+                            <td style='text-align: left; font-size: 7pt;'>$details</td>
                         </tr>";
                 }
 
@@ -508,7 +482,6 @@ class ExportService
                 </table>";
             }
 
-            // Add KPIs section for this employee
             $html .= "
             <div class='kpi-section'>
                 <h3>📈 Indicateurs de Performance (KPIs)</h3>
@@ -540,7 +513,6 @@ class ExportService
                 </div>
             </div>";
 
-            // Add Anomalies section if there are any
             if (count($anomalies) > 0) {
                 $html .= "
             <div class='kpi-section' style='margin-top: 15px; border-color: #fca5a5;'>
@@ -562,10 +534,10 @@ class ExportService
                     $severityLabel = $anomaly['severity'] === 'high' ? '🔴 Élevée' : '🟠 Moyenne';
                     $html .= "
                         <tr style='background-color: " . ($anomaly['severity'] === 'high' ? '#fee2e2' : '#fed7aa') . ";'>
-                            <td>{$dateFormatted}</td>
+                            <td>$dateFormatted</td>
                             <td style='font-weight: bold;'>{$anomaly['type_label']}</td>
                             <td style='text-align: left;'>{$anomaly['description']}</td>
-                            <td>{$severityLabel}</td>
+                            <td>$severityLabel</td>
                         </tr>";
                 }
 
@@ -596,18 +568,15 @@ class ExportService
         $kpis = $employeeData['kpis'];
         $anomalies = $employeeData['anomalies'];
 
-        // Create anomaly lookup by date
         $anomaliesByDate = [];
         foreach ($anomalies as $anomaly) {
             $anomaliesByDate[$anomaly['date']][] = $anomaly;
         }
 
-        // Set sheet title (max 31 chars)
         $fullName = $this->getUserFullName($user);
         $sheetTitle = substr($fullName, 0, 31);
         $sheet->setTitle($sheetTitle);
 
-        // Header
         $sheet->setCellValue('A1', $fullName);
         $sheet->mergeCells('A1:F1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
@@ -625,14 +594,12 @@ class ExportService
             $year = $week['year'];
             $mondayDate = $week['monday_date']->format('d/m/Y');
 
-            // Week header
-            $sheet->setCellValue('A' . $row, "Semaine {$weekNumber} ({$year}) - {$mondayDate}");
+            $sheet->setCellValue('A' . $row, "Semaine $weekNumber ($year) - $mondayDate");
             $sheet->mergeCells('A' . $row . ':F' . $row);
             $sheet->getStyle('A' . $row)->getFont()->setBold(true);
             $sheet->getStyle('A' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('f3f4f6');
             $row++;
 
-            // Column headers
             $sheet->setCellValue('A' . $row, 'Jour');
             $sheet->setCellValue('B' . $row, 'Date');
             $sheet->setCellValue('C' . $row, 'Arrivée');
@@ -644,7 +611,6 @@ class ExportService
             $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->getColor()->setRGB('FFFFFF');
             $row++;
 
-            // Days data
             foreach ($week['days'] as $dayNum => $day) {
                 $isWeekend = ($dayNum == 6 || $dayNum == 7);
                 $dayFullDate = $day['date']->format('Y-m-d');
@@ -656,7 +622,6 @@ class ExportService
                 $sheet->setCellValue('D' . $row, $day['last_out'] ? $day['last_out']->format('H:i') : '-');
                 $sheet->setCellValue('E' . $row, $day['total_hours'] > 0 ? number_format($day['total_hours'], 2) : '-');
 
-                // Details
                 $details = '';
                 if (count($day['working_times']) > 0) {
                     $wtDetails = [];
@@ -665,7 +630,6 @@ class ExportService
                     }
                     $details = implode(', ', $wtDetails);
 
-                    // Add anomaly warning
                     if ($hasAnomaly) {
                         $anomalyLabels = array_map(fn($a) => $a['type_label'], $anomaliesByDate[$dayFullDate]);
                         $details .= ' ⚠ ' . implode(', ', $anomalyLabels);
@@ -675,7 +639,6 @@ class ExportService
                 }
                 $sheet->setCellValue('F' . $row, $details);
 
-                // Styling: anomaly takes priority over weekend
                 if ($hasAnomaly) {
                     $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('fee2e2');
                     $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->getColor()->setRGB('dc2626');
@@ -686,11 +649,10 @@ class ExportService
                 $row++;
             }
 
-            $row++; // Empty row between weeks
+            $row++;
         }
 
-        // Add KPIs section
-        $row++; // Extra spacing
+        $row++;
         $sheet->setCellValue('A' . $row, 'Indicateurs de Performance (KPIs)');
         $sheet->mergeCells('A' . $row . ':F' . $row);
         $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(12);
@@ -698,7 +660,6 @@ class ExportService
         $sheet->getStyle('A' . $row)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
         $row++;
 
-        // KPI headers
         $sheet->setCellValue('A' . $row, 'Heures Travaillées');
         $sheet->setCellValue('B' . $row, 'Jours Présents');
         $sheet->setCellValue('C' . $row, 'Retards');
@@ -711,7 +672,6 @@ class ExportService
         $sheet->getStyle('A' . $row . ':F' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $row++;
 
-        // KPI values
         $sheet->setCellValue('A' . $row, number_format($kpis['total_working_hours'], 2) . ' h');
         $sheet->setCellValue('B' . $row, $kpis['present_days']);
         $sheet->setCellValue('C' . $row, $kpis['late_arrivals']);
@@ -723,9 +683,8 @@ class ExportService
         $sheet->getStyle('A' . $row . ':F' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('eff6ff');
         $row++;
 
-        // Add Anomalies section if there are any
         if (count($anomalies) > 0) {
-            $row++; // Extra spacing
+            $row++;
             $sheet->setCellValue('A' . $row, '⚠️ Anomalies Détectées (' . count($anomalies) . ')');
             $sheet->mergeCells('A' . $row . ':F' . $row);
             $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(12)->getColor()->setRGB('dc2626');
@@ -733,13 +692,11 @@ class ExportService
             $sheet->getStyle('A' . $row)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
             $row++;
 
-            // Note
             $sheet->setCellValue('A' . $row, 'Les jours anormaux sont exclus des totaux KPI et marqués en rouge dans les calendriers.');
             $sheet->mergeCells('A' . $row . ':F' . $row);
             $sheet->getStyle('A' . $row)->getFont()->setItalic(true)->setSize(9)->getColor()->setRGB('666666');
             $row++;
 
-            // Anomaly headers
             $sheet->setCellValue('A' . $row, 'Date');
             $sheet->setCellValue('B' . $row, 'Type');
             $sheet->setCellValue('C' . $row, 'Description');
@@ -750,7 +707,6 @@ class ExportService
             $sheet->getStyle('A' . $row . ':D' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $row++;
 
-            // Anomaly data
             foreach ($anomalies as $anomaly) {
                 $dateFormatted = date('d/m/Y', strtotime($anomaly['date']));
                 $severityLabel = $anomaly['severity'] === 'high' ? '🔴 Élevée' : '🟠 Moyenne';
@@ -770,12 +726,10 @@ class ExportService
             }
         }
 
-        // Auto-size columns
         foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        // Apply borders to data
         $sheet->getStyle('A4:F' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
     }
 
@@ -793,7 +747,6 @@ class ExportService
         $anomalies = [];
         $fullName = $this->getUserFullName($user);
 
-        // Group working times by date
         $wtByDate = [];
         foreach ($workingTimes as $wt) {
             $dateKey = $wt->getStartTime()->format('Y-m-d');
@@ -803,7 +756,6 @@ class ExportService
             $wtByDate[$dateKey][] = $wt;
         }
 
-        // Check each day for anomalies
         foreach ($wtByDate as $date => $dayWorkingTimes) {
             $totalDayHours = 0;
             $periods = [];
@@ -818,7 +770,6 @@ class ExportService
                 ];
             }
 
-            // Anomaly 1: Excessive duration (>12h)
             if ($totalDayHours > 12) {
                 $anomalies[] = [
                     'user' => $fullName,
@@ -831,7 +782,6 @@ class ExportService
                 ];
             }
 
-            // Anomaly 2: Too short duration (<2h)
             if ($totalDayHours > 0 && $totalDayHours < 2) {
                 $anomalies[] = [
                     'user' => $fullName,
@@ -844,13 +794,11 @@ class ExportService
                 ];
             }
 
-            // Anomaly 3: Overlapping periods
             for ($i = 0; $i < count($periods); $i++) {
                 for ($j = $i + 1; $j < count($periods); $j++) {
                     $period1 = $periods[$i];
                     $period2 = $periods[$j];
 
-                    // Check overlap
                     if ($period1['start'] < $period2['end'] && $period2['start'] < $period1['end']) {
                         $anomalies[] = [
                             'user' => $fullName,
@@ -872,7 +820,6 @@ class ExportService
             }
         }
 
-        // Anomaly 4: Missing clocks (IN without OUT or vice-versa)
         $clocksByDate = [];
         foreach ($clocks as $clock) {
             $dateKey = $clock->getTime()->format('Y-m-d');
@@ -900,7 +847,6 @@ class ExportService
             }
         }
 
-        // Sort by date
         usort($anomalies, function($a, $b) {
             return strcmp($a['date'], $b['date']);
         });
