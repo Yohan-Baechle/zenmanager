@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react'
 import { reportsApi } from '../../../api/reports.api'
 import type { ReportsFilters, TeamOption, EmployeeOption } from '../../../types/kpi.types'
 import { useAuth } from '../../../hooks/useAuth'
+import Card from '../../common/Card'
+import Input from '../../common/Input'
+import Select from '../../common/Select'
+import Button from '../../common/Button'
+import Loader from '../../common/Loader'
 
 interface ReportFiltersProps {
     onApply: (filters: ReportsFilters) => void
@@ -33,6 +38,7 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
             fetchEmployees(firstTeamId)
             onApply({ team_id: firstTeamId })
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [teams])
 
     useEffect(() => {
@@ -90,7 +96,7 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         const cleanFilters = Object.fromEntries(
-            Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+            Object.entries(filters).filter(([, value]) => value !== undefined && value !== '')
         ) as ReportsFilters
         onApply(cleanFilters)
     }
@@ -114,164 +120,130 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
 
     if (loadingTeams) {
         return (
-            <div className="bg-white shadow rounded-lg p-6">
-                <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                    <p className="text-gray-600">Chargement des équipes...</p>
+            <Card>
+                <div className="flex items-center justify-center gap-4">
+                    <Loader />
+                    <p className="text-[var(--c4)]">Chargement des équipes...</p>
                 </div>
-            </div>
+            </Card>
         )
     }
 
     if (teams.length === 0) {
         return (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-                <div className="flex">
-                    <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                    </div>
-                    <div className="ml-3">
-                        <p className="text-sm text-yellow-700">
-                            Aucune équipe disponible. Veuillez contacter votre administrateur.
+            <Card className="bg-yellow-50 border-yellow-300">
+                <div className="flex items-start gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                        <p className="font-bold text-yellow-800">Aucune équipe disponible</p>
+                        <p className="text-yellow-700 mt-1">
+                            Veuillez contacter votre administrateur.
                         </p>
                     </div>
                 </div>
-            </div>
+            </Card>
         )
     }
 
     const hasMultipleTeams = teams.length > 1
 
+    // Préparer les options pour les selects
+    const teamOptions = teams.map(team => ({
+        value: String(team.id),
+        label: team.name
+    }))
+
+    const employeeOptions = [
+        { value: '', label: 'Tous les employés' },
+        ...employees.map(employee => ({
+            value: String(employee.id),
+            label: employee.fullName
+        }))
+    ]
+
     return (
-        <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-semibold mb-4">Filtres</h2>
+        <Card title="🔍 Filtres">
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Date de début
-                        </label>
-                        <input
-                            type="date"
-                            name="start_date"
-                            value={filters.start_date || ''}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+                    <Input
+                        type="date"
+                        name="start_date"
+                        label="Date de début"
+                        value={filters.start_date || ''}
+                        onChange={handleChange}
+                        floatingLabel
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Date de fin
-                        </label>
-                        <input
-                            type="date"
-                            name="end_date"
-                            value={filters.end_date || ''}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+                    <Input
+                        type="date"
+                        name="end_date"
+                        label="Date de fin"
+                        value={filters.end_date || ''}
+                        onChange={handleChange}
+                        floatingLabel
+                    />
 
                     {hasMultipleTeams ? (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Équipe {isManager && <span className="text-red-500">*</span>}
-                            </label>
-                            <select
-                                name="team_id"
-                                value={filters.team_id || ''}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            >
-                                {teams.map(team => (
-                                    <option key={team.id} value={team.id}>
-                                        {team.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <Select
+                            name="team_id"
+                            label={`Équipe${isManager ? ' *' : ''}`}
+                            options={teamOptions}
+                            value={String(filters.team_id || '')}
+                            onChange={handleChange}
+                            required
+                            floatingLabel
+                        />
                     ) : (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Votre équipe
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={teams[0]?.name || ''}
-                                    disabled
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
-                                />
-                                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
+                        <Input
+                            type="text"
+                            label="Votre équipe"
+                            value={teams[0]?.name || ''}
+                            disabled
+                            floatingLabel
+                        />
                     )}
 
                     {(isManager || isAdmin) && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Employé (optionnel)
-                            </label>
-                            <select
+                        <div className="relative">
+                            <Select
                                 name="user_id"
-                                value={filters.user_id || ''}
+                                label="Employé (optionnel)"
+                                options={employeeOptions}
+                                value={String(filters.user_id || '')}
                                 onChange={handleChange}
                                 disabled={loadingEmployees}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                            >
-                                <option value="">Tous les employés</option>
-                                {loadingEmployees ? (
-                                    <option disabled>Chargement...</option>
-                                ) : (
-                                    employees.map(employee => (
-                                        <option key={employee.id} value={employee.id}>
-                                            {employee.fullName}
-                                        </option>
-                                    ))
-                                )}
-                            </select>
+                                floatingLabel
+                            />
                             {loadingEmployees && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Chargement des employés...
-                                </p>
+                                <div className="absolute top-1/2 right-12 -translate-y-1/2">
+                                    <div className="w-4 h-4 border-2 border-[var(--c4)] border-t-transparent rounded-full animate-spin"></div>
+                                </div>
                             )}
                         </div>
                     )}
                 </div>
 
-                <div className="flex gap-3 mt-4">
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-                    >
+                <div className="flex gap-3 mt-6">
+                    <Button type="submit" variant="primary" disabled={loading}>
                         {loading ? (
                             <span className="flex items-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                 Chargement...
                             </span>
                         ) : (
-                            'Appliquer les filtres'
+                            '✓ Appliquer les filtres'
                         )}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="button"
+                        variant="secondary"
                         onClick={handleReset}
                         disabled={loading}
-                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors font-medium"
                     >
-                        Réinitialiser
-                    </button>
+                        ↻ Réinitialiser
+                    </Button>
                 </div>
             </form>
-        </div>
+        </Card>
     )
 }

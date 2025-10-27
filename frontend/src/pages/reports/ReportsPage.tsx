@@ -1,17 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { reportsApi } from '../../api/reports.api'
 import type { ReportsFilters, ReportsData } from '../../types/kpi.types'
 import ReportFilters from '../../components/features/reports/ReportFilters'
 import KPICard from '../../components/features/reports/KPICard'
+import Card from '../../components/common/Card'
+import Loader from '../../components/common/Loader'
 
 export default function ReportsPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [reportsData, setReportsData] = useState<ReportsData | null>(null)
-
-    useEffect(() => {
-        
-    }, [])
 
     const fetchReports = async (filters: ReportsFilters) => {
         setLoading(true)
@@ -25,11 +23,12 @@ export default function ReportsPage() {
             } else {
                 setError(response.error || 'Erreur lors du chargement des rapports')
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error fetching reports:', err)
+            const error = err as { response?: { data?: { error?: string } }; message?: string }
             setError(
-                err.response?.data?.error || 
-                err.message || 
+                error.response?.data?.error ||
+                error.message ||
                 'Erreur lors du chargement des rapports'
             )
         } finally {
@@ -43,30 +42,32 @@ export default function ReportsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900">Rapports et Statistiques</h1>
-            </div>
+            <h1 className="text-3xl font-bold">Rapports et Statistiques</h1>
 
             {/* Filtres */}
             <ReportFilters onApply={handleApplyFilters} loading={loading} />
 
-           
             {/* Affichage des erreurs */}
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
-                    <p className="font-bold">Erreur</p>
-                    <p>{error}</p>
-                </div>
+                <Card className="bg-red-50 border-red-300">
+                    <div className="flex items-start gap-3">
+                        <span className="text-2xl">❌</span>
+                        <div>
+                            <p className="font-bold text-red-800">Erreur</p>
+                            <p className="text-red-700 mt-1">{error}</p>
+                        </div>
+                    </div>
+                </Card>
             )}
 
             {/* Loading state */}
             {loading && !reportsData && (
-                <div className="flex justify-center items-center min-h-[400px]">
+                <Card className="min-h-[400px] flex items-center justify-center">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <div className="text-xl text-gray-600">Chargement des rapports...</div>
+                        <Loader />
+                        <p className="text-xl mt-4 text-[var(--c4)]">Chargement des rapports...</p>
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Données du rapport */}
@@ -74,80 +75,58 @@ export default function ReportsPage() {
                 <>
                     {/* Informations sur la période */}
                     {reportsData.period && (
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h2 className="text-xl font-semibold mb-4 text-gray-900">
-                                Période analysée
-                            </h2>
+                        <Card title="📅 Période analysée">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                    <p className="text-sm text-gray-600 mb-1">Total de jours</p>
-                                    <p className="text-3xl font-bold text-blue-600">
-                                        {reportsData.period.total_days ?? 'N/A'}
-                                    </p>
-                                </div>
-                                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                    <p className="text-sm text-gray-600 mb-1">Jours ouvrables</p>
-                                    <p className="text-3xl font-bold text-green-600">
-                                        {reportsData.period.working_days ?? 'N/A'}
-                                    </p>
-                                </div>
-                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                                    <p className="text-sm text-gray-600 mb-1">Week-ends</p>
-                                    <p className="text-3xl font-bold text-purple-600">
-                                        {reportsData.period.weekend_days ?? 'N/A'}
-                                    </p>
-                                </div>
+                                <StatCard
+                                    label="Total de jours"
+                                    value={reportsData.period.total_days ?? 'N/A'}
+                                    color="blue"
+                                />
+                                <StatCard
+                                    label="Jours ouvrables"
+                                    value={reportsData.period.working_days ?? 'N/A'}
+                                    color="green"
+                                />
+                                <StatCard
+                                    label="Week-ends"
+                                    value={reportsData.period.weekend_days ?? 'N/A'}
+                                    color="purple"
+                                />
                             </div>
-                        </div>
+                        </Card>
                     )}
 
                     {/* Horaires de travail */}
                     {reportsData.work_schedule && (
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h2 className="text-xl font-semibold mb-4 text-gray-900">
-                                Horaires de travail
-                            </h2>
+                        <Card title="🕐 Horaires de travail">
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Début</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {reportsData.work_schedule.start_time}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Fin</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {reportsData.work_schedule.end_time}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Tolérance retard</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {reportsData.work_schedule.tolerance_late} min
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Tolérance départ</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {reportsData.work_schedule.tolerance_early_departure} min
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Heures/jour</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        {reportsData.work_schedule.standard_hours_per_day}h
-                                    </p>
-                                </div>
+                                <InfoItem
+                                    label="Début"
+                                    value={reportsData.work_schedule.start_time}
+                                />
+                                <InfoItem
+                                    label="Fin"
+                                    value={reportsData.work_schedule.end_time}
+                                />
+                                <InfoItem
+                                    label="Tolérance retard"
+                                    value={`${reportsData.work_schedule.tolerance_late} min`}
+                                />
+                                <InfoItem
+                                    label="Tolérance départ"
+                                    value={`${reportsData.work_schedule.tolerance_early_departure} min`}
+                                />
+                                <InfoItem
+                                    label="Heures/jour"
+                                    value={`${reportsData.work_schedule.standard_hours_per_day}h`}
+                                />
                             </div>
-                        </div>
+                        </Card>
                     )}
 
                     {/* KPIs */}
                     {reportsData.kpis && (
-                        <div className="bg-white shadow rounded-lg p-6">
-                            <h2 className="text-xl font-semibold mb-6 text-gray-900">
-                                Indicateurs de performance (KPIs)
-                            </h2>
+                        <Card title="📊 Indicateurs de performance (KPIs)">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <KPICard
                                     title="Heures travaillées"
@@ -206,10 +185,47 @@ export default function ReportsPage() {
                                     description="Nombre total de pointages de sortie effectués durant la période"
                                 />
                             </div>
-                        </div>
+                        </Card>
                     )}
                 </>
             )}
+        </div>
+    )
+}
+
+// Composant pour afficher une statistique
+interface StatCardProps {
+    label: string
+    value: string | number
+    color: 'blue' | 'green' | 'purple'
+}
+
+function StatCard({ label, value, color }: StatCardProps) {
+    const colorClasses = {
+        blue: 'bg-blue-50 border-blue-300 text-blue-700',
+        green: 'bg-green-50 border-green-300 text-green-700',
+        purple: 'bg-purple-50 border-purple-300 text-purple-700',
+    }
+
+    return (
+        <div className={`p-4 rounded-[14px] border-2 ${colorClasses[color]}`}>
+            <p className="text-sm mb-2 opacity-80">{label}</p>
+            <p className="text-3xl font-bold">{value}</p>
+        </div>
+    )
+}
+
+// Composant pour afficher une information simple
+interface InfoItemProps {
+    label: string
+    value: string
+}
+
+function InfoItem({ label, value }: InfoItemProps) {
+    return (
+        <div>
+            <p className="text-sm text-[var(--c4)] mb-1">{label}</p>
+            <p className="text-lg font-semibold">{value}</p>
         </div>
     )
 }
