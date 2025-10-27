@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { reportsApi } from '../../api/reports.api'
-import type { ReportsFilters, ReportsData } from '../../types/reports.types'
+import type { ReportsFilters, ReportsData } from '../../types/kpi.types'
 import ReportFilters from '../../components/features/reports/ReportFilters'
 import KPICard from '../../components/features/reports/KPICard'
 

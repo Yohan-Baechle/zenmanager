@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { reportsApi } from '../../../api/reports.api'
-import type { ReportsFilters, TeamOption, EmployeeOption } from '../../../types/reports.types'
+import type { ReportsFilters, TeamOption, EmployeeOption } from '../../../types/kpi.types'
 import { useAuth } from '../../../hooks/useAuth'
 
 interface ReportFiltersProps {
@@ -22,12 +22,10 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
         user_id: undefined,
     })
 
-    // Récupérer les équipes au chargement
     useEffect(() => {
         fetchTeams()
     }, [])
 
-    // Sélectionner automatiquement la première équipe et charger les données
     useEffect(() => {
         if (teams.length > 0 && !filters.team_id) {
             const firstTeamId = teams[0].id
@@ -37,7 +35,6 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
         }
     }, [teams])
 
-    // Charger les employés quand l'équipe change
     useEffect(() => {
         if (filters.team_id) {
             fetchEmployees(filters.team_id)
@@ -74,13 +71,12 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target
-        
-        // Si on change d'équipe, réinitialiser user_id
+
         if (name === 'team_id') {
             setFilters(prev => ({
                 ...prev,
                 team_id: value === '' ? undefined : parseInt(value),
-                user_id: undefined // Réinitialiser la sélection d'employé
+                user_id: undefined
             }))
         } else {
             setFilters(prev => ({
@@ -113,8 +109,8 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
         onApply(resetFilters)
     }
 
-    const isManager = user?.role === 'manager' || user?.roles?.includes('ROLE_MANAGER')
-    const isAdmin = user?.role === 'admin' || user?.roles?.includes('ROLE_ADMIN')
+    const isManager = user?.role === 'manager' || user?.role?.includes('ROLE_MANAGER')
+    const isAdmin = user?.role === 'admin' || user?.role?.includes('ROLE_ADMIN')
 
     if (loadingTeams) {
         return (
@@ -219,7 +215,6 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
                         </div>
                     )}
 
-                    {/* Select employé (visible pour managers/admins) */}
                     {(isManager || isAdmin) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">

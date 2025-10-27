@@ -45,7 +45,7 @@ export interface WorkSchedule {
 export interface KPIs {
   total_working_hours: number
   late_arrivals_count: number
-  late_arrivals_rate: number  // Pourcentage de retards
+  late_arrivals_rate: number
   early_departures_count: number
   present_days_count: number
   absent_days_count: number
