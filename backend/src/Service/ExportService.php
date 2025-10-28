@@ -36,6 +36,10 @@ readonly class ExportService
     ): string {
         $employeesData = $this->collectEmployeesWeeklyData($startDate, $endDate, $userId, $teamId);
 
+        if (empty($employeesData)) {
+            throw new \RuntimeException('Aucune donnée trouvée pour les critères sélectionnés. Vérifiez que l\'équipe ou l\'utilisateur possède des pointages dans la période demandée.');
+        }
+
         $html = $this->generateHtmlForPdf($employeesData, $startDate, $endDate);
 
         $options = new Options();
@@ -63,6 +67,10 @@ readonly class ExportService
         $spreadsheet = new Spreadsheet();
 
         $employeesData = $this->collectEmployeesWeeklyData($startDate, $endDate, $userId, $teamId);
+
+        if (empty($employeesData)) {
+            throw new \RuntimeException('Aucune donnée trouvée pour les critères sélectionnés. Vérifiez que l\'équipe ou l\'utilisateur possède des pointages dans la période demandée.');
+        }
 
         $isFirstSheet = true;
         foreach ($employeesData as $employeeData) {

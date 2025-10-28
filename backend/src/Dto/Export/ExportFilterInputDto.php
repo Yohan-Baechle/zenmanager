@@ -4,7 +4,7 @@ namespace App\Dto\Export;
 
 use DateTimeImmutable as DateTimeImmutableAlias;
 use DateTimeInterface as DateTimeInterfaceAlias;
-use Exception as ExceptionAlias;
+
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ExportFilterInputDto
@@ -33,10 +33,10 @@ class ExportFilterInputDto
     public function getStartDateAsDateTime(): ?DateTimeInterfaceAlias
     {
         if ($this->start_date) {
-            try {
-                return new DateTimeImmutableAlias($this->start_date);
-            } catch (ExceptionAlias) {
-                return null;
+            $date = DateTimeImmutableAlias::createFromFormat('!Y-m-d', $this->start_date);
+
+            if ($date) {
+                return $date->setTime(0, 0, 0);
             }
         }
         return null;
@@ -48,10 +48,10 @@ class ExportFilterInputDto
     public function getEndDateAsDateTime(): ?DateTimeInterfaceAlias
     {
         if ($this->end_date) {
-            try {
-                return new DateTimeImmutableAlias($this->end_date);
-            } catch (ExceptionAlias) {
-                return null;
+            $date = DateTimeImmutableAlias::createFromFormat('!Y-m-d', $this->end_date);
+
+            if ($date) {
+                return $date->setTime(23, 59, 59);
             }
         }
         return null;
@@ -84,10 +84,8 @@ class ExportFilterInputDto
 
         if ($start && $end) {
             $interval = $start->diff($end);
-            $days = $interval->days;
 
-            // Max 366 days (1 year including leap year)
-            return $days <= 366;
+            return $interval->y < 1 || ($interval->y == 1 && $interval->m == 0 && $interval->d == 0);
         }
 
         return true;

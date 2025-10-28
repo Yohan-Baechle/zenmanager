@@ -72,11 +72,11 @@ final class ExportController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 400,
+        response: 404,
         description: 'Invalid date format'
     )]
     #[OA\Response(
-        response: 401,
+        response: 404,
         description: 'User not authenticated'
     )]
     #[OA\Response(
@@ -91,66 +91,7 @@ final class ExportController extends AbstractController
         #[MapQueryString] ExportFilterInputDto $filters
     ): Response
     {
-        error_log('DEBUG DTO: start_date=' . ($filters->start_date ?? 'null') .
-                  ', end_date=' . ($filters->end_date ?? 'null') .
-                  ', team_id=' . ($filters->team_id ?? 'null'));
-
-        $errors = $this->validator->validate($filters);
-        if (count($errors) > 0) {
-            $errorMessages = [];
-            foreach ($errors as $error) {
-                $errorMessages[$error->getPropertyPath()] = $error->getMessage();
-            }
-            return $this->json([
-                'success' => false,
-                'errors' => $errorMessages,
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        $this->denyAccessUnlessGranted(ExportVoter::EXPORT_CLOCKING);
-
-        /** @var User $currentUser */
-        $currentUser = $this->getUser();
-
-        [$teamId, $userId, $error] = $this->validateAndAdjustParameters(
-            $currentUser,
-            $filters->team_id,
-            $filters->user_id
-        );
-
-        if ($error) {
-            return $this->json($error['data'], $error['status']);
-        }
-
-        try {
-            $startDate = $filters->getStartDateAsDateTime();
-            $endDate = $filters->getEndDateAsDateTime();
-
-            if ($endDate) {
-                $endDate = (clone $endDate)->setTime(23, 59, 59);
-            }
-
-            $pdfContent = $this->exportService->generatePdfReport(
-                $startDate,
-                $endDate,
-                $userId,
-                $teamId
-            );
-
-            $filename = $this->generateFilename('pdf', $startDate, $endDate);
-
-            $response = new Response($pdfContent);
-            $response->headers->set('Content-Type', 'application/pdf');
-            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-
-            return $response;
-
-        } catch (ExceptionAlias $e) {
-            return $this->json([
-                'success' => false,
-                'error' => 'Error generating PDF: ' . $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return $this->handleExport($filters, [$this->exportService, 'generatePdfReport'], 'pdf');
     }
 
     #[Route('/clocking/xlsx', name: 'api_export_clocking_xlsx', methods: ['GET'])]
@@ -197,15 +138,15 @@ final class ExportController extends AbstractController
         )
     )]
     #[OA\Response(
-        response: 400,
+        response: 404,
         description: 'Invalid date format'
     )]
     #[OA\Response(
-        response: 401,
+        response: 404,
         description: 'User not authenticated'
     )]
     #[OA\Response(
-        response: 403,
+        response: 404,
         description: 'Access denied - Managers must specify a team they manage'
     )]
     #[OA\Response(
@@ -215,6 +156,11 @@ final class ExportController extends AbstractController
     public function exportXlsx(
         #[MapQueryString] ExportFilterInputDto $filters
     ): Response
+    {
+        return $this->handleExport($filters, [$this->exportService, 'generateXlsxReport'], 'xlsx');
+    }
+
+    private function handleExport(ExportFilterInputDto $filters, callable $generateReport, string $format): Response
     {
         $errors = $this->validator->validate($filters);
         if (count($errors) > 0) {
@@ -247,21 +193,14 @@ final class ExportController extends AbstractController
             $startDate = $filters->getStartDateAsDateTime();
             $endDate = $filters->getEndDateAsDateTime();
 
-            if ($endDate) {
-                $endDate = (clone $endDate)->setTime(23, 59, 59);
-            }
+            $content = $generateReport($startDate, $endDate, $userId, $teamId);
 
-            $xlsxContent = $this->exportService->generateXlsxReport(
-                $startDate,
-                $endDate,
-                $userId,
-                $teamId
-            );
+            $filename = $this->generateFilename($format, $startDate, $endDate);
 
-            $filename = $this->generateFilename('xlsx', $startDate, $endDate);
+            $contentType = $format === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-            $response = new Response($xlsxContent);
-            $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            $response = new Response($content);
+            $response->headers->set('Content-Type', $contentType);
             $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
             return $response;
@@ -269,7 +208,7 @@ final class ExportController extends AbstractController
         } catch (ExceptionAlias $e) {
             return $this->json([
                 'success' => false,
-                'error' => 'Error generating XLSX: ' . $e->getMessage(),
+                'error' => "Error generating $format: " . $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -328,21 +267,19 @@ final class ExportController extends AbstractController
     /**
      * Generate standardized filename for exports
      */
-    private function generateFilename(string $extension, DateTimeInterfaceAlias $startDate, DateTimeInterfaceAlias $endDate): string
+    private function generateFilename(string $extension, ?DateTimeInterfaceAlias $startDate, ?DateTimeInterfaceAlias $endDate): string
     {
         $timestamp = (new DateTime())->format('Ymd_His');
         $dateRange = '';
-        $startDate = $startDate->format('Ymd');
-        $endDate = $endDate->format('Ymd');
 
         if ($startDate && $endDate) {
-            $dateRange = '_' . $startDate . '-' . $endDate;
+            $dateRange = '_' . $startDate->format('Ymd') . '-' . $endDate->format('Ymd');
         } elseif ($startDate) {
-            $dateRange = '_from_' . $startDate;
+            $dateRange = '_from_' . $startDate->format('Ymd');
         } elseif ($endDate) {
-            $dateRange = '_until_' . $endDate;
+            $dateRange = '_until_' . $endDate->format('Ymd');
         }
 
-        return "clocking_report.$dateRange._$timestamp.$extension";
+        return "clocking_report{$dateRange}_{$timestamp}.{$extension}";
     }
 }
