@@ -12,7 +12,7 @@ export default function TeamCard({ team }: TeamCardProps) {
                 <p className="text-lg font-semibold">{team.name}</p>
                 <p className="text-sm text-gray-600">{team.description}</p>
                 <p className="text-sm text-gray-500">
-                    Members: {team.memberIds.length}
+                    Members: {team.employees?.length || 0}
                 </p>
             </div>
         </Card>
