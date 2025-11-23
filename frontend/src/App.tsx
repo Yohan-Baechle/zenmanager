@@ -17,6 +17,7 @@ import ManagerDashboard from './pages/dashboard/ManagerDashboard'
 import EmployeeDetailDashboard from './pages/dashboard/EmployeeDetailDashboard'
 import ReportsPage from './pages/reports/ReportsPage'
 import AdminPage from './pages/admin/AdminPage'
+import ClockRequestsManagementPage from './pages/clocks/ClockRequestsManagementPage'
 
 function App() {
     return (
@@ -92,6 +93,12 @@ function App() {
                         <Route path="/teams/edit/:id" element={
                             <ProtectedRoute requiredRole={['manager']}>
                                 <EditTeamPage />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/clock-requests" element={
+                            <ProtectedRoute requiredRole={['manager', 'admin']}>
+                                <ClockRequestsManagementPage />
                             </ProtectedRoute>
                         } />
 
