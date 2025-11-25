@@ -5,6 +5,8 @@ import ReportFilters from '../../components/features/reports/ReportFilters'
 import KPICard from '../../components/features/reports/KPICard'
 import Card from '../../components/common/Card'
 import Loader from '../../components/common/Loader'
+import StatCard from '../../components/features/reports/StatCard'
+import InfoItem from '../../components/features/reports/InfoItem'
 
 export default function ReportsPage() {
     const [loading, setLoading] = useState(false)
@@ -189,43 +191,6 @@ export default function ReportsPage() {
                     )}
                 </>
             )}
-        </div>
-    )
-}
-
-// Composant pour afficher une statistique
-interface StatCardProps {
-    label: string
-    value: string | number
-    color: 'blue' | 'green' | 'purple'
-}
-
-function StatCard({ label, value, color }: StatCardProps) {
-    const colorClasses = {
-        blue: 'bg-blue-50 border-blue-300 text-blue-700',
-        green: 'bg-green-50 border-green-300 text-green-700',
-        purple: 'bg-purple-50 border-purple-300 text-purple-700',
-    }
-
-    return (
-        <div className={`p-4 rounded-[14px] border-2 ${colorClasses[color]}`}>
-            <p className="text-sm mb-2 opacity-80">{label}</p>
-            <p className="text-3xl font-bold">{value}</p>
-        </div>
-    )
-}
-
-// Composant pour afficher une information simple
-interface InfoItemProps {
-    label: string
-    value: string
-}
-
-function InfoItem({ label, value }: InfoItemProps) {
-    return (
-        <div>
-            <p className="text-sm text-[var(--c4)] mb-1">{label}</p>
-            <p className="text-lg font-semibold">{value}</p>
         </div>
     )
 }
