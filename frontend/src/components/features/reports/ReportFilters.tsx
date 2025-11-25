@@ -38,7 +38,6 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
             fetchEmployees(firstTeamId)
             onApply({ team_id: firstTeamId })
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [teams])
 
     useEffect(() => {
@@ -147,7 +146,6 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
 
     const hasMultipleTeams = teams.length > 1
 
-    // Préparer les options pour les selects
     const teamOptions = teams.map(team => ({
         value: String(team.id),
         label: team.name
@@ -162,7 +160,7 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
     ]
 
     return (
-        <Card title="🔍 Filtres">
+        <Card title="Filtres">
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Input

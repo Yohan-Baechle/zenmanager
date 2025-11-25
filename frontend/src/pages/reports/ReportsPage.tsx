@@ -45,11 +45,8 @@ export default function ReportsPage() {
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold">Rapports et Statistiques</h1>
-
-            {/* Filtres */}
             <ReportFilters onApply={handleApplyFilters} loading={loading} />
 
-            {/* Affichage des erreurs */}
             {error && (
                 <Card className="bg-red-50 border-red-300">
                     <div className="flex items-start gap-3">
@@ -62,7 +59,6 @@ export default function ReportsPage() {
                 </Card>
             )}
 
-            {/* Loading state */}
             {loading && !reportsData && (
                 <Card className="min-h-[400px] flex items-center justify-center">
                     <div className="text-center">
@@ -72,12 +68,10 @@ export default function ReportsPage() {
                 </Card>
             )}
 
-            {/* Données du rapport */}
             {reportsData && !loading && (
                 <>
-                    {/* Informations sur la période */}
                     {reportsData.period && (
-                        <Card title="📅 Période analysée">
+                        <Card title="Période analysée">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <StatCard
                                     label="Total de jours"
@@ -95,9 +89,8 @@ export default function ReportsPage() {
                         </Card>
                     )}
 
-                    {/* Horaires de travail */}
                     {reportsData.work_schedule && (
-                        <Card title="🕐 Horaires de travail">
+                        <Card title="Horaires de travail">
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <InfoItem
                                     label="Début"
@@ -123,9 +116,8 @@ export default function ReportsPage() {
                         </Card>
                     )}
 
-                    {/* KPIs */}
                     {reportsData.kpis && (
-                        <Card title="📊 Indicateurs de performance (KPIs)">
+                        <Card title="Indicateurs de performance (KPIs)">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <KPICard
                                     title="Heures travaillées"
