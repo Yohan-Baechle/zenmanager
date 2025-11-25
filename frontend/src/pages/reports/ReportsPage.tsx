@@ -82,17 +82,14 @@ export default function ReportsPage() {
                                 <StatCard
                                     label="Total de jours"
                                     value={reportsData.period.total_days ?? 'N/A'}
-                                    color="blue"
                                 />
                                 <StatCard
                                     label="Jours ouvrables"
                                     value={reportsData.period.working_days ?? 'N/A'}
-                                    color="green"
                                 />
                                 <StatCard
                                     label="Week-ends"
                                     value={reportsData.period.weekend_days ?? 'N/A'}
-                                    color="purple"
                                 />
                             </div>
                         </Card>
