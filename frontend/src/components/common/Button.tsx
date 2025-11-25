@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'danger'
+    variant?: 'primary'
     children: ReactNode
 }
 
@@ -10,8 +10,6 @@ export default function Button({variant = 'primary', children, className = '', .
 
     const variants = {
         primary: 'bg-[var(--c4)] text-[var(--c1)] hover:bg-[var(--c5)]',
-        secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-        danger: 'bg-red-600 text-white hover:bg-red-700',
     }
 
     return (

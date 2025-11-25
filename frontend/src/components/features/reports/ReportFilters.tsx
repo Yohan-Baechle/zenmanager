@@ -231,16 +231,16 @@ export default function ReportFilters({ onApply, loading = false }: ReportFilter
                                 Chargement...
                             </span>
                         ) : (
-                            '✓ Appliquer les filtres'
+                            'Appliquer les filtres'
                         )}
                     </Button>
                     <Button
                         type="button"
-                        variant="secondary"
+                        variant="primary"
                         onClick={handleReset}
                         disabled={loading}
                     >
-                        ↻ Réinitialiser
+                        Réinitialiser
                     </Button>
                 </div>
             </form>
