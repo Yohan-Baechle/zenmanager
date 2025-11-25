@@ -131,56 +131,42 @@ export default function ReportsPage() {
                                     title="Heures travaillées"
                                     value={reportsData.kpis.total_working_hours?.toFixed(1) || '0'}
                                     unit="heures"
-                                    color="blue"
-                                    icon="⏱️"
                                     description="Nombre total d'heures effectuées par l'employé ou l'équipe durant la période sélectionnée"
                                 />
                                 <KPICard
                                     title="Jours présents"
                                     value={reportsData.kpis.present_days_count || 0}
                                     unit="jours"
-                                    color="green"
-                                    icon="✅"
                                     description="Nombre de jours où l'employé a pointé et travaillé normalement"
                                 />
                                 <KPICard
                                     title="Jours absents"
                                     value={reportsData.kpis.absent_days_count || 0}
                                     unit="jours"
-                                    color="red"
-                                    icon="❌"
                                     description="Nombre de jours ouvrables où l'employé n'a pas pointé et était absent"
                                 />
                                 <KPICard
                                     title="Taux de retards"
                                     value={reportsData.kpis.late_arrivals_rate?.toFixed(1) || '0'}
                                     unit="%"
-                                    color="orange"
-                                    icon="⏰"
                                     description={`Pourcentage de jours avec retard (${reportsData.kpis.late_arrivals_count || 0} retards sur ${reportsData.kpis.present_days_count || 0} jours présents)`}
                                 />
                                 <KPICard
                                     title="Départs anticipés"
                                     value={reportsData.kpis.early_departures_count || 0}
                                     unit="fois"
-                                    color="yellow"
-                                    icon="🏃"
                                     description="Nombre de fois où l'employé est parti avant l'heure de fin - tolérance (30 min)"
                                 />
                                 <KPICard
                                     title="Jours incomplets"
                                     value={reportsData.kpis.incomplete_days_count || 0}
                                     unit="jours"
-                                    color="purple"
-                                    icon="⚠️"
                                     description="Jours où l'employé a oublié de pointer à l'entrée ou à la sortie"
                                 />
                                 <KPICard
                                     title="Total sorties"
                                     value={reportsData.kpis.total_exits_count || 0}
                                     unit="sorties"
-                                    color="indigo"
-                                    icon="🚪"
                                     description="Nombre total de pointages de sortie effectués durant la période"
                                 />
                             </div>
