@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ReportsResponse, ReportsFilters, MyTeamsResponse, TeamEmployeesResponse } from '../types/reports.types'
+import type { ReportsResponse, ReportsFilters, MyTeamsResponse, TeamEmployeesResponse } from '../types/kpi.types'
 
 export const reportsApi = {
     getReports: async (filters?: ReportsFilters): Promise<ReportsResponse> => {
