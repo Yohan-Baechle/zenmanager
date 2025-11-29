@@ -2,8 +2,12 @@ import { Outlet } from 'react-router-dom'
 import { SidebarProvider } from '../../context/SidebarProvider'
 import Header from './Header'
 import Sidebar from './Sidebar'
+import { useKonamiCode } from '../../hooks/useKonamiCode'
+import EasterEggOverlay from '../features/easter-egg/EasterEggOverlay'
 
 export default function Layout() {
+    const [konamiActivated, resetKonami] = useKonamiCode()
+
     return (
         <SidebarProvider>
             <div className="min-h-screen">
@@ -15,6 +19,7 @@ export default function Layout() {
                     </main>
                 </div>
             </div>
+            {konamiActivated && <EasterEggOverlay onClose={resetKonami} />}
         </SidebarProvider>
     )
 }
