@@ -10,6 +10,11 @@
     --c3: #826D62;
     --c4: #585B4C;
     --c5: #2A2C24;
+
+    /* Status colors */
+    --status-pending: #eab308;
+    --status-approved: #22c55e;
+    --status-rejected: #ef4444;
 }
 
 body {

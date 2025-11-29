@@ -26,4 +26,14 @@ export const clocksApi = {
         const response = await apiClient.patch<ClockRequestDto>(`/clock-requests/${id}`, data)
         return response.data
     },
+
+    approveClockRequest: async (id: number, data?: { approvedTime?: string, approvedStatus?: boolean }): Promise<ClockRequestDto> => {
+        const response = await apiClient.post<ClockRequestDto>(`/clock-requests/${id}/approve`, data)
+        return response.data
+    },
+
+    rejectClockRequest: async (id: number, rejectionReason: string): Promise<ClockRequestDto> => {
+        const response = await apiClient.post<ClockRequestDto>(`/clock-requests/${id}/reject`, { rejectionReason })
+        return response.data
+    },
 }
