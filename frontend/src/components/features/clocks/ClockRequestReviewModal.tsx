@@ -155,6 +155,7 @@ export default function ClockRequestReviewModal({ isOpen, onClose, clockRequest,
                     <Button
                         type="button"
                         onClick={handleApprove}
+                        variant="primary"
                         disabled={isSubmitting}
                     >
                         Approuver
