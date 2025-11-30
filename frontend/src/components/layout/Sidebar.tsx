@@ -9,8 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { DashboardIcon } from "../../assets/icons/dashboard";
 import { AlarmAddIcon } from "../../assets/icons/alarm-add";
 import { AccountCircleIcon } from "../../assets/icons/account-circle";
-import { PersonIcon } from "../../assets/icons/person";
-import { SupervisorAccountIcon } from "../../assets/icons/supervisor-account";
 import { ReportIcon } from "../../assets/icons/report";
 import { AdminPanelSettingsIcon } from "../../assets/icons/admin-panel-settings";
 import { LogoutIcon } from "../../assets/icons/logout.tsx";
@@ -125,18 +123,6 @@ export default function Sidebar() {
                 to="/manager/dashboard"
                 icon={DashboardIcon}
                 label="Manager Dashboard"
-                iconOnly={isSemi}
-              />
-              <NavItem
-                to="/users"
-                icon={PersonIcon}
-                label="Utilisateurs"
-                iconOnly={isSemi}
-              />
-              <NavItem
-                to="/teams"
-                icon={SupervisorAccountIcon}
-                label="Équipes"
                 iconOnly={isSemi}
               />
               <NavItem
