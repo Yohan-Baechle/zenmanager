@@ -51,4 +51,8 @@ export const usersApi = {
         const response = await apiClient.post(`/users/${id}/regenerate-password`)
         return response.data
     },
+
+    removeFromTeam: async (id: number): Promise<void> => {
+        await apiClient.put(`/users/${id}/remove-from-team`, {})
+    },
 }

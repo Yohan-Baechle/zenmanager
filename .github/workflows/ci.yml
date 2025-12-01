@@ -29,8 +29,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, intl, pdo_mysql
+          extensions: mbstring, intl, pdo_pgsql, pgsql, zip, gd
           coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
         run: composer install --no-scripts --no-interaction --no-progress --prefer-dist
@@ -70,13 +82,19 @@ jobs:
       - name: Check Symfony container is valid
         run: php bin/console lint:container
 
-      - name: boot Docker
-        run: docker compose up -d
+      - name: Pull Docker images
+        working-directory: .
+        run: docker compose pull --ignore-pull-failures || true
+
+      - name: Boot Docker services
+        working-directory: .
+        run: docker compose up -d --build
 
       - name: Wait for database to be ready
+        working-directory: .
         run: |
           for i in {1..15}; do
-            if docker compose exec database pg_isready -U user_dot_com; then
+            if docker compose exec -T database pg_isready -U user_dot_com; then
               echo "✅ Database is ready!"
               exit 0
             fi
@@ -84,18 +102,26 @@ jobs:
             sleep 2
           done
           echo "❌ Database did not become ready in time."
+          docker compose logs database
           exit 1
 
       - name: Create test database
+        working-directory: .
         run: |
           docker compose exec -T database psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "CREATE DATABASE ${POSTGRES_DB}_test;"
 
       - name: Initialize database
+        working-directory: .
         run: |
-          docker compose exec backend php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction
-          docker compose exec backend php -d memory_limit=512M bin/console doctrine:fixtures:load --no-interaction
+          docker compose exec -T backend php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction
+          docker compose exec -T backend php -d memory_limit=512M bin/console doctrine:fixtures:load --no-interaction --append
 
       - name: Run PHPUnit tests
         run: |
           DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" \
           php bin/phpunit --testdox
+
+      - name: Cleanup Docker services
+        if: always()
+        working-directory: .
+        run: docker compose down -v
