@@ -8,6 +8,8 @@ import Card from '../../components/common/Card'
 import PdfPreviewModal from '../../components/common/PdfPreviewModal'
 import { SearchIcon } from '../../assets/icons/search'
 import { exportClockingPdf } from '../../api/exports'
+import UserSearchModal from '../../components/features/teams/UserSearchModal'
+import Button from '../../components/common/Button'
 
 export default function ManagerDashboard() {
     const [teams, setTeams] = useState<Team[]>([])
@@ -20,6 +22,7 @@ export default function ManagerDashboard() {
     const [previewModalOpen, setPreviewModalOpen] = useState(false)
     const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
     const [pdfFilename, setPdfFilename] = useState('')
+    const [isUserSearchModalOpen, setIsUserSearchModalOpen] = useState(false)
 
     useEffect(() => {
         loadTeams()
@@ -230,7 +233,16 @@ export default function ManagerDashboard() {
             </Card>
 
             <div>
-                <h2 className="text-xl font-semibold mb-4">My Teams</h2>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">My Teams</h2>
+                    <Button
+                        onClick={() => setIsUserSearchModalOpen(true)}
+                        disabled={!selectedTeamId}
+                        className="!py-2 !px-4 text-sm"
+                    >
+                        Gérer les membres
+                    </Button>
+                </div>
                 {teams.length === 0 ? (
                     <div className="bg-[var(--c1)] border border-[var(--c2)] rounded-[20px] p-[28px] text-center">
                         <p className="text-[var(--c5)]">
@@ -261,6 +273,16 @@ export default function ManagerDashboard() {
                 }}
                 onExportError={handleExportError}
             />
+
+            {selectedTeamId && (
+                <UserSearchModal
+                    isOpen={isUserSearchModalOpen}
+                    onClose={() => setIsUserSearchModalOpen(false)}
+                    teamId={selectedTeamId}
+                    onUserUpdated={loadTeams}
+                />
+            )}
+
         </div>
     )
 }
