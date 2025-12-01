@@ -1,0 +1,28 @@
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Team;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Persistence\ObjectManager;
+use Faker\Factory;
+
+class TeamFixtures extends Fixture
+{
+    public function load(ObjectManager $manager): void
+    {
+        $faker = Factory::create('fr_FR');
+        $maxTeams = ($_ENV['APP_ENV'] ?? 'dev') === 'test' ? 5 : 30;
+
+        for ($i = 1; $i <= $maxTeams; ++$i) {
+            $team = new Team();
+            $team->setName($faker->company().' Team')
+                ->setDescription($faker->sentence());
+
+            $manager->persist($team);
+            $this->addReference('team-'.$i, $team);
+        }
+
+        $manager->flush();
+    }
+}

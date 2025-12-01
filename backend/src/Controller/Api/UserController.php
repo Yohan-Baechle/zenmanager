@@ -1,0 +1,658 @@
+<?php
+
+namespace App\Controller\Api;
+
+use App\Dto\User\UserAdminCreateDto;
+use App\Dto\User\UserUpdateDto;
+use App\Entity\Clock;
+use App\Entity\Team;
+use App\Entity\User;
+use App\Mapper\ClockMapper;
+use App\Mapper\UserMapper;
+use App\Repository\UserRepository;
+use App\Service\Paginator;
+use App\Service\PasswordGeneratorService;
+use App\Service\UserCreationService;
+use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[OA\Tag(name: 'Users')]
+class UserController extends AbstractController
+{
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly UserMapper $userMapper,
+        private readonly ClockMapper $clockMapper,
+        private readonly Paginator $paginator,
+        private readonly UserCreationService $userCreationService,
+        private readonly PasswordGeneratorService $passwordGenerator,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+    ) {
+    }
+
+    #[Route('/users', name: 'api_users_index', methods: ['GET'])]
+    #[OA\Get(
+        path: '/api/users',
+        summary: 'Get all users',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(
+        name: 'page',
+        description: 'Page number',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 1, minimum: 1)
+    )]
+    #[OA\Parameter(
+        name: 'limit',
+        description: 'Items per page',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'integer', default: 20, minimum: 1, maximum: 100)
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Successful operation',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(
+                    property: 'data',
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
+                            new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                            new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                            new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                            new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                            new OA\Property(
+                                property: 'team',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                                ],
+                                type: 'object',
+                                nullable: true
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                        ]
+                    )
+                ),
+                new OA\Property(
+                    property: 'meta',
+                    properties: [
+                        new OA\Property(property: 'currentPage', type: 'integer', example: 1),
+                        new OA\Property(property: 'itemsPerPage', type: 'integer', example: 20),
+                        new OA\Property(property: 'totalItems', type: 'integer', example: 50),
+                        new OA\Property(property: 'totalPages', type: 'integer', example: 3),
+                    ],
+                    type: 'object'
+                ),
+            ]
+        )
+    )]
+    public function index(Request $request, UserRepository $userRepository): JsonResponse
+    {
+        $page = $request->query->getInt('page', Paginator::DEFAULT_PAGE);
+        $limit = $request->query->getInt('limit', Paginator::DEFAULT_LIMIT);
+
+        $queryBuilder = $userRepository->createQueryBuilder('u');
+        $paginatedResult = $this->paginator->paginate($queryBuilder, $page, $limit);
+
+        $dtos = $this->userMapper->toOutputDtoCollection($paginatedResult['items']);
+
+        return $this->json([
+            'data' => $dtos,
+            'meta' => $paginatedResult['meta'],
+        ]);
+    }
+
+    #[Route('/users/{id}', name: 'api_users_show', methods: ['GET'])]
+    #[IsGranted('USER_VIEW', 'user')]
+    #[OA\Get(
+        path: '/api/users/{id}',
+        summary: 'Get user by ID',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'User ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Successful operation',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'id', type: 'integer', example: 1),
+                new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
+                new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                new OA\Property(
+                    property: 'team',
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                    ],
+                    type: 'object',
+                    nullable: true
+                ),
+                new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+            ]
+        )
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User not found'
+    )]
+    public function show(User $user): JsonResponse
+    {
+        $dto = $this->userMapper->toOutputDto($user);
+
+        return $this->json($dto);
+    }
+
+    #[Route('/users', name: 'api_users_create', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[OA\Post(
+        path: '/api/users',
+        summary: 'Create a new user (Admin only)',
+        description: 'Creates a new user with an automatically generated secure password. The password will be sent to the user via email and must be changed on first login.',
+        security: [['Bearer' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['username', 'email', 'firstName', 'lastName', 'role'],
+                properties: [
+                    new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'newuser@example.com'),
+                    new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                    new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                    new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                    new OA\Property(property: 'role', description: 'Must be either "employee" or "manager"', type: 'string', example: 'employee'),
+                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true),
+                ]
+            )
+        ),
+        tags: ['Users'],
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'User created successfully. A secure password has been generated and sent to the user via email.',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                        new OA\Property(property: 'email', type: 'string', example: 'newuser@example.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                        new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                        new OA\Property(
+                            property: 'team',
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                            ],
+                            type: 'object',
+                            nullable: true
+                        ),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid input or managers must be assigned to a team',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - Admin role required'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Team not found'
+            ),
+        ]
+    )]
+    public function create(
+        #[MapRequestPayload] UserAdminCreateDto $dto,
+    ): JsonResponse {
+        $team = null;
+        if (null !== $dto->teamId) {
+            $team = $this->em->getRepository(Team::class)->find($dto->teamId);
+            if (!$team) {
+                return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
+            }
+        }
+
+        if ('manager' === $dto->role && null === $dto->teamId) {
+            return $this->json([
+                'error' => 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        ['user' => $user, 'temporaryPassword' => $temporaryPassword] = $this->userCreationService->createUser($dto, $team);
+
+        $this->em->persist($user);
+        $this->em->flush();
+
+        try {
+            $this->userCreationService->sendWelcomeEmail($user, $temporaryPassword);
+        } catch (\Exception $e) {
+        }
+
+        $outputDto = $this->userMapper->toOutputDto($user);
+
+        return $this->json($outputDto, Response::HTTP_CREATED);
+    }
+
+    #[Route('/users/{id}', name: 'api_users_update', methods: ['PUT'])]
+    #[IsGranted('USER_EDIT', 'user')]
+    #[OA\Put(
+        path: '/api/users/{id}',
+        summary: 'Update an existing user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'username', type: 'string', example: 'jsmith_updated'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'updated@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'NewSecurePass123!'),
+                    new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                    new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                    new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                    new OA\Property(property: 'role', description: 'Must be either "employee" or "manager"', type: 'string', example: 'manager'),
+                    new OA\Property(property: 'teamId', description: 'Team ID', type: 'integer', example: 1, nullable: true),
+                ]
+            )
+        ),
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User updated successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith_updated'),
+                        new OA\Property(property: 'email', type: 'string', example: 'updated@example.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                        new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                        new OA\Property(property: 'role', type: 'string', example: 'manager'),
+                        new OA\Property(
+                            property: 'team',
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                            ],
+                            type: 'object',
+                            nullable: true
+                        ),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Invalid input'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User or Team not found'
+            ),
+        ]
+    )]
+    public function update(
+        User $user,
+        #[MapRequestPayload] UserUpdateDto $dto,
+    ): JsonResponse {
+        $team = $user->getTeam();
+        if (null !== $dto->teamId) {
+            $team = $this->em->getRepository(Team::class)->find($dto->teamId);
+            if (!$team) {
+                return $this->json(['error' => 'Team not found'], Response::HTTP_NOT_FOUND);
+            }
+        }
+
+        $finalRole = $dto->role ?? ($user->getRoles()[0] === 'ROLE_MANAGER' ? 'manager' : 'employee');
+
+        if ('manager' === $finalRole && null === $team && null === $dto->teamId) {
+            return $this->json([
+                'error' => 'Managers must be assigned to a team. Please provide a teamId or change the role to employee.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $this->userMapper->updateEntity($user, $dto, $team);
+
+        $this->em->flush();
+
+        $outputDto = $this->userMapper->toOutputDto($user);
+
+        return $this->json($outputDto);
+    }
+
+    #[Route('/users/{id}/regenerate-password', name: 'api_users_regenerate_password', methods: ['POST'])]
+    #[OA\Post(
+        path: '/api/users/{id}/regenerate-password',
+        description: 'Generates a new secure password for a user and sends it via email. Admins can reset any user password. Regular users can only reset their own password.',
+        summary: 'Regenerate user password',
+        security: [['Bearer' => []]],
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Password regenerated and sent to user email',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Password regenerated and sent to user email'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - You can only reset your own password'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found'
+            ),
+        ]
+    )]
+    public function regeneratePassword(User $user): JsonResponse
+    {
+        $currentUser = $this->getUser();
+
+        if (!$this->isGranted('ROLE_ADMIN') && $currentUser !== $user) {
+            return $this->json(
+                ['error' => 'You can only reset your own password'],
+                Response::HTTP_FORBIDDEN
+            );
+        }
+
+        $temporaryPassword = $this->passwordGenerator->generate();
+
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $temporaryPassword);
+        $user->setPassword($hashedPassword);
+
+        $this->em->flush();
+
+        try {
+            $this->userCreationService->sendPasswordRegeneratedEmail($user, $temporaryPassword);
+        } catch (\Exception $e) {
+        }
+
+        return $this->json([
+            'message' => 'Password regenerated and sent to user email',
+        ]);
+    }
+
+    #[Route('/users/{id}/remove-from-team', name: 'api_users_remove_from_team', methods: ['PUT'])]
+    #[IsGranted('USER_EDIT', 'user')]
+    #[OA\Put(
+        path: '/api/users/{id}/remove-from-team',
+        summary: 'Remove user from their team',
+        description: 'Removes the user from their current team without deleting the user account. Managers can only remove users from their own teams.',
+        security: [['Bearer' => []]],
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User removed from team successfully',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'integer', example: 1),
+                        new OA\Property(property: 'username', type: 'string', example: 'jsmith'),
+                        new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                        new OA\Property(property: 'firstName', type: 'string', example: 'Jane'),
+                        new OA\Property(property: 'lastName', type: 'string', example: 'Smith'),
+                        new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                        new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                        new OA\Property(property: 'team', type: 'object', nullable: true, example: null),
+                        new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                        new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Cannot remove a manager from their team',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Cannot remove a manager from their team. Managers must always be assigned to a team. Please change their role to employee first, or assign them to another team.'),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - You can only remove users from your own teams'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found'
+            ),
+        ]
+    )]
+    public function removeFromTeam(User $user): JsonResponse
+    {
+        if (in_array('ROLE_MANAGER', $user->getRoles())) {
+            return $this->json([
+                'error' => 'Cannot remove a manager from their team. Managers must always be assigned to a team. Please change their role to employee first, or assign them to another team.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user->setTeam(null);
+        $this->em->flush();
+
+        $outputDto = $this->userMapper->toOutputDto($user);
+
+        return $this->json($outputDto);
+    }
+
+    #[Route('/users/{id}', name: 'api_users_delete', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN')]
+    #[OA\Delete(
+        path: '/api/users/{id}',
+        summary: 'Delete a user (Admin only)',
+        description: 'Permanently deletes a user from the database. This action is irreversible and only available to administrators.',
+        security: [['Bearer' => []]],
+        tags: ['Users'],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'User ID',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'integer')
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 204,
+                description: 'User deleted successfully'
+            ),
+            new OA\Response(
+                response: 403,
+                description: 'Access denied - Admin role required'
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'User not found'
+            ),
+        ]
+    )]
+    public function delete(User $user): JsonResponse
+    {
+        $this->em->remove($user);
+        $this->em->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/users/{id}/clocks', name: 'api_users_clocks', methods: ['GET'])]
+    #[IsGranted('USER_VIEW_CLOCKS', 'user')]
+    #[OA\Get(
+        path: '/api/users/{id}/clocks',
+        summary: 'Get a summary of the arrivals and departures of an employee',
+        tags: ['Users']
+    )]
+    #[OA\Parameter(
+        name: 'id',
+        description: 'User ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(type: 'integer')
+    )]
+    #[OA\Parameter(
+        name: 'start',
+        description: 'Filter by start date (ISO 8601 format)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'string', format: 'date-time', example: '2025-10-01T00:00:00Z')
+    )]
+    #[OA\Parameter(
+        name: 'end',
+        description: 'Filter by end date (ISO 8601 format)',
+        in: 'query',
+        required: false,
+        schema: new OA\Schema(type: 'string', format: 'date-time', example: '2025-10-31T23:59:59Z')
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Successful operation',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                    new OA\Property(property: 'time', type: 'string', format: 'date-time'),
+                    new OA\Property(
+                        property: 'status',
+                        description: 'true for clock-in (arrival), false for clock-out (departure)',
+                        type: 'boolean',
+                        example: true
+                    ),
+                    new OA\Property(
+                        property: 'owner',
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'username', type: 'string', example: 'jdoe'),
+                            new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                            new OA\Property(property: 'firstName', type: 'string', example: 'John'),
+                            new OA\Property(property: 'lastName', type: 'string', example: 'Doe'),
+                            new OA\Property(property: 'phoneNumber', type: 'string', example: '+33612345678', nullable: true),
+                            new OA\Property(property: 'role', type: 'string', example: 'employee'),
+                            new OA\Property(
+                                property: 'team',
+                                properties: [
+                                    new OA\Property(property: 'id', type: 'integer', example: 1),
+                                    new OA\Property(property: 'name', type: 'string', example: 'Development Team'),
+                                ],
+                                type: 'object',
+                                nullable: true
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'updatedAt', type: 'string', format: 'date-time'),
+                        ],
+                        type: 'object'
+                    ),
+                    new OA\Property(property: 'createdAt', type: 'string', format: 'date-time'),
+                ]
+            )
+        )
+    )]
+    #[OA\Response(
+        response: 400,
+        description: 'Invalid date format'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'User not found'
+    )]
+    public function getClocks(User $user, Request $request): JsonResponse
+    {
+        $queryBuilder = $this->em->getRepository(Clock::class)
+            ->createQueryBuilder('c')
+            ->where('c.owner = :user')
+            ->setParameter('user', $user)
+            ->orderBy('c.time', 'DESC');
+
+        if ($request->query->has('start')) {
+            try {
+                $startDate = new \DateTimeImmutable($request->query->get('start'));
+                $queryBuilder->andWhere('c.time >= :start')
+                    ->setParameter('start', $startDate);
+            } catch (\Exception $e) {
+                return $this->json(['error' => 'Invalid start date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        if ($request->query->has('end')) {
+            try {
+                $endDate = new \DateTimeImmutable($request->query->get('end'));
+                $queryBuilder->andWhere('c.time <= :end')
+                    ->setParameter('end', $endDate);
+            } catch (\Exception $e) {
+                return $this->json(['error' => 'Invalid end date format'], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $clocks = $queryBuilder->getQuery()->getResult();
+
+        $clockDtos = $this->clockMapper->toOutputDtoCollection($clocks);
+
+        return $this->json($clockDtos);
+    }
+}

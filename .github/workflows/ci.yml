@@ -1,0 +1,127 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend:
+    name: Symfony Backend
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, intl, pdo_pgsql, pgsql, zip, gd
+          coverage: none
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-scripts --no-interaction --no-progress --prefer-dist
+
+      # keep both for self hosted and when github-side 
+      - name: create root .env file
+        run: |
+          echo "POSTGRES_DB=best_db" > ../.env
+          echo "POSTGRES_USER=user_dot_com" >> ../.env
+          echo "POSTGRES_PASSWORD=shhhhhhh" >> ../.env
+
+          echo "POSTGRES_DB=best_db" >> $GITHUB_ENV
+          echo "POSTGRES_USER=user_dot_com" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=shhhhhhh" >> $GITHUB_ENV
+
+      - name: Create backend .env file
+        run: |
+          echo "APP_ENV=test" > .env
+          echo "APP_SECRET=dummy_secret" >> .env
+          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" >> .env
+          echo "DEFAULT_URI=http://localhost" >> .env
+          echo "CORS_ALLOW_ORIGIN=true" >> .env
+          echo "JWT_SECRET_KEY=%kernel.project_dir%/config/jwt/private.pem" >> .env 
+          echo "JWT_PUBLIC_KEY=%kernel.project_dir%/config/jwt/public.pem" >> .env
+          echo "JWT_PASSPHRASE=poufpouf" >> .env
+
+      - name: generate JWT keys
+        run: php bin/console lexik:jwt:generate-keypair
+
+      #just a sanity check but apparently useful in early projects
+      - name: Check Symfony boot and console
+        run: |
+          php bin/console cache:clear --no-warmup 
+          php bin/console about
+
+      #check we're not missing any env variables
+      - name: Check Symfony container is valid
+        run: php bin/console lint:container
+
+      - name: Pull Docker images
+        working-directory: .
+        run: docker compose pull --ignore-pull-failures || true
+
+      - name: Boot Docker services
+        working-directory: .
+        run: docker compose up -d --build
+
+      - name: Wait for database to be ready
+        working-directory: .
+        run: |
+          for i in {1..15}; do
+            if docker compose exec -T database pg_isready -U user_dot_com; then
+              echo "✅ Database is ready!"
+              exit 0
+            fi
+            echo "⏳ Waiting for database... ($i/15)"
+            sleep 2
+          done
+          echo "❌ Database did not become ready in time."
+          docker compose logs database
+          exit 1
+
+      - name: Create test database
+        working-directory: .
+        run: |
+          docker compose exec -T database psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c "CREATE DATABASE ${POSTGRES_DB}_test;"
+
+      - name: Initialize database
+        working-directory: .
+        run: |
+          docker compose exec -T backend php -d memory_limit=512M bin/console doctrine:migrations:migrate --no-interaction
+          docker compose exec -T backend php -d memory_limit=512M bin/console doctrine:fixtures:load --no-interaction --append
+
+      - name: Run PHPUnit tests
+        run: |
+          DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}?serverVersion=18&charset=utf8" \
+          php bin/phpunit --testdox
+
+      - name: Cleanup Docker services
+        if: always()
+        working-directory: .
+        run: docker compose down -v

@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Dto\User;
+
+use Symfony\Component\Validator\Constraints as Assert;
+
+class UserAdminCreateDto
+{
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 3, max: 50)]
+    #[Assert\Regex(
+        pattern: '/^[a-zA-Z0-9_-]+$/',
+        message: 'Username can only contain letters, numbers, underscores and hyphens'
+    )]
+    public ?string $username = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    public ?string $email = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 100)]
+    public ?string $firstName = null;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 100)]
+    public ?string $lastName = null;
+
+    #[Assert\Regex(
+        pattern: '/^\+?[1-9]\d{1,14}$/',
+        message: 'Invalid phone number format'
+    )]
+    public ?string $phoneNumber = null;
+
+    #[Assert\NotBlank]
+    public ?string $role = null;
+    #[Assert\Choice(choices: ['employee', 'manager'], message: 'Role must be either employee or manager')]
+
+    public ?int $teamId = null;
+}

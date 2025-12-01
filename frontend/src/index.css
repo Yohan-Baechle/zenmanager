@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+:root {
+    font-family: Inter, system-ui, Avery, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    --c1: #D2D2EB;
+    --c2: #AA9D9F;
+    --c3: #826D62;
+    --c4: #585B4C;
+    --c5: #2A2C24;
+
+    /* Status colors */
+    --status-pending: #eab308;
+    --status-approved: #22c55e;
+    --status-rejected: #ef4444;
+}
+
+body {
+    margin: 0;
+    background: linear-gradient(180deg, var(--c1), var(--c2));
+    min-height: 100vh;
+}
