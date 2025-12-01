@@ -147,24 +147,18 @@ export default function ManagerDashboard() {
                 <KPICard
                     title="Total Teams"
                     value={teams.length}
-                    icon="👥"
-                    color="blue"
                     description=""
                     unit=""
                 />
                 <KPICard
                     title="Total Members"
                     value={teams.reduce((acc, team) => acc + (team.employees?.length || 0), 0)}
-                    icon="👤"
-                    color="green"
                     description=""
                     unit=""
                 />
                 <KPICard
                     title="Active Projects"
                     value="0"
-                    icon="📋"
-                    color="purple"
                     description=""
                     unit=""
                 />
