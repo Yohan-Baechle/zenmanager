@@ -303,6 +303,8 @@ class UserTest extends TestCase
             'missingatsign.com',
             'john..doe@example.com',
             'john.doe@.com',
+            'john.doe@c@o@m',
+            'john.doe@domain..com',
         ];
 
         foreach ($invalidFormats as $email) {
