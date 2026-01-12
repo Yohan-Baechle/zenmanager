@@ -1,0 +1,163 @@
+# =============================================================================
+# BACKEND PRODUCTION DOCKERFILE - Symfony 7.3 / PHP 8.3
+# =============================================================================
+# Best practices:
+# - Multi-stage build for smaller image
+# - Non-root user for security
+# - Optimized PHP/OPcache settings
+# - Health checks
+# - Proper signal handling
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: Composer dependencies
+# -----------------------------------------------------------------------------
+FROM composer:2 AS composer
+
+# -----------------------------------------------------------------------------
+# Stage 2: Build application
+# -----------------------------------------------------------------------------
+FROM php:8.3-cli-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    git \
+    unzip \
+    icu-dev \
+    libzip-dev \
+    postgresql-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo \
+        pdo_pgsql \
+        pgsql \
+        intl \
+        zip \
+        opcache \
+        gd
+
+# Copy composer from official image
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+
+# Copy composer files first (better layer caching)
+COPY backend/composer.json backend/composer.lock ./
+
+# Install dependencies without dev packages
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist \
+    --no-progress \
+    --no-interaction
+
+# Copy application source
+COPY backend/ .
+
+# Generate optimized autoloader and run scripts
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev \
+    && composer run-script post-install-cmd --no-dev || true
+
+# Warm up Symfony cache
+RUN php bin/console cache:warmup --env=prod --no-debug || true
+
+# -----------------------------------------------------------------------------
+# Stage 3: Production runtime
+# -----------------------------------------------------------------------------
+FROM php:8.3-cli-alpine AS production
+
+LABEL maintainer="Yohan Baechle"
+LABEL description="TimeManager Backend API - Production"
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    icu-libs \
+    libzip \
+    postgresql-libs \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    # For healthcheck
+    curl
+
+# Install PHP extensions
+RUN apk add --no-cache --virtual .build-deps \
+        icu-dev \
+        libzip-dev \
+        postgresql-dev \
+        libpng-dev \
+        libjpeg-turbo-dev \
+        freetype-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo \
+        pdo_pgsql \
+        pgsql \
+        intl \
+        zip \
+        opcache \
+        gd \
+    && apk del .build-deps
+
+# PHP production configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# OPcache production settings
+COPY <<EOF /usr/local/etc/php/conf.d/opcache-prod.ini
+opcache.enable=1
+opcache.memory_consumption=256
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=20000
+opcache.validate_timestamps=0
+opcache.save_comments=1
+opcache.fast_shutdown=1
+EOF
+
+# PHP production settings
+COPY <<EOF /usr/local/etc/php/conf.d/php-prod.ini
+expose_php=Off
+memory_limit=256M
+max_execution_time=30
+realpath_cache_size=4096K
+realpath_cache_ttl=600
+display_errors=Off
+log_errors=On
+error_log=/dev/stderr
+EOF
+
+WORKDIR /var/www/symfony
+
+# Copy built application from builder
+COPY --from=builder /app /var/www/symfony
+
+# Create minimal .env for Symfony (actual values come from container environment)
+RUN echo "APP_ENV=prod" > /var/www/symfony/.env
+
+# Create non-root user
+RUN addgroup -g 1000 symfony \
+    && adduser -u 1000 -G symfony -s /bin/sh -D symfony \
+    && chown -R symfony:symfony /var/www/symfony
+
+# Create var directory with proper permissions
+RUN mkdir -p var/cache var/log \
+    && chown -R symfony:symfony var
+
+USER symfony
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+# Entrypoint: run migrations then start server
+CMD ["sh", "-c", "php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && php -S 0.0.0.0:8000 -t public"]
